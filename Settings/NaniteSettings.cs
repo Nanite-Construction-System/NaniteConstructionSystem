@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Sandbox.ModAPI;
 
 namespace NaniteConstructionSystem.Settings
@@ -220,6 +220,10 @@ namespace NaniteConstructionSystem.Settings
             if(settings.Version == "1.6")
             {
                 settings.Version = "1.7";
+            }
+            if(settings.Version == "1.7")
+            {
+                settings.Version = "1.8";
             }
 
             if(settings.Version != originalVersion)
