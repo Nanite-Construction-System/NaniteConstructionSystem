@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Linq;
 using System.IO;
@@ -1119,7 +1119,22 @@ namespace NaniteConstructionSystem
         {
             if(messageText.ToLower() == "/nanite")
             {
-                string message = @"05/02/2017
+                string message = @"02/16/2018
+
+-Fixed settings load on world load - BAM5
+-Fixed some texture issues, and cleaned up textures folder
+-Adjusted beacon costs and build times
+-Fixed beacons working without being built - BAM5
+-Added github for posting issues https://github.com/nukeguard/NaniteConstructionSystem/issues
+
+02/06/2018
+-Fix for failed compilation for particle effects
+
+09/10/2017
+-fixed workshop path for center model
+-identified two errors in log, need to figure out what cause is and how to fix.
+
+05/02/2017
 - Fixed issues from not being updated in awhile.
 - Fixed Projections not building properly.
 - Fixed Mining Nanites not properly removing voxels.
