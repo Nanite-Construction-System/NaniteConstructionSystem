@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Sandbox.ModAPI;
@@ -232,7 +232,7 @@ namespace NaniteConstructionSystem.Settings
 
         private void SaveTerminalSettings<T>(string fileName, T settings)
         {
-            /*
+            /* Old Method
             using (var writer = MyAPIGateway.Utilities.WriteFileInLocalStorage(fileName, typeof(NaniteSettings)))
             {
                 writer.Write(MyAPIGateway.Utilities.SerializeToXML(settings));
@@ -246,42 +246,32 @@ namespace NaniteConstructionSystem.Settings
         private T LoadTerminalSettings<T>(string fileName)
         {
             
-             if (MyAPIGateway.Utilities.FileExistsInLocalStorage(fileName, typeof(NaniteSettings)))
-            {
+            //if (MyAPIGateway.Utilities.FileExistsInLocalStorage(fileName, typeof(NaniteSettings)))
+            //{
                 try
                 {
                     Logging.Instance.WriteLine(string.Format("Loading: {0}", fileName));
-                    using (var reader = MyAPIGateway.Utilities.ReadFileInLocalStorage(fileName, typeof(NaniteSettings)))
+
+					string settingsXML;
+					if(MyAPIGateway.Utilities.GetVariable(fileName, out settingsXML)) // If load successful
+						return MyAPIGateway.Utilities.SerializeFromXML<T>(settingsXML); // Process XML and return the object.
+
+					/* Old Method
+					using (var reader = MyAPIGateway.Utilities.ReadFileInLocalStorage(fileName, typeof(NaniteSettings)))
                     {
                         string settingsData = reader.ReadToEnd();
                         T settings = MyAPIGateway.Utilities.SerializeFromXML<T>(settingsData);
                         return settings;
                     }
+					*/
                 }
                 catch (Exception ex)
                 {
                     Logging.Instance.WriteLine(string.Format("Error loading terminal settings file: {0}", ex.ToString()));
                 }
-            }
+            //}
 
             return default(T);
-            
-
-            try
-            {
-                string data = "";
-                if (MyAPIGateway.Utilities.GetVariable(fileName, out data))
-                {
-                    T settings = MyAPIGateway.Utilities.SerializeFromXML<T>(data);
-                    return settings;
-                }
-            }
-            catch(Exception ex)
-            {
-                Logging.Instance.WriteLine(string.Format("Loading Error: {0}", ex.ToString()));
-            }
-
-            return default(T); 
         }
     }
 }
