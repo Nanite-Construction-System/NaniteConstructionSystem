@@ -24,20 +24,8 @@ namespace NaniteConstructionSystem.Entities.Effects
                 GetModelsFolder();
         }
 
-        private void GetModelsFolder()
-        {
-            ulong publishID = 0;
-            var mods = MyAPIGateway.Session.GetCheckpoint("null").Mods;
-            foreach (var mod in mods)
-            {
-                if (mod.PublishedFileId == 219757726)
-                    publishID = mod.PublishedFileId;
-            }
-
-            if (publishID != 0)
-                m_modelsFolder = Path.GetFullPath(string.Format(@"{0}\{1}.sbm\Models\Cubes\large\", MyAPIGateway.Utilities.GamePaths.ModsPath, publishID.ToString()));
-            else
-                m_modelsFolder = Path.GetFullPath(string.Format(@"{0}\{1}\Models\Cubes\large\", MyAPIGateway.Utilities.GamePaths.ModsPath, "NaniteConstructionSystemLocal"));
+        private void GetModelsFolder() {
+			m_modelsFolder = Path.GetFullPath(Path.Combine(MyAPIGateway.Utilities.GamePaths.ModsPath, MyAPIGateway.Utilities.GamePaths.ModScopeName.Split('_')[0], "Models", "Cubes", "large") + Path.DirectorySeparatorChar);
         }
 
         public abstract void ActiveUpdate();

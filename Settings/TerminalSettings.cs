@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using Sandbox.ModAPI;
@@ -128,7 +129,7 @@ namespace NaniteConstructionSystem.Settings
                 SerializableKeyValuePair<long, NaniteTerminalSettings> pair = new SerializableKeyValuePair<long, NaniteTerminalSettings>(item.Key, item.Value);
                 terminalResult.Add(pair);
             }
-            SaveTerminalSettings("terminalsettings.xml", terminalResult);
+            SaveTerminalSettings("FactoryTerminalSettings.dat", terminalResult);
 
             List<SerializableKeyValuePair<long, NaniteAssemblerSettings>> assemblerResult = new List<SerializableKeyValuePair<long, NaniteAssemblerSettings>>();
             foreach (var item in NaniteConstructionManager.AssemblerSettings)
@@ -136,7 +137,7 @@ namespace NaniteConstructionSystem.Settings
                 SerializableKeyValuePair<long, NaniteAssemblerSettings> pair = new SerializableKeyValuePair<long, NaniteAssemblerSettings>(item.Key, item.Value);
                 assemblerResult.Add(pair);
             }
-            SaveTerminalSettings("assemblersettings.xml", assemblerResult);
+            SaveTerminalSettings("AssemblerTerminalSettings.dat", assemblerResult);
 
             List<SerializableKeyValuePair<long, NaniteHammerTerminalSettings>> hammerResult = new List<SerializableKeyValuePair<long, NaniteHammerTerminalSettings>>();
             foreach (var item in NaniteConstructionManager.HammerTerminalSettings)
@@ -144,7 +145,7 @@ namespace NaniteConstructionSystem.Settings
                 SerializableKeyValuePair<long, NaniteHammerTerminalSettings> pair = new SerializableKeyValuePair<long, NaniteHammerTerminalSettings>(item.Key, item.Value);
                 hammerResult.Add(pair);
             }
-            SaveTerminalSettings("NaniteControlFactory.HammerTerminalSettings", hammerResult);
+            SaveTerminalSettings("HammerTerminalSettings.dat", hammerResult);
 
             List<SerializableKeyValuePair<long, NaniteBeaconTerminalSettings>> beaconResult = new List<SerializableKeyValuePair<long, NaniteBeaconTerminalSettings>>();
             foreach (var item in NaniteConstructionManager.BeaconTerminalSettings)
@@ -152,12 +153,12 @@ namespace NaniteConstructionSystem.Settings
                 SerializableKeyValuePair<long, NaniteBeaconTerminalSettings> pair = new SerializableKeyValuePair<long, NaniteBeaconTerminalSettings>(item.Key, item.Value);
                 beaconResult.Add(pair);
             }
-            SaveTerminalSettings("NaniteControlFactory.BeaconTerminalSettings", beaconResult);
+            SaveTerminalSettings("BeaconTerminalSettings.dat", beaconResult);
         }
 
         public void Load()
         {
-            var terminalResult = LoadTerminalSettings<List<SerializableKeyValuePair<long, NaniteTerminalSettings>>>("terminalsettings.xml");
+            var terminalResult = LoadTerminalSettings<List<SerializableKeyValuePair<long, NaniteTerminalSettings>>>("FactoryTerminalSettings.dat");
             if(terminalResult != null)
             {
                 foreach (var item in terminalResult)
@@ -175,7 +176,7 @@ namespace NaniteConstructionSystem.Settings
                 }
             }
 
-            var assemblerResult = LoadTerminalSettings<List<SerializableKeyValuePair<long, NaniteAssemblerSettings>>>("assemblersettings.xml");
+            var assemblerResult = LoadTerminalSettings<List<SerializableKeyValuePair<long, NaniteAssemblerSettings>>>("AssemblerTerminalSettings.dat");
             if(assemblerResult != null)
             {
                 foreach (var item in assemblerResult)
@@ -193,7 +194,7 @@ namespace NaniteConstructionSystem.Settings
                 }
             }
 
-            var hammerResult = LoadTerminalSettings<List<SerializableKeyValuePair<long, NaniteHammerTerminalSettings>>>("NaniteControlFactory.HammerTerminalSettings");
+            var hammerResult = LoadTerminalSettings<List<SerializableKeyValuePair<long, NaniteHammerTerminalSettings>>>("HammerTerminalSettings.dat");
             if(hammerResult != null)
             {
                 foreach(var item in hammerResult)
@@ -211,7 +212,7 @@ namespace NaniteConstructionSystem.Settings
                 }
             }
 
-            var beaconResult = LoadTerminalSettings<List<SerializableKeyValuePair<long, NaniteBeaconTerminalSettings>>>("NaniteControlFactory.BeaconTerminalSettings");
+            var beaconResult = LoadTerminalSettings<List<SerializableKeyValuePair<long, NaniteBeaconTerminalSettings>>>("BeaconTerminalSettings.dat");
             if (beaconResult != null)
             {
                 foreach (var item in beaconResult)
@@ -230,46 +231,24 @@ namespace NaniteConstructionSystem.Settings
             }
         }
 
-        private void SaveTerminalSettings<T>(string fileName, T settings)
-        {
-            /* Old Method
-            using (var writer = MyAPIGateway.Utilities.WriteFileInLocalStorage(fileName, typeof(NaniteSettings)))
-            {
+        private void SaveTerminalSettings<T>(string fileName, T settings) {
+            using (var writer = MyAPIGateway.Utilities.WriteFileInWorldStorage(fileName, typeof(NaniteSettings))){
                 writer.Write(MyAPIGateway.Utilities.SerializeToXML(settings));
             }
-            */
-			if(MyAPIGateway.Utilities == null) return;
-            MyAPIGateway.Utilities.SetVariable(fileName, MyAPIGateway.Utilities.SerializeToXML(settings));
-
         }
 
-        private T LoadTerminalSettings<T>(string fileName)
-        {
-            
-            //if (MyAPIGateway.Utilities.FileExistsInLocalStorage(fileName, typeof(NaniteSettings)))
-            //{
-                try
-                {
-                    Logging.Instance.WriteLine(string.Format("Loading: {0}", fileName));
+        private T LoadTerminalSettings<T>(string fileName){
+			if (MyAPIGateway.Utilities.FileExistsInWorldStorage(fileName, typeof(NaniteSettings))){
+                try{
+                    Logging.Instance.WriteLine("Loading: " + fileName);
+					
+					using (var reader = MyAPIGateway.Utilities.ReadFileInWorldStorage(fileName, typeof(NaniteSettings)))
+						return MyAPIGateway.Utilities.SerializeFromXML<T>(reader.ReadToEnd());
 
-					string settingsXML;
-					if(MyAPIGateway.Utilities.GetVariable(fileName, out settingsXML)) // If load successful
-						return MyAPIGateway.Utilities.SerializeFromXML<T>(settingsXML); // Process XML and return the object.
-
-					/* Old Method
-					using (var reader = MyAPIGateway.Utilities.ReadFileInLocalStorage(fileName, typeof(NaniteSettings)))
-                    {
-                        string settingsData = reader.ReadToEnd();
-                        T settings = MyAPIGateway.Utilities.SerializeFromXML<T>(settingsData);
-                        return settings;
-                    }
-					*/
-                }
-                catch (Exception ex)
-                {
+                } catch(Exception ex){
                     Logging.Instance.WriteLine(string.Format("Error loading terminal settings file: {0}", ex.ToString()));
                 }
-            //}
+            }
 
             return default(T);
         }

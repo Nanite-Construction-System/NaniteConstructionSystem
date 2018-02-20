@@ -171,7 +171,11 @@ namespace NaniteConstructionSystem.Entities.Targets
                 foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x is NaniteBeaconDeconstruct && Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), x.BeaconBlock.GetPosition()) < m_maxDistance * m_maxDistance))
                 {
                     IMyCubeBlock item = (IMyCubeBlock)beaconBlock.BeaconBlock;
-                    if (gridList.Contains(item.CubeGrid))
+
+					if (!((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional)
+						continue;
+
+					if (gridList.Contains(item.CubeGrid))
                         continue;
 
                     MyRelationsBetweenPlayerAndBlock relation = item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId);
@@ -231,11 +235,12 @@ namespace NaniteConstructionSystem.Entities.Targets
             foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x is NaniteAreaBeacon))
             {
                 IMyCubeBlock cubeBlock = (IMyCubeBlock)beaconBlock.BeaconBlock;
-                MyRelationsBetweenPlayerAndBlock relation = cubeBlock.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId);
-                if (!(relation == MyRelationsBetweenPlayerAndBlock.Owner || relation == MyRelationsBetweenPlayerAndBlock.FactionShare || (MyAPIGateway.Session.CreativeMode && relation == MyRelationsBetweenPlayerAndBlock.NoOwnership)))
-                    continue;
 
-                if (!((IMyFunctionalBlock)cubeBlock).Enabled)
+				if (!((IMyFunctionalBlock)cubeBlock).Enabled || !((IMyFunctionalBlock)cubeBlock).IsFunctional)
+					continue;
+
+				MyRelationsBetweenPlayerAndBlock relation = cubeBlock.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId);
+                if (!(relation == MyRelationsBetweenPlayerAndBlock.Owner || relation == MyRelationsBetweenPlayerAndBlock.FactionShare || (MyAPIGateway.Session.CreativeMode && relation == MyRelationsBetweenPlayerAndBlock.NoOwnership)))
                     continue;
 
                 var item = beaconBlock as NaniteAreaBeacon;

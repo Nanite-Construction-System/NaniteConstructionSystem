@@ -344,11 +344,12 @@ namespace NaniteConstructionSystem.Entities.Targets
             foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x is NaniteBeaconProjection && Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), x.BeaconBlock.GetPosition()) < m_maxDistance * m_maxDistance))
             {
                 IMyCubeBlock item = (IMyCubeBlock)beaconBlock.BeaconBlock;
-                MyRelationsBetweenPlayerAndBlock relation = item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId);
-                if (!(relation == MyRelationsBetweenPlayerAndBlock.Owner || relation == MyRelationsBetweenPlayerAndBlock.FactionShare || (MyAPIGateway.Session.CreativeMode && relation == MyRelationsBetweenPlayerAndBlock.NoOwnership)))
-                    continue;
 
-                if (!((IMyFunctionalBlock)item).Enabled)
+				if (!((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional)
+					continue;
+
+				MyRelationsBetweenPlayerAndBlock relation = item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId);
+                if (!(relation == MyRelationsBetweenPlayerAndBlock.Owner || relation == MyRelationsBetweenPlayerAndBlock.FactionShare || (MyAPIGateway.Session.CreativeMode && relation == MyRelationsBetweenPlayerAndBlock.NoOwnership)))
                     continue;
 
                 List<IMyCubeGrid> beaconGridList = GridHelper.GetGridGroup((IMyCubeGrid)item.CubeGrid);
@@ -386,10 +387,11 @@ namespace NaniteConstructionSystem.Entities.Targets
             foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x is NaniteAreaBeacon))
             {
                 IMyCubeBlock cubeBlock = beaconBlock.BeaconBlock;
-                if (!((IMyFunctionalBlock)cubeBlock).Enabled)
-                    continue;
 
-                var item = beaconBlock as NaniteAreaBeacon;
+				if (!((IMyFunctionalBlock)cubeBlock).Enabled || !((IMyFunctionalBlock)cubeBlock).IsFunctional)
+					continue;
+
+				var item = beaconBlock as NaniteAreaBeacon;
                 if (!item.Settings.AllowProjection)
                     continue;
 

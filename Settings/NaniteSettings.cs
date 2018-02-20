@@ -1,10 +1,12 @@
-using System;
+﻿using System;
 using Sandbox.ModAPI;
 
 namespace NaniteConstructionSystem.Settings
 {
     public class NaniteSettings
     {
+		static public string SettingsFile = "Config.xml";
+
         public int ConstructionMaxStreams { get; set; } //
         public float ConstructionEfficiency { get; set; } //
         public float ConstructionPowerPerStream { get; set; } //
@@ -126,20 +128,19 @@ namespace NaniteConstructionSystem.Settings
             Version = "1.0";
         }
 
-        public static NaniteSettings Load()
-        {
-            if (MyAPIGateway.Utilities.FileExistsInLocalStorage("settings.xml", typeof(NaniteSettings)))
+        public static NaniteSettings Load() {
+			bool updatedFile = MyAPIGateway.Utilities.FileExistsInWorldStorage(SettingsFile, typeof(NaniteSettings));
+
+			// We can't just ignore & delete the file at the old location because what if someone has modified it and expects the settings to be the same under multiple saves?
+
+			if (MyAPIGateway.Utilities.FileExistsInLocalStorage("settings.xml", typeof(NaniteSettings)) || updatedFile)
             {
                 try
                 {
-                    Logging.Instance.WriteLine(string.Format("Loading: settings.xml"));
-                    NaniteSettings settings = null;
-                    using (var reader = MyAPIGateway.Utilities.ReadFileInLocalStorage("settings.xml", typeof(NaniteSettings)))
-                    {
-                        string settingsData = reader.ReadToEnd();
-                        settings = MyAPIGateway.Utilities.SerializeFromXML<NaniteSettings>(settingsData);
-                        Logging.Instance.WriteLine(string.Format("Loaded: settings.xml"));
-                    }
+                    Logging.Instance.WriteLine("Loading Settings");
+                    NaniteSettings settings;
+                    using (var reader = updatedFile ? MyAPIGateway.Utilities.ReadFileInWorldStorage(SettingsFile, typeof(NaniteSettings)) : MyAPIGateway.Utilities.ReadFileInLocalStorage("settings.xml", typeof(NaniteSettings)))
+                        settings = MyAPIGateway.Utilities.SerializeFromXML<NaniteSettings>(reader.ReadToEnd());
 
                     try
                     {
@@ -220,22 +221,27 @@ namespace NaniteConstructionSystem.Settings
             if(settings.Version == "1.6")
             {
                 settings.Version = "1.7";
-            }
-            if(settings.Version == "1.7")
-            {
-                settings.Version = "1.8";
-            }
+			}
 
-            if(settings.Version != originalVersion)
+			if (settings.Version == "1.7") {
+				MyAPIUtilities utils = (MyAPIUtilities)MyAPIGateway.Utilities;
+
+				// Clean out useless variables in Sandbox.sbc save file.
+				utils.Variables.Remove("terminalsettings.xml");
+				utils.Variables.Remove("assemblersettings.xml");
+				utils.Variables.Remove("NaniteControlFactory.HammerTerminalSettings");
+				utils.Variables.Remove("NaniteControlFactory.BeaconTerminalSettings");
+
+				settings.Version = "1.8";
+			}
+
+			if (settings.Version != originalVersion)
                 SendNotification();
         }
 
-        public static void Save(NaniteSettings settings)
-        {
-            using (var writer = MyAPIGateway.Utilities.WriteFileInLocalStorage("settings.xml", typeof(NaniteSettings)))
-            {
+        public static void Save(NaniteSettings settings){
+            using (var writer = MyAPIGateway.Utilities.WriteFileInWorldStorage(SettingsFile, typeof(NaniteSettings)))
                 writer.Write(MyAPIGateway.Utilities.SerializeToXML<NaniteSettings>(settings));
-            }
         }
 
         private static void SendNotification()

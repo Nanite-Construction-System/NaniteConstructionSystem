@@ -398,14 +398,15 @@ namespace NaniteConstructionSystem.Entities.Targets
                 AddPotentialBlock(block);
             }
 
-            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x is NaniteBeaconConstruct && Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), x.BeaconBlock.GetPosition()) < m_maxDistance * m_maxDistance))
-            {
-                IMyCubeBlock item = (IMyCubeBlock)beaconBlock.BeaconBlock;
+            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x is NaniteBeaconConstruct && Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), x.BeaconBlock.GetPosition()) < m_maxDistance * m_maxDistance)) {
+				
+				IMyCubeBlock item = (IMyCubeBlock)beaconBlock.BeaconBlock;
+
+				if (!((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional)
+					continue;
+
                 MyRelationsBetweenPlayerAndBlock relation = item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId);
                 if (!(relation == MyRelationsBetweenPlayerAndBlock.Owner || relation == MyRelationsBetweenPlayerAndBlock.FactionShare || (MyAPIGateway.Session.CreativeMode && relation == MyRelationsBetweenPlayerAndBlock.NoOwnership)))
-                    continue;
-
-                if (!((IMyFunctionalBlock)item).Enabled)
                     continue;
 
                 List<IMyCubeGrid> beaconGridList = GridHelper.GetGridGroup((IMyCubeGrid)item.CubeGrid);
@@ -441,7 +442,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 //if (!(relation == MyRelationsBetweenPlayerAndBlock.Owner || relation == MyRelationsBetweenPlayerAndBlock.FactionShare || (MyAPIGateway.Session.CreativeMode && relation == MyRelationsBetweenPlayerAndBlock.NoOwnership)))
                 //    continue;
 
-                if (!((IMyFunctionalBlock)cubeBlock).Enabled)
+                if (!((IMyFunctionalBlock)cubeBlock).Enabled || !((IMyFunctionalBlock)cubeBlock).IsFunctional)
                     continue;
 
                 var item = beaconBlock as NaniteAreaBeacon;

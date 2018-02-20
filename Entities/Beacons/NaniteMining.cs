@@ -350,7 +350,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
                 var allowedOreList = new HashSet<string>(NaniteConstructionManager.HammerTerminalSettings[m_block.EntityId].SelectedOres);
 
                 DateTime start = DateTime.Now;
-                Logging.Instance.WriteLine(string.Format("MINING Hammer Start Scan"));
+                Logging.Instance.WriteLine("MINING Hammer Start Scan");
                 Dictionary<Vector3D, NaniteMiningItem> miningItems = new Dictionary<Vector3D, NaniteMiningItem>(100000);
                 foreach (var item in entities)
                 {
