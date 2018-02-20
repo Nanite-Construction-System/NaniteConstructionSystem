@@ -107,8 +107,8 @@ namespace NaniteConstructionSystem.Settings
             MiningDistanceDivisor = 15f;
             MiningNanitesPerUpgrade = 3;
             MiningNanitesNoUpgrade = 1;
-            MiningRadius = 20f;
-            MiningDepth = 5;
+            MiningRadius = 40f;
+            MiningDepth = 50;
             MedicalMaxStreams = 15;
             MedicalMaxDistance = 300f;
             MedicalPowerPerStream = 26f;
