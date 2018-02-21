@@ -55,7 +55,7 @@ namespace NaniteConstructionSystem
                     if (MyAPIGateway.Utilities == null)
                         return;
 
-                    m_writer = MyAPIGateway.Utilities.WriteFileInLocalStorage(m_logFile, typeof(Logging));
+                    m_writer = MyAPIGateway.Utilities.WriteFileInWorldStorage(m_logFile, typeof(Logging));
                 }
 
                 MyAPIGateway.Parallel.StartBackground(() =>
