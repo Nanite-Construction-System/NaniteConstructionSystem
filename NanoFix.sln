@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2027
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NanoFix", "NanoFix.csproj", "{1C06A727-39E7-4FBA-A0C5-9BB33DDA1347}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1C06A727-39E7-4FBA-A0C5-9BB33DDA1347}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C06A727-39E7-4FBA-A0C5-9BB33DDA1347}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C06A727-39E7-4FBA-A0C5-9BB33DDA1347}.Debug|x64.ActiveCfg = Debug|x64
+		{1C06A727-39E7-4FBA-A0C5-9BB33DDA1347}.Debug|x64.Build.0 = Debug|x64
+		{1C06A727-39E7-4FBA-A0C5-9BB33DDA1347}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C06A727-39E7-4FBA-A0C5-9BB33DDA1347}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C06A727-39E7-4FBA-A0C5-9BB33DDA1347}.Release|x64.ActiveCfg = Release|x64
+		{1C06A727-39E7-4FBA-A0C5-9BB33DDA1347}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8AA30F1C-DC97-42E0-95BF-BD7B64A37B88}
+	EndGlobalSection
+EndGlobal
