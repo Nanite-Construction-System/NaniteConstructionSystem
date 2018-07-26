@@ -126,6 +126,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                     if (TargetList.Contains(item))
                         continue;
 
+                    if (EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, item) > m_maxDistance)
+                        continue;
+
                     missing.Clear();
                     item.GetMissingComponents(missing);
                     bool foundMissingComponents = true;
