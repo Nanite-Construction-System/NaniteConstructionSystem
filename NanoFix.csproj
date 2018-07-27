@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NanoFix</RootNamespace>
     <AssemblyName>NanoFix</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -29,6 +29,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <PlatformTarget>x64</PlatformTarget>
@@ -123,6 +124,7 @@
     <Compile Include="Entities\Effects\LightningBolt\LightningBoltItem.cs" />
     <Compile Include="Entities\Effects\LightningBolt\LightningBoltPath.cs" />
     <Compile Include="Entities\Effects\MiningHammerEffect.cs" />
+    <Compile Include="Entities\Effects\NaniteAreaBeaconEffect.cs" />
     <Compile Include="Entities\Effects\NaniteBeaconEffect.cs" />
     <Compile Include="Entities\Effects\NaniteBlockEffectBase.cs" />
     <Compile Include="Entities\NaniteConstructionBlock.cs" />
