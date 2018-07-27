@@ -472,7 +472,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private bool AddPotentialBlock(IMySlimBlock block, bool remote = false, NaniteAreaBeacon beacon = null)
         {
-            if (TargetList.Contains(block))
+            if (PotentialTargetList.Contains(block))
                 return false;
 
             if (EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, block) > m_maxDistance)
