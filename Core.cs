@@ -251,7 +251,7 @@ namespace NaniteConstructionSystem
         {
             foreach (var item in NaniteBlocks.ToList())
             {
-                if (item.Value.ConstructionBlock.Closed || item.Value.ConstructionBlock.CubeGrid.Closed) // || item.BeaconBlock.CubeGrid.Physics == null)
+                if (item.Value.ConstructionBlock.Closed || item.Value.ConstructionBlock.CubeGrid.Closed) // || item.Value.ConstructionBlock.CubeGrid.Physics == null)
                 {
                     Logging.Instance.WriteLine(string.Format("REMOVING {1} Factory: {0}", item.Value.ConstructionBlock.EntityId, item.Value.GetType().Name));
                     item.Value.Unload();
