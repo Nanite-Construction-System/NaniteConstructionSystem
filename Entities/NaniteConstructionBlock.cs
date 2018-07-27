@@ -1096,7 +1096,7 @@ namespace NaniteConstructionSystem.Entities
                 IMyEntity entity;
                 if (!MyAPIGateway.Entities.TryGetEntityById(data.TargetId, out entity))
                 {
-                    Logging.Instance.WriteLine("SyncAddTarget Error: Can't locate target entity: {data.TargetId}");
+                    Logging.Instance.WriteLine(string.Format("SyncAddTarget Error: Can't locate target entity: {0}", data.TargetId.ToString()));
                     return;
                 }
 
@@ -1112,10 +1112,10 @@ namespace NaniteConstructionSystem.Entities
                         slimBlock = projector.ProjectedGrid.GetCubeBlock(new Vector3I(data.PositionI.X, data.PositionI.Y, data.PositionI.Z)) as IMySlimBlock;
                         if (slimBlock != null && slimBlock.FatBlock != null && slimBlock.FatBlock.Closed)
                         {
-                            Logging.Instance.WriteLine("SyncAddTarget Error: Can't get projection target block: {data.PositionI}");
+                            Logging.Instance.WriteLine(string.Format("SyncAddTarget Error: Can't get projection target block: {0}", data.PositionI.ToString()));
                             return;
                         }
-                        Logging.Instance.WriteLine("SyncAddTarget: Found block: {slimBlock.Position}");
+                        Logging.Instance.WriteLine(string.Format("SyncAddTarget: Found block: {0}", slimBlock.Position.ToString()));
                     }
                     else
                     {
@@ -1123,7 +1123,7 @@ namespace NaniteConstructionSystem.Entities
                         slimBlock = grid.GetCubeBlock(new Vector3I(data.PositionI.X, data.PositionI.Y, data.PositionI.Z)) as IMySlimBlock;
                         if (slimBlock != null && slimBlock.FatBlock != null && slimBlock.FatBlock.Closed)
                         {
-                            Logging.Instance.WriteLine("SyncAddTarget Error: Can't get target block: {data.PositionI}");
+                            Logging.Instance.WriteLine(string.Format("SyncAddTarget Error: Can't get target block: {0}", data.PositionI.ToString()));
                             return;
                         }
                     }
