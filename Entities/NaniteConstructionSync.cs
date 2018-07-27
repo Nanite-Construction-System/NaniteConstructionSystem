@@ -694,7 +694,7 @@ namespace NaniteConstructionSystem.Entities
             }
             catch(Exception ex)
             {
-                MyLog.Default.WriteLine("HandleVoxelRemoval(): {ex.ToString()}");
+                MyLog.Default.WriteLine("HandleVoxelRemoval(): " + ex.ToString());
             }
         }
     }
