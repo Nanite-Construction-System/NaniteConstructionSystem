@@ -382,8 +382,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                 PotentialTargetList.Clear();
             }
 
-            var remoteList = new HashSet<IMySlimBlock>();
-
             if (!IsEnabled())
                 return;
 
@@ -391,13 +389,21 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 AddPotentialBlock(block);
             }
+            CheckBeacons();
+            CheckAreaBeacons();
+        }
 
-            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x is NaniteBeaconConstruct && Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), x.BeaconBlock.GetPosition()) < m_maxDistance * m_maxDistance)) {
-				
-				IMyCubeBlock item = (IMyCubeBlock)beaconBlock.BeaconBlock;
+        private void CheckBeacons()
+        {
+            var remoteList = new HashSet<IMySlimBlock>();
 
-				if (!((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional)
-					continue;
+            // Find beacons in range
+            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x is NaniteBeaconConstruct && Vector3D.Distance(m_constructionBlock.ConstructionBlock.GetPosition(), x.BeaconBlock.GetPosition()) < m_maxDistance))
+            {
+                IMyCubeBlock item = (IMyCubeBlock)beaconBlock.BeaconBlock;
+
+                if (!((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional)
+                    continue;
 
                 MyRelationsBetweenPlayerAndBlock relation = item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId);
                 if (!(relation == MyRelationsBetweenPlayerAndBlock.Owner || relation == MyRelationsBetweenPlayerAndBlock.FactionShare || (MyAPIGateway.Session.CreativeMode && relation == MyRelationsBetweenPlayerAndBlock.NoOwnership)))
@@ -412,21 +418,18 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 foreach (var block in beaconBlocks)
                 {
-                    if(AddPotentialBlock(block, true))
+                    if (AddPotentialBlock(block, true))
                     {
                         remoteList.Add(block);
                     }
                 }
             }
 
-            CheckAreaBeacons();
-
             using (m_remoteLock.AcquireExclusiveUsing())
             {
                 m_remoteTargets = remoteList;
             }
         }
-
         private void CheckAreaBeacons()
         {
             foreach(var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x is NaniteAreaBeacon))
@@ -451,7 +454,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     if (grid == null)
                         continue;
 
-                    if((grid.GetPosition() - cubeBlock.GetPosition()).LengthSquared() < m_maxDistance * m_maxDistance)
+                    if ((grid.GetPosition() - cubeBlock.GetPosition()).Length() < m_maxDistance)
                     {
                         foreach(IMySlimBlock block in ((MyCubeGrid)grid).GetBlocks())
                         {
