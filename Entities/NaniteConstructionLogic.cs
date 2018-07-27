@@ -19,16 +19,13 @@ namespace NaniteConstructionSystem.Entities
         private NaniteConstructionBlock m_block = null;
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
-            if (!NaniteConstructionManager.NaniteBlocks.ContainsKey(Entity.EntityId))
-            {
-                m_block = new NaniteConstructionBlock(Entity);
-                NaniteConstructionManager.NaniteBlocks.Add(Entity.EntityId, m_block);
-                IMySlimBlock slimBlock = ((MyCubeBlock)m_block.ConstructionBlock).SlimBlock as IMySlimBlock;
-                Logging.Instance.WriteLine(string.Format("ADDING Nanite Factory: conid={0} physics={1} ratio={2}", Entity.EntityId, m_block.ConstructionBlock.CubeGrid.Physics == null, slimBlock.BuildLevelRatio));
+            m_block = new NaniteConstructionBlock(Entity);
+            NaniteConstructionManager.NaniteBlocks.Add(Entity.EntityId, m_block);
+            IMySlimBlock slimBlock = ((MyCubeBlock)m_block.ConstructionBlock).SlimBlock as IMySlimBlock;
+            Logging.Instance.WriteLine(string.Format("ADDING Nanite Factory: conid={0} physics={1} ratio={2}", Entity.EntityId, m_block.ConstructionBlock.CubeGrid.Physics == null, slimBlock.BuildLevelRatio));
 
-                if(NaniteConstructionManager.NaniteSync != null)
-                    NaniteConstructionManager.NaniteSync.SendNeedTerminalSettings(Entity.EntityId);
-            }
+            if(NaniteConstructionManager.NaniteSync != null)
+                NaniteConstructionManager.NaniteSync.SendNeedTerminalSettings(Entity.EntityId);
         }
 
         /// <summary>

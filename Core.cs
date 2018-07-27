@@ -251,11 +251,10 @@ namespace NaniteConstructionSystem
         {
             foreach (var item in NaniteBlocks.ToList())
             {
-                if (item.Value.ConstructionBlock == null || item.Value.ConstructionBlock.Parent == null) // || item.Value.ConstructionBlock.Parent.Physics == null)
+                if (item.Value.ConstructionBlock.Closed || item.Value.ConstructionBlock.CubeGrid.Closed) // || item.BeaconBlock.CubeGrid.Physics == null)
                 {
-                    //Logging.Instance.WriteLine(string.Format("REMOVING Nanite Factory due to parent gone or physicless: {0}", item.Value.ConstructionBlock.EntityId));
-                    //item.Value.Unload();
-                    //NaniteBlocks.Remove(item.Key);
+                    Logging.Instance.WriteLine(string.Format("REMOVING {1} Factory: {0}", item.Value.ConstructionBlock.EntityId, item.Value.GetType().Name));
+                    item.Value.Unload();
                     continue;
                 }
 
