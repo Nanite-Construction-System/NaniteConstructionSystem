@@ -255,6 +255,7 @@ namespace NaniteConstructionSystem
                 {
                     Logging.Instance.WriteLine(string.Format("REMOVING {1} Factory: {0}", item.Value.ConstructionBlock.EntityId, item.Value.GetType().Name));
                     item.Value.Unload();
+                    NaniteBlocks.Remove(item.Key);
                     continue;
                 }
 
