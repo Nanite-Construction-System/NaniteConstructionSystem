@@ -478,6 +478,9 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (TargetList.Contains(block))
                 return false;
 
+            if (EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, block) > m_maxDistance)
+                return false;
+
             if (!remote && block.FatBlock != null && block.FatBlock is IMyTerminalBlock && block.FatBlock.OwnerId != 0)
             {
                 IMyTerminalBlock terminal = (IMyTerminalBlock)block.FatBlock;
