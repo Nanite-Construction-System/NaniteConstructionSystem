@@ -277,6 +277,19 @@ namespace NaniteConstructionSystem.Entities
             if(m_soundEmitter != null)
                 m_soundEmitter.StopSound(true);
 
+
+            // I'm putting this here because for some reason the Logic component is not running it's closed method??? wtf.
+            try
+            {
+                foreach (var item in NaniteConstructionManager.NaniteBlocks.Where(kvp => kvp.Value == this).ToList())
+                {
+                    NaniteConstructionManager.NaniteBlocks.Remove(item.Key);
+                }
+            }
+            catch (Exception ex)
+            {
+                // try remove, ignore error
+            }
         }
 
         public bool IsUserDefinedLimitReached()
