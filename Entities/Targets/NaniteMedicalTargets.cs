@@ -1,27 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Sandbox.ModAPI;
 using VRage;
 using VRage.Game.ModAPI;
 using VRageMath;
-using VRage.ModAPI;
 using VRage.Game.Entity;
-using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
-using Sandbox.Game;
-using Sandbox.Definitions;
-using Ingame = Sandbox.ModAPI.Ingame;
 using VRage.Game;
-using VRage.Voxels;
-using VRage.ObjectBuilders;
 using Sandbox.Game.Components;
 
 using NaniteConstructionSystem.Particles;
 using NaniteConstructionSystem.Extensions;
-using NaniteConstructionSystem.Entities.Beacons;
 
 namespace NaniteConstructionSystem.Entities.Targets
 {

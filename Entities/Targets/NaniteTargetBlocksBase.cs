@@ -1,11 +1,6 @@
 ﻿using System.Collections.Generic;
-using Sandbox.ModAPI;
 using VRage;
-using VRageMath;
-//using Ingame = VRage.Game.ModAPI.Ingame;
 using VRage.Game.ModAPI;
-
-using NaniteConstructionSystem.Particles;
 
 namespace NaniteConstructionSystem.Entities.Targets
 {

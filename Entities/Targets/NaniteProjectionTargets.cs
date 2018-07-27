@@ -7,7 +7,6 @@ using VRage;
 using VRage.Game;
 using VRage.ModAPI;
 using VRageMath;
-using Ingame = Sandbox.ModAPI.Ingame;
 using VRage.Game.ModAPI;
 using Sandbox.Definitions;
 using Sandbox.Common.ObjectBuilders;

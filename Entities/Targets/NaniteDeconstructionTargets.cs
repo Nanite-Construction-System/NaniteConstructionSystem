@@ -7,17 +7,12 @@ using VRage;
 using VRage.Game;
 using VRage.ModAPI;
 using VRageMath;
-//using Ingame = VRage.ModAPI.Ingame;
 using Ingame = Sandbox.ModAPI.Ingame;
 using VRage.Game.ModAPI;
 using Sandbox.Definitions;
-using Sandbox.Common.ObjectBuilders;
-using VRage.Game.Components;
-using VRage.ObjectBuilders;
 
 using NaniteConstructionSystem.Particles;
 using NaniteConstructionSystem.Extensions;
-using NaniteConstructionSystem.Entities;
 using NaniteConstructionSystem.Entities.Beacons;
 using NaniteConstructionSystem.Entities.Tools;
 
