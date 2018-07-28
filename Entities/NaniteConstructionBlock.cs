@@ -162,12 +162,18 @@ namespace NaniteConstructionSystem.Entities
             m_particleManager = new NaniteParticleManager(this);
 
             m_targets = new List<NaniteTargetBlocksBase>();
-            m_targets.Add(new NaniteConstructionTargets(this));
-            m_targets.Add(new NaniteProjectionTargets(this));
-            m_targets.Add(new NaniteFloatingTargets(this));
-            m_targets.Add(new NaniteDeconstructionTargets(this));
-            m_targets.Add(new NaniteMiningTargets(this));
-            m_targets.Add(new NaniteMedicalTargets(this));
+            if (NaniteConstructionManager.Settings.ConstructionEnabled)
+                m_targets.Add(new NaniteConstructionTargets(this));
+            if (NaniteConstructionManager.Settings.ProjectionEnabled)
+                m_targets.Add(new NaniteProjectionTargets(this));
+            if (NaniteConstructionManager.Settings.CleanupEnabled)
+                m_targets.Add(new NaniteFloatingTargets(this));
+            if (NaniteConstructionManager.Settings.DeconstructionEnabled)
+                m_targets.Add(new NaniteDeconstructionTargets(this));
+            if (NaniteConstructionManager.Settings.MiningEnabled)
+                m_targets.Add(new NaniteMiningTargets(this));
+            if (NaniteConstructionManager.Settings.MedicalEnabled)
+                m_targets.Add(new NaniteMedicalTargets(this));
 
             m_effects = new List<NaniteBlockEffectBase>();
             m_effects.Add(new LightningBoltEffect((MyCubeBlock)m_constructionBlock));
