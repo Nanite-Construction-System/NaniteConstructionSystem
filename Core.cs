@@ -1,7 +1,6 @@
 using System;
 using System.Text;
 using System.Linq;
-using System.IO;
 using System.Collections.Generic;
 using VRage.Game.Components;
 using Sandbox.ModAPI;
@@ -9,18 +8,11 @@ using VRage.ModAPI;
 using VRage.Utils;
 using Sandbox.Game.Entities;
 using VRage.Game.ModAPI;
-using VRage;
-using VRage.Network;
-using VRageMath;
 using VRage.Game;
 using Sandbox.Definitions;
 using Sandbox.Common.ObjectBuilders;
 using Ingame = Sandbox.ModAPI.Ingame;
-using Sandbox.Game.Lights;
 using Sandbox.ModAPI.Interfaces.Terminal;
-using VRage.Voxels;
-using Sandbox.Engine.Voxels;
-using Sandbox.Game.AI;
 using Sandbox.Game.Components;
 
 using NaniteConstructionSystem.Entities;
@@ -351,136 +343,155 @@ namespace NaniteConstructionSystem
             MyAPIGateway.TerminalControls.CustomActionGetter += CustomActionGetter;
 
             // --- Repair Checkbox
-            var repairCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowRepair");
-            repairCheck.Title = MyStringId.GetOrCompute("Repair / Construction");
-            repairCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will repair or construct unbuilt blocks.");
-            repairCheck.Getter = (x) =>
+            if (Settings.ConstructionEnabled)
             {
-                if (!TerminalSettings.ContainsKey(x.EntityId))
-                    TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
+                var repairCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowRepair");
+                repairCheck.Title = MyStringId.GetOrCompute("Repair / Construction");
+                repairCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will repair or construct unbuilt blocks.");
+                repairCheck.Getter = (x) =>
+                {
+                    if (!TerminalSettings.ContainsKey(x.EntityId))
+                        TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
 
-                return TerminalSettings[x.EntityId].AllowRepair;
-            };
+                    return TerminalSettings[x.EntityId].AllowRepair;
+                };
 
-            repairCheck.Setter = (x, y) =>
-            {
-                if (!TerminalSettings.ContainsKey(x.EntityId))
-                    TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
+                repairCheck.Setter = (x, y) =>
+                {
+                    if (!TerminalSettings.ContainsKey(x.EntityId))
+                        TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
 
-                TerminalSettings[x.EntityId].AllowRepair = y;
-                m_sync.SendTerminalSettings(x);
-            };
-            m_customControls.Add(repairCheck);
+                    TerminalSettings[x.EntityId].AllowRepair = y;
+                    m_sync.SendTerminalSettings(x);
+                };
+                m_customControls.Add(repairCheck);
+            }
+            
 
             // --- Projection Checkbox
-            var projectionCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowProjection");
-            projectionCheck.Title = MyStringId.GetOrCompute("Projection Construction");
-            projectionCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will repair or construct unbuilt blocks.");
-            projectionCheck.Getter = (x) =>
+            if (Settings.ProjectionEnabled)
             {
-                if (!TerminalSettings.ContainsKey(x.EntityId))
-                    TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
+                var projectionCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowProjection");
+                projectionCheck.Title = MyStringId.GetOrCompute("Projection Construction");
+                projectionCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will repair or construct unbuilt blocks.");
+                projectionCheck.Getter = (x) =>
+                {
+                    if (!TerminalSettings.ContainsKey(x.EntityId))
+                        TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
 
-                return TerminalSettings[x.EntityId].AllowProjection;
-            };
+                    return TerminalSettings[x.EntityId].AllowProjection;
+                };
 
-            projectionCheck.Setter = (x, y) =>
-            {
-                if (!TerminalSettings.ContainsKey(x.EntityId))
-                    TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
+                projectionCheck.Setter = (x, y) =>
+                {
+                    if (!TerminalSettings.ContainsKey(x.EntityId))
+                        TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
 
-                TerminalSettings[x.EntityId].AllowProjection = y;
-                m_sync.SendTerminalSettings(x);
-            };
-            m_customControls.Add(projectionCheck);
+                    TerminalSettings[x.EntityId].AllowProjection = y;
+                    m_sync.SendTerminalSettings(x);
+                };
+                m_customControls.Add(projectionCheck);
+            }
 
             // --- Cleanup Checkbox
-            var cleanupCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowCleanup");
-            cleanupCheck.Title = MyStringId.GetOrCompute("Cleanup");
-            cleanupCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will cleanup floating objects, ore, components, or corpses.  It will return the objects back to the factory.");
-            cleanupCheck.Getter = (x) =>
+            if (Settings.CleanupEnabled)
             {
-                if (!TerminalSettings.ContainsKey(x.EntityId))
-                    TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
+                var cleanupCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowCleanup");
+                cleanupCheck.Title = MyStringId.GetOrCompute("Cleanup");
+                cleanupCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will cleanup floating objects, ore, components, or corpses.  It will return the objects back to the factory.");
+                cleanupCheck.Getter = (x) =>
+                {
+                    if (!TerminalSettings.ContainsKey(x.EntityId))
+                        TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
 
-                return TerminalSettings[x.EntityId].AllowCleanup;
-            };
+                    return TerminalSettings[x.EntityId].AllowCleanup;
+                };
 
-            cleanupCheck.Setter = (x, y) =>
-            {
-                if (!TerminalSettings.ContainsKey(x.EntityId))
-                    TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
+                cleanupCheck.Setter = (x, y) =>
+                {
+                    if (!TerminalSettings.ContainsKey(x.EntityId))
+                        TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
 
-                TerminalSettings[x.EntityId].AllowCleanup = y;
-                m_sync.SendTerminalSettings(x);
-            };
-            m_customControls.Add(cleanupCheck);
+                    TerminalSettings[x.EntityId].AllowCleanup = y;
+                    m_sync.SendTerminalSettings(x);
+                };
+                m_customControls.Add(cleanupCheck);
+            }
 
             // --- Deconstruction Checkbox
-            var deconstructCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowDeconstruct");
-            deconstructCheck.Title = MyStringId.GetOrCompute("Deconstruction");
-            deconstructCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will attempt to deconstruct ships that have a deconstruction beacon on them.");
-            deconstructCheck.Getter = (x) =>
+            if (Settings.DeconstructionEnabled)
             {
-                if (!TerminalSettings.ContainsKey(x.EntityId))
-                    TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
+                var deconstructCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowDeconstruct");
+                deconstructCheck.Title = MyStringId.GetOrCompute("Deconstruction");
+                deconstructCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will attempt to deconstruct ships that have a deconstruction beacon on them.");
+                deconstructCheck.Getter = (x) =>
+                {
+                    if (!TerminalSettings.ContainsKey(x.EntityId))
+                        TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
 
-                return TerminalSettings[x.EntityId].AllowDeconstruct;
-            };
+                    return TerminalSettings[x.EntityId].AllowDeconstruct;
+                };
 
-            deconstructCheck.Setter = (x, y) =>
-            {
-                if (!TerminalSettings.ContainsKey(x.EntityId))
-                    TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
+                deconstructCheck.Setter = (x, y) =>
+                {
+                    if (!TerminalSettings.ContainsKey(x.EntityId))
+                        TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
 
-                TerminalSettings[x.EntityId].AllowDeconstruct = y;
-                m_sync.SendTerminalSettings(x);
-            };
-            m_customControls.Add(deconstructCheck);
+                    TerminalSettings[x.EntityId].AllowDeconstruct = y;
+                    m_sync.SendTerminalSettings(x);
+                };
+                m_customControls.Add(deconstructCheck);
+            }
 
             // --- Mining Checkbox
-            var miningCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowMining");
-            miningCheck.Title = MyStringId.GetOrCompute("Mining");
-            miningCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will attempt to mine resources if it detects a NUHOL.");
-            miningCheck.Getter = (x) =>
+            if (Settings.MiningEnabled)
             {
-                if (!TerminalSettings.ContainsKey(x.EntityId))
-                    TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
+                var miningCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowMining");
+                miningCheck.Title = MyStringId.GetOrCompute("Mining");
+                miningCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will attempt to mine resources if it detects a NUHOL.");
+                miningCheck.Getter = (x) =>
+                {
+                    if (!TerminalSettings.ContainsKey(x.EntityId))
+                        TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
 
-                return TerminalSettings[x.EntityId].AllowMining;
-            };
+                    return TerminalSettings[x.EntityId].AllowMining;
+                };
 
-            miningCheck.Setter = (x, y) =>
-            {
-                if (!TerminalSettings.ContainsKey(x.EntityId))
-                    TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
+                miningCheck.Setter = (x, y) =>
+                {
+                    if (!TerminalSettings.ContainsKey(x.EntityId))
+                        TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
 
-                TerminalSettings[x.EntityId].AllowMining = y;
-                m_sync.SendTerminalSettings(x);
-            };
-            m_customControls.Add(miningCheck);
+                    TerminalSettings[x.EntityId].AllowMining = y;
+                    m_sync.SendTerminalSettings(x);
+                };
+                m_customControls.Add(miningCheck);
+            }
 
             // --- Medical Checkbox
-            var medicalCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowMedical");
-            medicalCheck.Title = MyStringId.GetOrCompute("Medical");
-            medicalCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will attempt to heal players.");
-            medicalCheck.Getter = (x) =>
+            if (Settings.MedicalEnabled)
             {
-                if (!TerminalSettings.ContainsKey(x.EntityId))
-                    TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
+                var medicalCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowMedical");
+                medicalCheck.Title = MyStringId.GetOrCompute("Medical");
+                medicalCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will attempt to heal players.");
+                medicalCheck.Getter = (x) =>
+                {
+                    if (!TerminalSettings.ContainsKey(x.EntityId))
+                        TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
 
-                return TerminalSettings[x.EntityId].AllowMedical;
-            };
+                    return TerminalSettings[x.EntityId].AllowMedical;
+                };
 
-            medicalCheck.Setter = (x, y) =>
-            {
-                if (!TerminalSettings.ContainsKey(x.EntityId))
-                    TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
+                medicalCheck.Setter = (x, y) =>
+                {
+                    if (!TerminalSettings.ContainsKey(x.EntityId))
+                        TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
 
-                TerminalSettings[x.EntityId].AllowMedical = y;
-                m_sync.SendTerminalSettings(x);
-            };
-            m_customControls.Add(medicalCheck);
+                    TerminalSettings[x.EntityId].AllowMedical = y;
+                    m_sync.SendTerminalSettings(x);
+                };
+                m_customControls.Add(medicalCheck);
+            }
 
             // --- Max Nanites
             var maxNaniteTextBox = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlTextbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("MaxNaniteText");
@@ -593,73 +604,82 @@ namespace NaniteConstructionSystem
             m_customBeaconControls.Add(highlightCheck);
 
             // -- Allow Repair
-            var areaAllowRepairCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, IMyProjector>("AreaAllowRepair");
-            areaAllowRepairCheck.Title = MyStringId.GetOrCompute("Allow Repair");
-            areaAllowRepairCheck.Tooltip = MyStringId.GetOrCompute("When checked, factories will repair blocks inside the beacon area");
-            areaAllowRepairCheck.Getter = (x) =>
+            if (Settings.ConstructionEnabled)
             {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
+                var areaAllowRepairCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, IMyProjector>("AreaAllowRepair");
+                areaAllowRepairCheck.Title = MyStringId.GetOrCompute("Allow Repair");
+                areaAllowRepairCheck.Tooltip = MyStringId.GetOrCompute("When checked, factories will repair blocks inside the beacon area");
+                areaAllowRepairCheck.Getter = (x) =>
+                {
+                    if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
+                        BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
 
-                return BeaconTerminalSettings[x.EntityId].AllowRepair;
-            };
+                    return BeaconTerminalSettings[x.EntityId].AllowRepair;
+                };
 
-            areaAllowRepairCheck.Setter = (x, y) =>
+                areaAllowRepairCheck.Setter = (x, y) =>
+                {
+                    if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
+                        BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
+
+                    BeaconTerminalSettings[x.EntityId].AllowRepair = y;
+                    m_sync.SendBeaconTerminalSettings(x.EntityId);
+                };
+
+                m_customBeaconControls.Add(areaAllowRepairCheck);
+            }
+
+            // -- Allow Deconstruct
+            if (Settings.DeconstructionEnabled)
             {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
+                var areaAllowDeconstructCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, IMyProjector>("AreaAllowDeconstruct");
+                areaAllowDeconstructCheck.Title = MyStringId.GetOrCompute("Allow Deconstruct");
+                areaAllowDeconstructCheck.Tooltip = MyStringId.GetOrCompute("When checked, factories will deconstruct blocks inside the beacon area");
+                areaAllowDeconstructCheck.Getter = (x) =>
+                {
+                    if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
+                        BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
 
-                BeaconTerminalSettings[x.EntityId].AllowRepair = y;
-                m_sync.SendBeaconTerminalSettings(x.EntityId);
-            };
+                    return BeaconTerminalSettings[x.EntityId].AllowDeconstruction;
+                };
 
-            m_customBeaconControls.Add(areaAllowRepairCheck);
+                areaAllowDeconstructCheck.Setter = (x, y) =>
+                {
+                    if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
+                        BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
 
-            // -- Allow Repair
-            var areaAllowDeconstructCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, IMyProjector>("AreaAllowDeconstruct");
-            areaAllowDeconstructCheck.Title = MyStringId.GetOrCompute("Allow Deconstruct");
-            areaAllowDeconstructCheck.Tooltip = MyStringId.GetOrCompute("When checked, factories will deconstruct blocks inside the beacon area");
-            areaAllowDeconstructCheck.Getter = (x) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
+                    BeaconTerminalSettings[x.EntityId].AllowDeconstruction = y;
+                    m_sync.SendBeaconTerminalSettings(x.EntityId);
+                };
 
-                return BeaconTerminalSettings[x.EntityId].AllowDeconstruction;
-            };
-
-            areaAllowDeconstructCheck.Setter = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                BeaconTerminalSettings[x.EntityId].AllowDeconstruction = y;
-                m_sync.SendBeaconTerminalSettings(x.EntityId);
-            };
-
-            m_customBeaconControls.Add(areaAllowDeconstructCheck);
+                m_customBeaconControls.Add(areaAllowDeconstructCheck);
+            }
 
             // -- Allow Projection
-            var areaAllowProjectionCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, IMyProjector>("AreaAllowProjection");
-            areaAllowProjectionCheck.Title = MyStringId.GetOrCompute("Allow Projection");
-            areaAllowProjectionCheck.Tooltip = MyStringId.GetOrCompute("When checked, factories will build projected blocks inside the beacon area");
-            areaAllowProjectionCheck.Getter = (x) =>
+            if (Settings.ProjectionEnabled)
             {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
+                var areaAllowProjectionCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, IMyProjector>("AreaAllowProjection");
+                areaAllowProjectionCheck.Title = MyStringId.GetOrCompute("Allow Projection");
+                areaAllowProjectionCheck.Tooltip = MyStringId.GetOrCompute("When checked, factories will build projected blocks inside the beacon area");
+                areaAllowProjectionCheck.Getter = (x) =>
+                {
+                    if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
+                        BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
 
-                return BeaconTerminalSettings[x.EntityId].AllowProjection;
-            };
+                    return BeaconTerminalSettings[x.EntityId].AllowProjection;
+                };
 
-            areaAllowProjectionCheck.Setter = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
+                areaAllowProjectionCheck.Setter = (x, y) =>
+                {
+                    if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
+                        BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
 
-                BeaconTerminalSettings[x.EntityId].AllowProjection = y;
-                m_sync.SendBeaconTerminalSettings(x.EntityId);
-            };
+                    BeaconTerminalSettings[x.EntityId].AllowProjection = y;
+                    m_sync.SendBeaconTerminalSettings(x.EntityId);
+                };
 
-            m_customBeaconControls.Add(areaAllowProjectionCheck);
+                m_customBeaconControls.Add(areaAllowProjectionCheck);
+            }
 
             /*
             var blueprintButton = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlButton, IMyProjector>("SelectBlueprint");

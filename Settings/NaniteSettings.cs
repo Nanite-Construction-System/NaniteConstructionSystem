@@ -7,6 +7,7 @@ namespace NaniteConstructionSystem.Settings
     {
 		static public string SettingsFile = "Config.xml";
 
+        public bool ConstructionEnabled { get; set; } //
         public int ConstructionMaxStreams { get; set; } //
         public float ConstructionEfficiency { get; set; } //
         public float ConstructionPowerPerStream { get; set; } //
@@ -14,7 +15,8 @@ namespace NaniteConstructionSystem.Settings
         public float ConstructionDistanceDivisor { get; set; } //
         public int ConstructionNanitesPerUpgrade { get; set; } //
         public int ConstructionNanitesNoUpgrade { get; set; } //
-        public float ConstructionMaxBeaconDistance { get; set; } 
+        public float ConstructionMaxBeaconDistance { get; set; }
+        public bool ProjectionEnabled { get; set; } //
         public int ProjectionMaxStreams { get; set; } //
         public float ProjectionPowerPerStream { get; set; } //
         public float ProjectionMinTravelTime { get; set; } //
@@ -22,6 +24,7 @@ namespace NaniteConstructionSystem.Settings
         public int ProjectionNanitesPerUpgrade { get; set; } //
         public int ProjectionNanitesNoUpgrade { get; set; } //
         public float ProjectionMaxBeaconDistance { get; set; }
+        public bool CleanupEnabled { get; set; } //
         public int CleanupMaxStreams { get; set; } //
         public float CleanupCarryVolume { get; set; } //
         public float CleanupMaxDistance { get; set; } //
@@ -30,6 +33,7 @@ namespace NaniteConstructionSystem.Settings
         public float CleanupDistanceDivisor { get; set; } //
         public int CleanupNanitesPerUpgrade { get; set; } //
         public int CleanupNanitesNoUpgrade { get; set; } //
+        public bool DeconstructionEnabled { get; set; } //
         public int DeconstructionMaxStreams { get; set; } //
         public float DeconstructionMaxDistance { get; set; } //
         public float DeconstructionEfficiency { get; set; } // Kind of
@@ -39,6 +43,7 @@ namespace NaniteConstructionSystem.Settings
         public bool DeconstructionPerformanceFriendly { get; set; }
         public int DeconstructionNanitesPerUpgrade { get; set; } //
         public int DeconstructionNanitesNoUpgrade { get; set; } //
+        public bool MiningEnabled { get; set; } //
         public int MiningMaxStreams { get; set; }
         public float MiningMaxDistance { get; set; }
         public float MiningPowerPerStream { get; set; }
@@ -48,6 +53,7 @@ namespace NaniteConstructionSystem.Settings
         public int MiningNanitesNoUpgrade { get; set; }
         public float MiningRadius { get; set; }
         public int MiningDepth { get; set; }
+        public bool MedicalEnabled { get; set; } //
         public int MedicalMaxStreams { get; set; }
         public float MedicalMaxDistance { get; set; }
         public float MedicalPowerPerStream { get; set; }
@@ -68,6 +74,7 @@ namespace NaniteConstructionSystem.Settings
 
         public NaniteSettings()
         {
+            ConstructionEnabled = true;
             ConstructionMaxStreams = 15;
             ConstructionEfficiency = 0.5f;
             ConstructionPowerPerStream = 26f;
@@ -76,6 +83,7 @@ namespace NaniteConstructionSystem.Settings
             ConstructionNanitesPerUpgrade = 3;
             ConstructionNanitesNoUpgrade = 3;
             ConstructionMaxBeaconDistance = 300;
+            ProjectionEnabled = true;
             ProjectionMaxStreams = 15;
             ProjectionPowerPerStream = 26f;
             ProjectionMinTravelTime = 16f;
@@ -83,6 +91,7 @@ namespace NaniteConstructionSystem.Settings
             ProjectionNanitesPerUpgrade = 3;
             ProjectionNanitesNoUpgrade = 1;
             ProjectionMaxBeaconDistance = 300;
+            CleanupEnabled = true;
             CleanupMaxStreams = 15;
             CleanupCarryVolume = 2.5f;
             CleanupMaxDistance = 500f;
@@ -91,6 +100,7 @@ namespace NaniteConstructionSystem.Settings
             CleanupDistanceDivisor = 15f;
             CleanupNanitesPerUpgrade = 3;
             CleanupNanitesNoUpgrade = 1;
+            DeconstructionEnabled = true;
             DeconstructionMaxStreams = 15;
             DeconstructionMaxDistance = 300f;
             DeconstructionEfficiency = 0.5f;
@@ -100,6 +110,7 @@ namespace NaniteConstructionSystem.Settings
             DeconstructionNanitesPerUpgrade = 3;
             DeconstructionNanitesNoUpgrade = 1;
             DeconstructionPerformanceFriendly = true;
+            MiningEnabled = true;
             MiningMaxStreams = 15;
             MiningMaxDistance = 500f;
             MiningPowerPerStream = 26f;
@@ -109,6 +120,7 @@ namespace NaniteConstructionSystem.Settings
             MiningNanitesNoUpgrade = 1;
             MiningRadius = 40f;
             MiningDepth = 50;
+            MedicalEnabled = true;
             MedicalMaxStreams = 15;
             MedicalMaxDistance = 300f;
             MedicalPowerPerStream = 26f;
@@ -233,9 +245,14 @@ namespace NaniteConstructionSystem.Settings
 				utils.Variables.Remove("NaniteControlFactory.BeaconTerminalSettings");
 
 				settings.Version = "1.8";
-			}
+            }
 
-			if (settings.Version != originalVersion)
+            if (settings.Version == "1.8")
+            {
+                settings.Version = "1.9";
+            }
+
+            if (settings.Version != originalVersion)
                 SendNotification();
         }
 
