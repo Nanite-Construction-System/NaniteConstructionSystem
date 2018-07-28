@@ -276,7 +276,6 @@ namespace NaniteConstructionSystem.Entities
 
             if(m_soundEmitter != null)
                 m_soundEmitter.StopSound(true);
-
         }
 
         public bool IsUserDefinedLimitReached()
