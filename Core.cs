@@ -1187,6 +1187,58 @@ namespace NaniteConstructionSystem
                 MyAPIGateway.Utilities.ShowMissionScreen("Nanite Control Factory", "Update", "", message);
                 sendToOthers = false;
             }
+
+            if (messageText.ToLower() == "/nanitebug")
+            {
+                var message = "";
+
+                message += $"{NaniteBlocks.Count} Factories\n\n";
+                foreach (var item in NaniteBlocks.ToList())
+                {
+                    message += $"Factory: {item.Key}:\n";
+                    message += $"- Exists: {item.Value.ConstructionBlock != null}\n";
+                    var name = "N/A";
+                    if (item.Value.ConstructionBlock != null)
+                    {
+                        name = item.Value.ConstructionBlock.CustomName;
+                    }
+                    message += $"- Name: {name}\n";
+                    message += $"- Init: {item.Value.Initialized}\n";
+                    message += $"- UserDefinedNaniteLimit: {item.Value.UserDefinedNaniteLimit}\n";
+                    message += $"- IsUserDefinedLimitReached: {item.Value.IsUserDefinedLimitReached()}\n";
+
+                    message += $"- Targets:\n";
+                    foreach (var target in item.Value.Targets)
+                    {
+                        message += $"-- {target.TargetName}:\n";
+                        message += $"--- Enabled: {target.IsEnabled()}\n";
+                        message += $"--- ComponentsRequired: {target.ComponentsRequired.Count}\n";
+                        message += $"--- MaxTargets: {target.GetMaximumTargets()}\n";
+                        message += $"--- MinTravelTime: {target.GetMinTravelTime()}\n";
+                        message += $"--- GetPowerUsage: {target.GetPowerUsage()}\n";
+                        message += $"--- Speed: {target.GetSpeed()}\n";
+                        message += $"--- LastInvalidTargetReason: {target.LastInvalidTargetReason}\n";
+                        message += $"--- PotentialTargetList: {target.PotentialTargetList.Count}\n";
+                        message += $"--- TargetList: {target.TargetList.Count}\n";
+                    }
+
+                    message += $"- Particles {item.Value.ParticleManager.Particles.Count}:\n";
+                    foreach (var particle in item.Value.ParticleManager.Particles)
+                    {
+                        message += $"-- Particle:\n";
+                        message += $"--- IsCancelled: {particle.IsCancelled}\n";
+                        message += $"--- IsCompleted: {particle.IsCompleted}\n";
+                        message += $"--- LifeTime: {particle.LifeTime}\n";
+                    }
+
+                    message += "\n";
+                }
+
+                message += $"ParticleMananger: {NaniteParticleManager.TotalParticleCount} / {NaniteParticleManager.MaxTotalParticles}\n";
+
+                MyAPIGateway.Utilities.ShowMissionScreen("Nanite Control Factory", "Debug", "", message);
+                sendToOthers = false;
+            }
         }
 
         private void LoadSettings()
