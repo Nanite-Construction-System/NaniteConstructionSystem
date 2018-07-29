@@ -2,13 +2,6 @@
 using VRage.Game.Components;
 using VRage.ObjectBuilders;
 using Sandbox.ModAPI;
-using VRage.Game.ModAPI;
-using VRage.ModAPI;
-using VRage.Game;
-using System.Collections.Generic;
-using VRageMath;
-using VRage.Utils;
-
 
 namespace NaniteConstructionSystem.Entities.Beacons
 {

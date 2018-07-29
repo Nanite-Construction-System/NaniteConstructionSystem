@@ -987,9 +987,8 @@ namespace NaniteConstructionSystem.Entities
             }
         }
 
-        /// <summary>
-        /// Multiplayer Sync Functions
-        /// </summary>
+        #region Multiplayer Sync Functions
+
         private void SendStateUpdate(FactoryStates state)
         {
             StateData data = new StateData();
@@ -1016,36 +1015,36 @@ namespace NaniteConstructionSystem.Entities
 
             data.PositionI = target.Position;
             data.TargetType = targetType;
-            MyAPIGateway.Multiplayer.SendMessageToOthers(8951, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
+            SendToPlayerInSyncRange(8951, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
-        public void SendAddTarget(IMyEntity floating)
+        public void SendAddTarget(IMyEntity target)
         {
             TargetData data = new TargetData();
             data.EntityId = ConstructionBlock.EntityId;
-            data.TargetId = floating.EntityId;
+            data.TargetId = target.EntityId;
             data.TargetType = TargetTypes.Floating;
-            MyAPIGateway.Multiplayer.SendMessageToOthers(8951, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
+            SendToPlayerInSyncRange(8951, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
-        public void SendAddTarget(NaniteMiningItem item)
+        public void SendAddTarget(NaniteMiningItem target)
         {
             TargetData data = new TargetData();
             data.EntityId = ConstructionBlock.EntityId;
-            data.TargetId = item.VoxelId;
+            data.TargetId = target.VoxelId;
             data.TargetType = TargetTypes.Voxel;
-            data.PositionD = item.Position;
-            data.SubTargetId = item.MiningHammer.MiningBlock.EntityId;
-            MyAPIGateway.Multiplayer.SendMessageToOthers(8951, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
+            data.PositionD = target.Position;
+            data.SubTargetId = target.MiningHammer.MiningBlock.EntityId;
+            SendToPlayerInSyncRange(8951, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
-        public void SendAddTarget(IMyPlayer player)
+        public void SendAddTarget(IMyPlayer target)
         {
             TargetData data = new TargetData();
             data.EntityId = ConstructionBlock.EntityId;
-            data.TargetId = player.IdentityId;
+            data.TargetId = target.IdentityId;
             data.TargetType = TargetTypes.Medical;
-            MyAPIGateway.Multiplayer.SendMessageToOthers(8951, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
+            SendToPlayerInSyncRange(8951, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
         public void SyncAddTarget(TargetData data)
@@ -1171,35 +1170,35 @@ namespace NaniteConstructionSystem.Entities
 
             data.PositionI = target.Position;
             data.TargetType = targetType;
-            MyAPIGateway.Multiplayer.SendMessageToOthers(8952, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
+            SendToPlayerInSyncRange(8952, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
-        public void SendCompleteTarget(IMyEntity floating)
+        public void SendCompleteTarget(IMyEntity target)
         {
             TargetData data = new TargetData();
             data.EntityId = ConstructionBlock.EntityId;
-            data.TargetId = floating.EntityId;
+            data.TargetId = target.EntityId;
             data.TargetType = TargetTypes.Floating;
-            MyAPIGateway.Multiplayer.SendMessageToOthers(8952, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
+            SendToPlayerInSyncRange(8952, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
-        public void SendCompleteTarget(NaniteMiningItem item)
+        public void SendCompleteTarget(NaniteMiningItem target)
         {
             TargetData data = new TargetData();
             data.EntityId = ConstructionBlock.EntityId;
-            data.TargetId = item.VoxelId;
-            data.PositionD = item.Position;
+            data.TargetId = target.VoxelId;
+            data.PositionD = target.Position;
             data.TargetType = TargetTypes.Voxel;
-            MyAPIGateway.Multiplayer.SendMessageToOthers(8952, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
+            SendToPlayerInSyncRange(8952, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
-        public void SendCompleteTarget(IMyPlayer player)
+        public void SendCompleteTarget(IMyPlayer target)
         {
             TargetData data = new TargetData();
             data.EntityId = ConstructionBlock.EntityId;
-            data.TargetId = player.IdentityId;
+            data.TargetId = target.IdentityId;
             data.TargetType = TargetTypes.Medical;
-            MyAPIGateway.Multiplayer.SendMessageToOthers(8952, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
+            SendToPlayerInSyncRange(8952, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
         public void SyncCompleteTarget(TargetData data)
@@ -1301,25 +1300,25 @@ namespace NaniteConstructionSystem.Entities
 
             data.PositionI = target.Position;
             data.TargetType = targetType;
-            MyAPIGateway.Multiplayer.SendMessageToOthers(8953, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
+            SendToPlayerInSyncRange(8953, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
-        public void SendCancelTarget(IMyEntity floating)
+        public void SendCancelTarget(IMyEntity target)
         {
             TargetData data = new TargetData();
             data.EntityId = ConstructionBlock.EntityId;
-            data.TargetId = floating.EntityId;
+            data.TargetId = target.EntityId;
             data.TargetType = TargetTypes.Floating;
-            MyAPIGateway.Multiplayer.SendMessageToOthers(8953, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
+            SendToPlayerInSyncRange(8953, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
-        public void SendCancelTarget(IMyPlayer player)
+        public void SendCancelTarget(IMyPlayer target)
         {
             TargetData data = new TargetData();
             data.EntityId = ConstructionBlock.EntityId;
-            data.TargetId = player.IdentityId;
+            data.TargetId = target.IdentityId;
             data.TargetType = TargetTypes.Medical;
-            MyAPIGateway.Multiplayer.SendMessageToOthers(8953, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
+            SendToPlayerInSyncRange(8953, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
         public void SyncCancelTarget(TargetData data)
@@ -1417,7 +1416,7 @@ namespace NaniteConstructionSystem.Entities
             DetailData data = new DetailData();
             data.EntityId = ConstructionBlock.EntityId;
             data.Details = m_syncDetails.ToString();
-            MyAPIGateway.Multiplayer.SendMessageToOthers(8954, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
+            SendToPlayerInSyncRange(8954, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
         public void SyncDetails(DetailData data)
@@ -1526,6 +1525,33 @@ namespace NaniteConstructionSystem.Entities
 
             NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId] = settings;
         }
+
+        private void SendToPlayerInSyncRange(ushort id, byte[] bytes)
+        {
+            var localSteamId = MyAPIGateway.Multiplayer.MyId;
+            var distSq = MyAPIGateway.Session.SessionSettings.SyncDistance;
+            distSq += 1000; // some safety padding, avoid desync
+            distSq *= distSq;
+
+            var syncPosition = ConstructionBlock.GetPosition();
+
+            Logging.Instance.WriteLine($"SendToPlayerInSyncRange distSq: {distSq.ToString()}");
+            Logging.Instance.WriteLine($"SendToPlayerInSyncRange target: {syncPosition.ToString()}");
+
+            var players = new List<IMyPlayer>();
+            MyAPIGateway.Players.GetPlayers(players);
+            foreach (var p in players)
+            {
+                var steamId = p.SteamUserId;
+                Logging.Instance.WriteLine($"SendToPlayerInSyncRange player: {steamId.ToString()} {p.GetPosition().ToString()} {Vector3D.DistanceSquared(p.GetPosition(), syncPosition).ToString()}");
+
+                if (steamId != localSteamId && Vector3D.DistanceSquared(p.GetPosition(), syncPosition) <= distSq)
+                    MyAPIGateway.Multiplayer.SendMessageTo(id, bytes, p.SteamUserId);
+            }
+            players.Clear();
+        }
+
+        #endregion
     }
 
     /// <summary>
