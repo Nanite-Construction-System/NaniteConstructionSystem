@@ -142,7 +142,23 @@ namespace NaniteConstructionSystem.Entities.Beacons
             DetailData data = new DetailData();
             data.EntityId = MiningBlock.EntityId;
             data.Details = m_syncDetails.ToString();
-            MyAPIGateway.Multiplayer.SendMessageToOthers(8954, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
+            var bytes = ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data));
+
+            var localSteamId = MyAPIGateway.Multiplayer.MyId;
+            var distSq = MyAPIGateway.Session.SessionSettings.SyncDistance;
+            distSq += 1000; // some safety padding, avoid desync
+            distSq *= distSq;
+
+            var players = new List<IMyPlayer>();
+            MyAPIGateway.Players.GetPlayers(players);
+            foreach (var p in players)
+            {
+                var steamId = p.SteamUserId;
+
+                if (steamId != localSteamId && Vector3D.DistanceSquared(p.GetPosition(), MiningBlock.GetPosition()) <= distSq)
+                    MyAPIGateway.Multiplayer.SendMessageTo(8954, bytes, p.SteamUserId);
+            }
+            players.Clear();
         }
 
         public void SyncDetails(DetailData data)
@@ -153,7 +169,6 @@ namespace NaniteConstructionSystem.Entities.Beacons
             // Trigger a refresh
             var detector = m_block as Sandbox.ModAPI.Ingame.IMyOreDetector;
             var action = detector.GetActionWithName("BroadcastUsingAntennas");
-            action.Apply(m_block);
             action.Apply(m_block);
         }
 
@@ -606,7 +621,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
                 if (original == MyVoxelConstants.VOXEL_CONTENT_EMPTY)
                 {
-                    Logging.Instance.WriteLine(string.Format("Content is empty"));
+                    //Logging.Instance.WriteLine(string.Format("Content is empty"));
                     return;
                 }
 
