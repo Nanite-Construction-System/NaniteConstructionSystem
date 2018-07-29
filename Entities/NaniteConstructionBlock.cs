@@ -546,7 +546,7 @@ namespace NaniteConstructionSystem.Entities
                     }
                     finally
                     {
-                        Logging.Instance.WriteLine($"ScanForTargets: {(DateTime.Now - start).TotalMilliseconds}ms");
+                        Logging.Instance.WriteLine($"ScanForTargets {ConstructionBlock.EntityId}: {(DateTime.Now - start).TotalMilliseconds}ms");
                     }
                 });
             }
@@ -1541,15 +1541,15 @@ namespace NaniteConstructionSystem.Entities
 
             var syncPosition = ConstructionBlock.GetPosition();
 
-            Logging.Instance.WriteLine($"SendToPlayerInSyncRange distSq: {distSq.ToString()}");
-            Logging.Instance.WriteLine($"SendToPlayerInSyncRange target: {syncPosition.ToString()}");
+            //Logging.Instance.WriteLine($"SendToPlayerInSyncRange distSq: {distSq.ToString()}");
+            //Logging.Instance.WriteLine($"SendToPlayerInSyncRange target: {syncPosition.ToString()}");
 
             var players = new List<IMyPlayer>();
             MyAPIGateway.Players.GetPlayers(players);
             foreach (var p in players)
             {
                 var steamId = p.SteamUserId;
-                Logging.Instance.WriteLine($"SendToPlayerInSyncRange player: {steamId.ToString()} {p.GetPosition().ToString()} {Vector3D.DistanceSquared(p.GetPosition(), syncPosition).ToString()}");
+                //Logging.Instance.WriteLine($"SendToPlayerInSyncRange player: {steamId.ToString()} {p.GetPosition().ToString()} {Vector3D.DistanceSquared(p.GetPosition(), syncPosition).ToString()}");
 
                 if (steamId != localSteamId && Vector3D.DistanceSquared(p.GetPosition(), syncPosition) <= distSq)
                     MyAPIGateway.Multiplayer.SendMessageTo(id, bytes, p.SteamUserId);
