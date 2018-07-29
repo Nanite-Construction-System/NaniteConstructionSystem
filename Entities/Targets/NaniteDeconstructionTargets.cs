@@ -156,7 +156,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             try
             {
-                if(!IsEnabled())
+                if (!IsEnabled())
                 {
                     PotentialTargetList.Clear();
                     return;
@@ -167,10 +167,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                 {
                     IMyCubeBlock item = (IMyCubeBlock)beaconBlock.BeaconBlock;
 
-					if (!((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional)
+                    if (!((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional)
 						continue;
 
-					if (gridList.Contains(item.CubeGrid))
+                    if (gridList.Contains(item.CubeGrid))
                         continue;
 
                     MyRelationsBetweenPlayerAndBlock relation = item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId);
@@ -186,23 +186,19 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                     using (Lock.AcquireExclusiveUsing())
                     {
-                        foreach(var slimBlock in deconstruct.RemoveList)
-                        {
-                            if (!PotentialTargetList.Contains(slimBlock))
-                                PotentialTargetList.Add(slimBlock);
-                        }
+                        foreach (var slimBlock in deconstruct.RemoveList)
+                            PotentialTargetList.Add(slimBlock);
                     }
 
                     deconstruct.RemoveList.Clear();
                 }
 
                 CheckAreaBeacons();
-
-                if(PotentialTargetList.Count > 0)
+                if (PotentialTargetList.Count > 0)
                 {
                     using (Lock.AcquireExclusiveUsing())
                     {
-                        foreach(IMySlimBlock item in PotentialTargetList.ToList())
+                        foreach (IMySlimBlock item in PotentialTargetList.ToList())
                         {
                             if (item.CubeGrid.Closed || item.IsDestroyed || item.IsFullyDismounted || (item.FatBlock != null && item.FatBlock.Closed))
                                 PotentialTargetList.Remove(item);
@@ -210,11 +206,11 @@ namespace NaniteConstructionSystem.Entities.Targets
                             if (EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, item) > m_maxDistance)
                                 PotentialTargetList.Remove(item);
                         }
-                            
+
                         //m_potentialTargetList = m_potentialTargetList.OrderBy(x => GetBlockConnections((IMySlimBlock)(x))).ToList();
                     }
                 }
-                else if(TargetList.Count == 0 && PotentialTargetList.Count == 0)
+                else if (TargetList.Count == 0 && PotentialTargetList.Count == 0)
                 {
                     m_validBeaconedGrids.Clear();
                 }
@@ -760,7 +756,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             DateTime end = DateTime.Now;
             deconstruct.AddingGridList.Clear();
             deconstruct.AddingList.Clear();
-            Logging.Instance.WriteLine(string.Format("PROCESS Creating Grid Stack.  Total Process Time: {0}", (end - start).TotalMilliseconds));
+            Logging.Instance.WriteLine($"PROCESS Creating Grid Stack.  Total Process Time: {(end - start).TotalMilliseconds}ms");
         }
 
         private void CreateRemovalOrder(NaniteDeconstructionGrid deconstruct, IMySlimBlock startBlock)
@@ -820,9 +816,9 @@ namespace NaniteConstructionSystem.Entities.Targets
             // Find user defined priority blocks for deconstruction.  
             FindPriorityBlocks(deconstruct, startBlock);
 
-            Logging.Instance.WriteLine(string.Format("Block Count: {0}", deconstruct.RemoveList.Count));
-            //Logging.Instance.WriteLine(string.Format("Grid Count: {0}", deconstruct.GridsProcessed.Count));
-            //Logging.Instance.WriteLine(string.Format("Tree Size: {0}", deconstruct.GridTree.Sum(x => x.All.Count())));
+            Logging.Instance.WriteLine($"Block Count: {deconstruct.RemoveList.Count}");
+            Logging.Instance.WriteLine($"Grid Count: {deconstruct.GridsProcessed.Count}");
+            //Logging.Instance.WriteLine($"Tree Size: {deconstruct.GridTree.Sum(x => x.All.Count())}");
         }
 
         private void FindPriorityBlocks(NaniteDeconstructionGrid deconstruct, IMySlimBlock startBlock)

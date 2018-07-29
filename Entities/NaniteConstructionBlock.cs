@@ -511,6 +511,8 @@ namespace NaniteConstructionSystem.Entities
                 m_ready = false;
                 MyAPIGateway.Parallel.StartBackground(() =>
                 {
+                    DateTime start = DateTime.Now;
+
                     try
                     {
                         // Rebuild our conveyor cache
@@ -540,7 +542,11 @@ namespace NaniteConstructionSystem.Entities
                     catch(Exception ex)
                     {
                         m_ready = true;
-                        Logging.Instance.WriteLine(string.Format("ScanForTargets Error: {0}", ex.ToString()));
+                        Logging.Instance.WriteLine($"ScanForTargets Error: {ex.ToString()}");
+                    }
+                    finally
+                    {
+                        Logging.Instance.WriteLine($"ScanForTargets: {(DateTime.Now - start).TotalMilliseconds}ms");
                     }
                 });
             }
