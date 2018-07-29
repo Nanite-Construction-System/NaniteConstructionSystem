@@ -621,7 +621,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
                 if (original == MyVoxelConstants.VOXEL_CONTENT_EMPTY)
                 {
-                    Logging.Instance.WriteLine(string.Format("Content is empty"));
+                    //Logging.Instance.WriteLine(string.Format("Content is empty"));
                     return;
                 }
 
