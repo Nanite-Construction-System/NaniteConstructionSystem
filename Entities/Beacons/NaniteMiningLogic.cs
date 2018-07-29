@@ -23,12 +23,6 @@ namespace NaniteConstructionSystem.Entities.Beacons
             m_mining = new NaniteMining((IMyTerminalBlock)Entity);
             NaniteConstructionManager.MiningList.Add(m_mining);
             NaniteConstructionManager.NaniteSync.SendNeedHammerTerminalSettings(Entity.EntityId);
-
-            if (Sync.IsClient)
-            {
-                NaniteConstructionManager.NaniteSync.SendNeedHammerTerminalSettings(Entity.EntityId);
-            }
-
         }
 
         public override MyObjectBuilder_EntityBase GetObjectBuilder(bool copy = false)
