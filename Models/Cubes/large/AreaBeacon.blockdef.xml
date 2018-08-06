@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Definition>
+	<Id>
+		<SubtypeId>AreaBeacon</SubtypeId>
+	</Id>
+	<Icon>Textures\Icons\Scene.dds</Icon>
+	<CubeSize>Large</CubeSize>
+	<BlockTopology>TriangleMesh</BlockTopology>
+	<Size x="1" y="2" z="1" />
+	<ModelOffset x="0" y="0" z="0" />
+	<Model>Models\AreaBeacon.mwm</Model>
+	<BuildProgressModels>
+		<Model BuildPercentUpperBound="0.50" File="Models\AreaBeacon_Constr1.mwm" />
+		<Model BuildPercentUpperBound="1.00" File="Models\AreaBeacon_Constr2.mwm" />
+	</BuildProgressModels>
+	<BlockPairName>Scene</BlockPairName>
+</Definition>

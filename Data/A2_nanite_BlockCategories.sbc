@@ -1,0 +1,208 @@
+<?xml version="1.0"  encoding="utf-8"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <CategoryClasses>
+    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
+      <Id>
+        <TypeId>GuiBlockCategoryDefinition</TypeId>
+        <SubtypeId/>
+      </Id>
+      <DisplayName>DisplayName_Category_LargeBlocks</DisplayName>
+      <Name>LargeBlocks</Name>
+      <ItemIds>
+		<string>OxygenFarm/LargeNaniteFactory</string>
+      </ItemIds>
+    </Category>
+    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
+      <Id>
+        <TypeId>GuiBlockCategoryDefinition</TypeId>
+        <SubtypeId/>
+      </Id>
+      <DisplayName>DisplayName_Category_LargeBlocks</DisplayName>
+      <Name>LargeBlocks</Name>
+      <ItemIds>
+		<string>OxygenFarm/LargeNaniteBeaconDeconstruct</string>		
+      </ItemIds>
+    </Category>	
+    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
+      <Id>
+        <TypeId>GuiBlockCategoryDefinition</TypeId>
+        <SubtypeId/>
+      </Id>
+      <DisplayName>DisplayName_Category_SmallBlocks</DisplayName>
+      <Name>SmallBlocks</Name>
+      <ItemIds>
+		<string>OxygenFarm/SmallNaniteBeaconDeconstruct</string>		
+      </ItemIds>
+    </Category>
+    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
+      <Id>
+        <TypeId>GuiBlockCategoryDefinition</TypeId>
+        <SubtypeId/>
+      </Id>
+      <DisplayName>DisplayName_Category_LargeBlocks</DisplayName>
+      <Name>LargeBlocks</Name>
+      <ItemIds>
+		<string>OxygenFarm/LargeNaniteBeaconConstruct</string>		
+      </ItemIds>
+    </Category>	
+    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
+      <Id>
+        <TypeId>GuiBlockCategoryDefinition</TypeId>
+        <SubtypeId/>
+      </Id>
+      <DisplayName>DisplayName_Category_SmallBlocks</DisplayName>
+      <Name>SmallBlocks</Name>
+      <ItemIds>
+		<string>OxygenFarm/SmallNaniteBeaconConstruct</string>		
+      </ItemIds>
+    </Category>
+    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
+      <Id>
+        <TypeId>GuiBlockCategoryDefinition</TypeId>
+        <SubtypeId/>
+      </Id>
+      <DisplayName>DisplayName_Category_LargeBlocks</DisplayName>
+      <Name>LargeBlocks</Name>
+      <ItemIds>
+		<string>OxygenFarm/LargeNaniteBeaconProjection</string>		
+      </ItemIds>
+    </Category>	
+    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
+      <Id>
+        <TypeId>GuiBlockCategoryDefinition</TypeId>
+        <SubtypeId/>
+      </Id>
+      <DisplayName>DisplayName_Category_SmallBlocks</DisplayName>
+      <Name>SmallBlocks</Name>
+      <ItemIds>
+		<string>OxygenFarm/SmallNaniteBeaconProjection</string>		
+      </ItemIds>
+    </Category>	
+    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
+      <Id>
+        <TypeId>GuiBlockCategoryDefinition</TypeId>
+        <SubtypeId/>
+      </Id>
+      <DisplayName>DisplayName_Category_LargeBlocks</DisplayName>
+      <Name>LargeBlocks</Name>
+      <ItemIds>
+		<string>OreDetector/NaniteUltrasonicHammer</string>		
+      </ItemIds>
+    </Category>		
+    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
+      <Id>
+        <TypeId>GuiBlockCategoryDefinition</TypeId>
+        <SubtypeId/>
+      </Id>
+      <DisplayName>DisplayName_Category_LargeBlocks</DisplayName>
+      <Name>LargeBlocks</Name>
+      <ItemIds>
+		<string>UpgradeModule/NaniteConstructUpgrade</string>		
+      </ItemIds>
+    </Category>		
+    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
+      <Id>
+        <TypeId>GuiBlockCategoryDefinition</TypeId>
+        <SubtypeId/>
+      </Id>
+      <DisplayName>DisplayName_Category_LargeBlocks</DisplayName>
+      <Name>LargeBlocks</Name>
+      <ItemIds>
+		<string>UpgradeModule/NaniteDeconstructUpgrade</string>		
+      </ItemIds>
+    </Category>		
+    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
+      <Id>
+        <TypeId>GuiBlockCategoryDefinition</TypeId>
+        <SubtypeId/>
+      </Id>
+      <DisplayName>DisplayName_Category_LargeBlocks</DisplayName>
+      <Name>LargeBlocks</Name>
+      <ItemIds>
+		<string>UpgradeModule/NaniteCleanupUpgrade</string>		
+      </ItemIds>
+    </Category>		
+    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
+      <Id>
+        <TypeId>GuiBlockCategoryDefinition</TypeId>
+        <SubtypeId/>
+      </Id>
+      <DisplayName>DisplayName_Category_LargeBlocks</DisplayName>
+      <Name>LargeBlocks</Name>
+      <ItemIds>
+		<string>UpgradeModule/NaniteProjectionUpgrade</string>		
+      </ItemIds>
+    </Category>			
+    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
+      <Id>
+        <TypeId>GuiBlockCategoryDefinition</TypeId>
+        <SubtypeId/>
+      </Id>
+      <DisplayName>DisplayName_Category_LargeBlocks</DisplayName>
+      <Name>LargeBlocks</Name>
+      <ItemIds>
+		<string>UpgradeModule/NaniteMiningUpgrade</string>		
+      </ItemIds>
+    </Category>			
+    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
+      <Id>
+        <TypeId>GuiBlockCategoryDefinition</TypeId>
+        <SubtypeId/>
+      </Id>
+      <DisplayName>DisplayName_Category_LargeBlocks</DisplayName>
+      <Name>LargeBlocks</Name>
+      <ItemIds>
+		<string>UpgradeModule/NaniteMedicalUpgrade</string>		
+      </ItemIds>
+    </Category>			
+    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
+      <Id>
+        <TypeId>GuiBlockCategoryDefinition</TypeId>
+        <SubtypeId/>
+      </Id>
+      <DisplayName>DisplayName_Category_LargeBlocks</DisplayName>
+      <Name>LargeBlocks</Name>
+      <ItemIds>
+		<string>UpgradeModule/NaniteSpeedUpgrade</string>		
+      </ItemIds>
+    </Category>			
+    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
+      <Id>
+        <TypeId>GuiBlockCategoryDefinition</TypeId>
+        <SubtypeId/>
+      </Id>
+      <DisplayName>DisplayName_Category_LargeBlocks</DisplayName>
+      <Name>LargeBlocks</Name>
+      <ItemIds>
+		<string>UpgradeModule/NanitePowerUpgrade</string>		
+      </ItemIds>
+    </Category>				
+    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
+      <Id>
+        <TypeId>GuiBlockCategoryDefinition</TypeId>
+        <SubtypeId/>
+      </Id>
+      <DisplayName>Nanites Blocks</DisplayName>
+      <Name>NaniteBlocks</Name>
+      <Public>true</Public>
+      <ItemIds>
+		<string>OxygenFarm/LargeNaniteFactory</string>
+		<string>OxygenFarm/LargeNaniteBeaconDeconstruct</string>		
+		<string>OxygenFarm/SmallNaniteBeaconDeconstruct</string>		
+		<string>OxygenFarm/LargeNaniteBeaconConstruct</string>		
+		<string>OxygenFarm/SmallNaniteBeaconConstruct</string>		
+		<string>OxygenFarm/LargeNaniteBeaconProjection</string>		
+		<string>OxygenFarm/SmallNaniteBeaconProjection</string>		
+		<string>OreDetector/NaniteUltrasonicHammer</string>		
+		<string>UpgradeModule/NaniteConstructUpgrade</string>		
+		<string>UpgradeModule/NaniteDeconstructUpgrade</string>		
+		<string>UpgradeModule/NaniteCleanupUpgrade</string>		
+		<string>UpgradeModule/NaniteProjectionUpgrade</string>		
+		<string>UpgradeModule/NaniteMiningUpgrade</string>		
+		<string>UpgradeModule/NaniteMedicalUpgrade</string>		
+		<string>UpgradeModule/NaniteSpeedUpgrade</string>		
+		<string>UpgradeModule/NanitePowerUpgrade</string>		
+      </ItemIds>
+    </Category>
+  </CategoryClasses>
+</Definitions>
