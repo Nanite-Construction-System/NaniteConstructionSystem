@@ -1,20 +1,13 @@
 ﻿using Sandbox.Common.ObjectBuilders;
 using VRage.Game.Components;
 using VRage.ObjectBuilders;
-using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
-using VRage.ModAPI;
-using VRage.Game;
-using System.Collections.Generic;
 using Sandbox.Game.Entities;
-using Sandbox.Game;
-using VRage.Game.ObjectBuilders;
-using VRage.Utils;
 
 namespace NaniteConstructionSystem.Entities
 {
-    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_OxygenFarm), true, "LargeNaniteFactory")]
-    public class NaniteConstructionLogic : MyGameLogicComponent
+    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_ShipWelder), false, "LargeNaniteControlFacility")]
+    public class LargeControlFacilityLogic : MyGameLogicComponent
     {
         private NaniteConstructionBlock m_block = null;
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)

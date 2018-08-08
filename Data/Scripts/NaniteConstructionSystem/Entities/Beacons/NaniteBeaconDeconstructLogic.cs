@@ -12,7 +12,7 @@ using VRage.Utils;
 
 namespace NaniteConstructionSystem.Entities.Beacons
 {
-    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_OxygenFarm), true, "LargeNaniteBeaconDeconstruct", "SmallNaniteBeaconDeconstruct")]
+    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_OxygenFarm), false, "LargeNaniteBeaconDeconstruct", "SmallNaniteBeaconDeconstruct")]
     public class NaniteBeaconDeconstructLogic : MyGameLogicComponent
     {
         private NaniteBeacon m_beacon = null;

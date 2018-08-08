@@ -1,75 +1,141 @@
 ﻿using System;
+using ProtoBuf;
 using Sandbox.ModAPI;
 
 namespace NaniteConstructionSystem.Settings
 {
+    [ProtoContract]
     public class NaniteSettings
     {
-		static public string SettingsFile = "Config.xml";
+		static public string SettingsFile = "config_v2.xml";
 
-        public bool ConstructionEnabled { get; set; } //
-        public int ConstructionMaxStreams { get; set; } //
-        public float ConstructionEfficiency { get; set; } //
-        public float ConstructionPowerPerStream { get; set; } //
-        public float ConstructionMinTravelTime { get; set; } //
-        public float ConstructionDistanceDivisor { get; set; } //
-        public int ConstructionNanitesPerUpgrade { get; set; } //
-        public int ConstructionNanitesNoUpgrade { get; set; } //
+        [ProtoMember(1)]
+        public bool ConstructionEnabled { get; set; }
+        [ProtoMember(2)]
+        public int ConstructionMaxStreams { get; set; }
+        [ProtoMember(3)]
+        public float ConstructionEfficiency { get; set; }
+        [ProtoMember(4)]
+        public float ConstructionPowerPerStream { get; set; }
+        [ProtoMember(5)]
+        public float ConstructionMinTravelTime { get; set; }
+        [ProtoMember(6)]
+        public float ConstructionDistanceDivisor { get; set; }
+        [ProtoMember(7)]
+        public int ConstructionNanitesPerUpgrade { get; set; }
+        [ProtoMember(8)]
+        public int ConstructionNanitesNoUpgrade { get; set; }
+        [ProtoMember(9)]
         public float ConstructionMaxBeaconDistance { get; set; }
-        public bool ProjectionEnabled { get; set; } //
-        public int ProjectionMaxStreams { get; set; } //
-        public float ProjectionPowerPerStream { get; set; } //
-        public float ProjectionMinTravelTime { get; set; } //
-        public float ProjectionDistanceDivisor { get; set; } //
-        public int ProjectionNanitesPerUpgrade { get; set; } //
-        public int ProjectionNanitesNoUpgrade { get; set; } //
+        [ProtoMember(10)]
+        public bool ProjectionEnabled { get; set; }
+        [ProtoMember(11)]
+        public int ProjectionMaxStreams { get; set; }
+        [ProtoMember(12)]
+        public float ProjectionPowerPerStream { get; set; }
+        [ProtoMember(13)]
+        public float ProjectionMinTravelTime { get; set; }
+        [ProtoMember(14)]
+        public float ProjectionDistanceDivisor { get; set; }
+        [ProtoMember(15)]
+        public int ProjectionNanitesPerUpgrade { get; set; }
+        [ProtoMember(16)]
+        public int ProjectionNanitesNoUpgrade { get; set; }
+        [ProtoMember(17)]
         public float ProjectionMaxBeaconDistance { get; set; }
-        public bool CleanupEnabled { get; set; } //
-        public int CleanupMaxStreams { get; set; } //
-        public float CleanupCarryVolume { get; set; } //
-        public float CleanupMaxDistance { get; set; } //
-        public float CleanupPowerPerStream { get; set; } //
-        public float CleanupMinTravelTime { get; set; } //
-        public float CleanupDistanceDivisor { get; set; } //
-        public int CleanupNanitesPerUpgrade { get; set; } //
-        public int CleanupNanitesNoUpgrade { get; set; } //
-        public bool DeconstructionEnabled { get; set; } //
-        public int DeconstructionMaxStreams { get; set; } //
-        public float DeconstructionMaxDistance { get; set; } //
-        public float DeconstructionEfficiency { get; set; } // Kind of
-        public float DeconstructionPowerPerStream { get; set; } //
-        public float DeconstructionMinTravelTime { get; set; } //
-        public float DeconstructionDistanceDivisor { get; set; } //
+        [ProtoMember(18)]
+        public bool CleanupEnabled { get; set; }
+        [ProtoMember(19)]
+        public int CleanupMaxStreams { get; set; }
+        [ProtoMember(20)]
+        public float CleanupCarryVolume { get; set; }
+        [ProtoMember(21)]
+        public float CleanupMaxDistance { get; set; }
+        [ProtoMember(22)]
+        public float CleanupPowerPerStream { get; set; }
+        [ProtoMember(23)]
+        public float CleanupMinTravelTime { get; set; }
+        [ProtoMember(24)]
+        public float CleanupDistanceDivisor { get; set; }
+        [ProtoMember(25)]
+        public int CleanupNanitesPerUpgrade { get; set; }
+        [ProtoMember(26)]
+        public int CleanupNanitesNoUpgrade { get; set; }
+        [ProtoMember(27)]
+        public bool DeconstructionEnabled { get; set; }
+        [ProtoMember(28)]
+        public int DeconstructionMaxStreams { get; set; }
+        [ProtoMember(29)]
+        public float DeconstructionMaxDistance { get; set; }
+        [ProtoMember(30)]
+        public float DeconstructionEfficiency { get; set; }
+        [ProtoMember(31)]
+        public float DeconstructionPowerPerStream { get; set; }
+        [ProtoMember(32)]
+        public float DeconstructionMinTravelTime { get; set; }
+        [ProtoMember(33)]
+        public float DeconstructionDistanceDivisor { get; set; }
+        [ProtoMember(34)]
         public bool DeconstructionPerformanceFriendly { get; set; }
-        public int DeconstructionNanitesPerUpgrade { get; set; } //
-        public int DeconstructionNanitesNoUpgrade { get; set; } //
-        public bool MiningEnabled { get; set; } //
+        [ProtoMember(35)]
+        public int DeconstructionNanitesPerUpgrade { get; set; }
+        [ProtoMember(36)]
+        public int DeconstructionNanitesNoUpgrade { get; set; }
+        [ProtoMember(37)]
+        public bool MiningEnabled { get; set; }
+        [ProtoMember(38)]
         public int MiningMaxStreams { get; set; }
+        [ProtoMember(39)]
         public float MiningMaxDistance { get; set; }
+        [ProtoMember(40)]
         public float MiningPowerPerStream { get; set; }
+        [ProtoMember(41)]
         public float MiningMinTravelTime { get; set; }
+        [ProtoMember(42)]
         public float MiningDistanceDivisor { get; set; }
+        [ProtoMember(43)]
         public int MiningNanitesPerUpgrade { get; set; }
+        [ProtoMember(44)]
         public int MiningNanitesNoUpgrade { get; set; }
+        [ProtoMember(45)]
         public float MiningRadius { get; set; }
+        [ProtoMember(46)]
         public int MiningDepth { get; set; }
-        public bool MedicalEnabled { get; set; } //
+        [ProtoMember(47)]
+        public bool MedicalEnabled { get; set; }
+        [ProtoMember(48)]
         public int MedicalMaxStreams { get; set; }
+        [ProtoMember(49)]
         public float MedicalMaxDistance { get; set; }
+        [ProtoMember(50)]
         public float MedicalPowerPerStream { get; set; }
+        [ProtoMember(51)]
         public float MedicalMinTravelTime { get; set; }
+        [ProtoMember(52)]
         public float MedicalDistanceDivisor { get; set; }
+        [ProtoMember(53)]
         public int MedicalNanitesPerUpgrade { get; set; }
+        [ProtoMember(54)]
         public int MedicalNanitesNoUpgrade { get; set; }
+        [ProtoMember(55)]
         public int MedicalSecondsPerHealTick { get; set; }
+        [ProtoMember(56)]
         public float MedicalHealthPerHealTick { get; set; }
+        [ProtoMember(57)]
         public float AreaBeaconMaxSize { get; set; }
+        [ProtoMember(58)]
         public float AreaBeaconMinSize { get; set; }
+        [ProtoMember(59)]
         public float SpeedIncreasePerUpgrade { get; set; }
+        [ProtoMember(60)]
         public float MinTravelTimeReductionPerUpgrade { get; set; }
+        [ProtoMember(61)]
         public float PowerDecreasePerUpgrade { get; set; }
-        public float FactoryComponentMultiplier { get; set; } //
+        [ProtoMember(62)]
+        public float FactoryComponentMultiplier { get; set; }
+        [ProtoMember(63)]
         public float UpgradeComponentMultiplier { get; set; }
+
         public string Version { get; set; }
 
         public NaniteSettings()
@@ -141,19 +207,14 @@ namespace NaniteConstructionSystem.Settings
         }
 
         public static NaniteSettings Load() {
-			bool updatedFile = MyAPIGateway.Utilities.FileExistsInWorldStorage(SettingsFile, typeof(NaniteSettings));
-
-			// We can't just ignore & delete the file at the old location because what if someone has modified it and expects the settings to be the same under multiple saves?
-
-			if (MyAPIGateway.Utilities.FileExistsInLocalStorage("settings.xml", typeof(NaniteSettings)) || updatedFile)
+			if (MyAPIGateway.Utilities.FileExistsInWorldStorage(SettingsFile, typeof(NaniteSettings)))
             {
                 try
                 {
                     Logging.Instance.WriteLine("Loading Settings");
                     NaniteSettings settings;
-                    using (var reader = updatedFile ? MyAPIGateway.Utilities.ReadFileInWorldStorage(SettingsFile, typeof(NaniteSettings)) : MyAPIGateway.Utilities.ReadFileInLocalStorage("settings.xml", typeof(NaniteSettings)))
+                    using (var reader = MyAPIGateway.Utilities.ReadFileInWorldStorage(SettingsFile, typeof(NaniteSettings)))
                         settings = MyAPIGateway.Utilities.SerializeFromXML<NaniteSettings>(reader.ReadToEnd());
-
                     try
                     {
                         UpdateSettings(settings);
@@ -176,84 +237,12 @@ namespace NaniteConstructionSystem.Settings
 
         private static void UpdateSettings(NaniteSettings settings)
         {
-            var originalVersion = settings.Version;
-            if (settings.Version == "1.0")
-            {
-                Logging.Instance.WriteLine(string.Format("Updating Settings 1.0 -> 1.1"));
+            //var originalVersion = settings.Version;
 
-                if (settings.ConstructionMaxStreams == 6)
-                    settings.ConstructionMaxStreams = 15;
-                if (settings.DeconstructionMaxStreams == 6)
-                    settings.DeconstructionMaxStreams = 15;
-                if (settings.CleanupMaxStreams == 6)
-                    settings.CleanupMaxStreams = 15;
-                if (settings.ProjectionMaxStreams == 6)
-                    settings.ProjectionMaxStreams = 15;
+            //TODO config migration
 
-                settings.Version = "1.1";
-            }
-
-            if (settings.Version == "1.1")
-            {
-                if (settings.ConstructionNanitesNoUpgrade == 0)
-                    settings.ConstructionNanitesNoUpgrade = 1;
-
-                if (settings.DeconstructionNanitesNoUpgrade == 0)
-                    settings.DeconstructionNanitesNoUpgrade = 1;
-
-                if (settings.ProjectionNanitesNoUpgrade == 0)
-                    settings.ProjectionNanitesNoUpgrade = 1;
-
-                if (settings.CleanupNanitesNoUpgrade == 0)
-                    settings.CleanupNanitesNoUpgrade = 1;
-
-                settings.Version = "1.2";
-            }
-
-            if (settings.Version == "1.2") // Just notify user we've updated
-            {
-                settings.Version = "1.3";
-            }
-
-            if (settings.Version == "1.3")
-            {
-                settings.Version = "1.4";
-            }
-
-            if (settings.Version == "1.4")
-            {
-                settings.Version = "1.5";
-            }
-
-            if (settings.Version == "1.5")
-            {
-                settings.Version = "1.6";
-            }
-
-            if(settings.Version == "1.6")
-            {
-                settings.Version = "1.7";
-			}
-
-			if (settings.Version == "1.7") {
-				MyAPIUtilities utils = (MyAPIUtilities)MyAPIGateway.Utilities;
-
-				// Clean out useless variables in Sandbox.sbc save file.
-				utils.Variables.Remove("terminalsettings.xml");
-				utils.Variables.Remove("assemblersettings.xml");
-				utils.Variables.Remove("NaniteControlFactory.HammerTerminalSettings");
-				utils.Variables.Remove("NaniteControlFactory.BeaconTerminalSettings");
-
-				settings.Version = "1.8";
-            }
-
-            if (settings.Version == "1.8")
-            {
-                settings.Version = "1.9";
-            }
-
-            if (settings.Version != originalVersion)
-                SendNotification();
+            //if (settings.Version != originalVersion)
+            //    SendNotification();
         }
 
         public static void Save(NaniteSettings settings){
@@ -261,16 +250,15 @@ namespace NaniteConstructionSystem.Settings
                 writer.Write(MyAPIGateway.Utilities.SerializeToXML<NaniteSettings>(settings));
         }
 
-        private static void SendNotification()
-        {
-            if (MyAPIGateway.Utilities != null)
-            {
-                MyAPIGateway.Utilities.ShowMessage("[Nanite Control Factory]", "Nanite control factory has been updated.  Type /nanite to see what's new.");
-                MyAPIGateway.Utilities.ShowNotification("Nanite control factory has been updated.  Type /nanite to see what's new.", 20000, VRage.Game.MyFontEnum.Green);
+   //     private static void SendNotification()
+   //     {
+   //         if (MyAPIGateway.Utilities != null)
+   //         {
+   //             MyAPIGateway.Utilities.ShowMessage("[Nanite Control Factory]", "Nanite control factory has been updated.  Type /nanite to see what's new.");
+   //             MyAPIGateway.Utilities.ShowNotification("Nanite control factory has been updated.  Type /nanite to see what's new.", 20000, VRage.Game.MyFontEnum.Green);
 			
-            }
-			if(MyAPIGateway.Utilities == null) return;
-        }
-	
+   //         }
+			//if(MyAPIGateway.Utilities == null) return;
+   //     }
     }
 }

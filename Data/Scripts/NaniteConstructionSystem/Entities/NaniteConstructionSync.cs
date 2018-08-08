@@ -2,13 +2,7 @@
 using System.Text;
 using Sandbox.ModAPI;
 using VRage.Utils;
-using VRage.Game;
-using Sandbox.Definitions;
-using Sandbox.Common.ObjectBuilders;
 using VRage.ModAPI;
-using Sandbox.Game.Entities;
-using VRage.Game.ModAPI;
-using VRageMath;
 
 using NaniteConstructionSystem.Extensions;
 using NaniteConstructionSystem.Settings;
@@ -32,7 +26,6 @@ namespace NaniteConstructionSystem.Entities
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8952, HandleCompleteTarget);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8953, HandleCancelTarget);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8954, HandleDetails);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8956, HandleSettings);
               //*  MyAPIGateway.Multiplayer.RegisterMessageHandler(8958, HandleStartParticle);
               //*  MyAPIGateway.Multiplayer.RegisterMessageHandler(8959, HandleRemoveParticle);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8960, HandleTerminalSettings);
@@ -43,7 +36,6 @@ namespace NaniteConstructionSystem.Entities
             }
             else
             {
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8955, HandleLogin);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8961, HandleNeedTerminalSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8963, HandleNeedAssemblerSettings);
                 // Same function but server.  I think SendMessageToOthers sends to self, which will stack overflow
@@ -67,12 +59,10 @@ namespace NaniteConstructionSystem.Entities
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8952, HandleCompleteTarget);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8953, HandleCancelTarget);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8954, HandleDetails);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8956, HandleSettings);
               //*  MyAPIGateway.Multiplayer.UnregisterMessageHandler(8958, HandleStartParticle);
               //*  MyAPIGateway.Multiplayer.UnregisterMessageHandler(8959, HandleRemoveParticle);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8960, HandleTerminalSettings);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8962, HandleAssemblerSettings);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8955, HandleLogin);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8961, HandleNeedTerminalSettings);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8963, HandleNeedAssemblerSettings);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8964, HandleTerminalSettings);
@@ -240,79 +230,6 @@ namespace NaniteConstructionSystem.Entities
                 data.SteamId = 0;
 
             MyAPIGateway.Multiplayer.SendMessageToServer(8955, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
-        }
-
-        private void HandleLogin(byte[] data)
-        {
-            if (!Sync.IsServer)
-                return;
-
-            try
-            {
-                LoginData loginData = MyAPIGateway.Utilities.SerializeFromXML<LoginData>(ASCIIEncoding.ASCII.GetString(data));
-                Logging.Instance.WriteLine(string.Format("Sending settings to: {0}", loginData.SteamId));
-                SendSettings(loginData.SteamId);
-            }
-            catch (Exception ex)
-            {
-                MyLog.Default.WriteLine(string.Format("HandleLogin() Error: {0}", ex.ToString()));
-            }
-        }
-
-        public void SendSettings(ulong steamId)
-        {
-            SettingsData data = new SettingsData();
-            data.Settings = NaniteConstructionManager.Settings;
-            MyAPIGateway.Multiplayer.SendMessageTo(8956, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)), steamId);
-        }
-
-        private void HandleSettings(byte[] data)
-        {
-            try
-            {
-                SettingsData settingsData = MyAPIGateway.Utilities.SerializeFromXML<SettingsData>(ASCIIEncoding.ASCII.GetString(data));
-                NaniteConstructionManager.Settings = settingsData.Settings;
-
-                Logging.Instance.WriteLine(string.Format("Received Settings Data - {0}x {1}x", NaniteConstructionManager.Settings.FactoryComponentMultiplier, NaniteConstructionManager.Settings.UpgradeComponentMultiplier));
-
-                foreach(var item in NaniteConstructionManager.NaniteBlocks)
-                {
-                    IMySlimBlock slimBlock = ((MyCubeBlock)item.Value.ConstructionBlock).SlimBlock as IMySlimBlock;
-                    Logging.Instance.WriteLine(string.Format("Here: {0} / {1}", slimBlock.BuildIntegrity, slimBlock.MaxIntegrity));
-                }
-
-                var def = MyDefinitionManager.Static.GetCubeBlockDefinition(new MyDefinitionId(typeof(MyObjectBuilder_OxygenFarm), "LargeNaniteFactory"));
-                foreach (var item in def.Components)
-                {
-                    item.Count = (int)((float)item.Count * NaniteConstructionManager.Settings.FactoryComponentMultiplier);
-                    if (item.Count < 1)
-                        item.Count = 1;
-                }
-
-                foreach (var item in NaniteConstructionManager.NaniteBlocks)
-                {
-                    IMySlimBlock slimBlock = ((MyCubeBlock)item.Value.ConstructionBlock).SlimBlock as IMySlimBlock;
-                    Logging.Instance.WriteLine(string.Format("Here: {0} / {1}", slimBlock.BuildIntegrity, slimBlock.MaxIntegrity));
-                }
-
-                foreach (var item in MyDefinitionManager.Static.GetAllDefinitions())
-                {
-                    if (item.Id.TypeId == typeof(MyObjectBuilder_UpgradeModule) && item.Id.SubtypeName.Contains("Nanite"))
-                    {
-                        MyCubeBlockDefinition cubeDef = (MyCubeBlockDefinition)item;
-                        foreach (var component in cubeDef.Components)
-                        {
-                            component.Count = (int)((float)component.Count * NaniteConstructionManager.Settings.UpgradeComponentMultiplier);
-                            if (component.Count < 1)
-                                component.Count = 1;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MyLog.Default.WriteLine(string.Format("HandleSettings() Error: {0}", ex.ToString()));
-            }
         }
 
        /* private void HandleStartParticle(byte[] data)

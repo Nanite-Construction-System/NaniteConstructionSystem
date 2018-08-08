@@ -162,80 +162,98 @@ namespace NaniteConstructionSystem
             }
         }
 
-        private bool m_initialize = false;
         private TerminalSettings m_terminalSettingsManager = new TerminalSettings();
         private List<IMyTerminalControl> m_customControls = new List<IMyTerminalControl>();
         private IMyTerminalControl m_customAssemblerControl;
         private List<IMyTerminalControl> m_customHammerControls = new List<IMyTerminalControl>();
         private List<IMyTerminalControl> m_customBeaconControls = new List<IMyTerminalControl>();
         private List<IMyTerminalAction> m_customBeaconActions = new List<IMyTerminalAction>();
-        private DateTime m_lastPlayer;
-        private Action<IMyTerminalBlock> m_oldAction;
 
         public NaniteConstructionManager()
         {
             Instance = this;
             m_sync = new NaniteConstructionManagerSync();
-            m_lastPlayer = DateTime.MinValue;
         }
+
+        #region Simulation / Init
+        public override void BeforeStart()
+        {
+            base.BeforeStart();
+
+            try
+            {
+                Logging.Instance.WriteLine($"Logging Started");
+
+                if (!Sync.IsServer)
+                {
+                    MyAPIGateway.Entities.OnEntityAdd += Entities_OnEntityAdd;
+                    MyAPIGateway.Utilities.MessageEntered += MessageEntered;
+                }
+
+                m_sync.Initialize();
+                MyAPIGateway.Multiplayer.RegisterMessageHandler(MessageHub.MessageId, MessageHub.HandleMessage);
+
+                if (Sync.IsServer)
+                {
+                    LoadSettings();
+                    InitializeControls();
+                }
+
+                m_terminalSettingsManager.Load();
+
+                //MyAPIGateway.Multiplayer.RegisterMessageHandler(Extensions.MessageUtils.MessageId, Extensions.MessageUtils.HandleMessage);
+
+                MyAPIGateway.Session.OnSessionReady += Session_OnSessionReady;
+            }
+            catch (Exception ex) { NaniteConstructionSystem.Logging.Instance.WriteLine($"Exception in BeforeStart: {ex}"); }
+        }
+
+        private void Session_OnSessionReady()
+        {
+            CleanupOldBlocks();
+
+            if (Sync.IsClient)
+            {
+                m_sync.SendLogin();
+
+                foreach (var item in NaniteBlocks)
+                {
+                    m_sync.SendNeedTerminalSettings(item.Key);
+                }
+
+                foreach (var item in AssemblerBlocks)
+                {
+                    m_sync.SendNeedAssemblerSettings(item.Value.EntityId);
+                }
+
+                foreach (var item in HammerTerminalSettings)
+                {
+                    m_sync.SendNeedHammerTerminalSettings(item.Key);
+                }
+
+                foreach (var item in BeaconTerminalSettings)
+                {
+                    m_sync.SendNeedBeaconTerminalSettings(item.Key);
+                }
+            }
+        }
+        #endregion
 
         public override void UpdateBeforeSimulation()
         {
             if (MyAPIGateway.Session == null)
                 return;
 
-            if (!m_initialize)
-            {
-                m_initialize = true;
-                Initialize();
-                return;
-            }
-
             try
             {
                 ProcessNaniteBlocks();
-                ProcessBeaconBlocks();
+                //ProcessBeaconBlocks();
                 ProcessParticleEffects();
-                ProcessMiningBlocks();
-                //Test();
+                //ProcessMiningBlocks();
             }
             catch (Exception ex)
             {
                 Logging.Instance.WriteLine(string.Format("Update Error: {0}", ex.ToString()));
-            }
-        }
-
-        public void Test()
-        {
-            if (DateTime.Now - m_lastPlayer < TimeSpan.FromSeconds(2))
-                return;
-
-            m_lastPlayer = DateTime.Now;
-            var players = new List<IMyPlayer>();
-            MyAPIGateway.Players.GetPlayers(players);
-
-            foreach(var item in players)
-            {
-                Logging.Instance.WriteLine(string.Format("Here: {0}", item.DisplayName));
-                if (item.Controller.ControlledEntity.Entity != null)
-                {
-
-                    foreach (var comp in item.Controller.ControlledEntity.Entity.Components)
-                    {
-                        if (comp.GetType().Name == "MyCharacterStatComponent")
-                        {
-                            MyCharacterStatComponent stat = comp as MyCharacterStatComponent;
-                            Logging.Instance.WriteLine(string.Format("Player {0}: {1} of {2}", item.DisplayName, stat.Health.Value, stat.Health.MaxValue));
-
-                            if (stat.Health.Value < 100)
-                            {
-                                MyEntityStat entityStat;
-                                stat.Stats.TryGetValue(MyStringHash.GetOrCompute("Health"), out entityStat);
-                                entityStat.Value = stat.Health.Value + 5;
-                            }                                    
-                        }
-                    }
-                }
             }
         }
 
@@ -293,51 +311,7 @@ namespace NaniteConstructionSystem
             }
         }
 
-        private void Initialize()
-        {
-            if (!Sync.IsServer)
-            {
-                MyAPIGateway.Entities.OnEntityAdd += Entities_OnEntityAdd;
-            }
-
-            m_sync.Initialize();
-
-            CleanupOldBlocks();
-            LoadSettings();
-
-            MyAPIGateway.Utilities.MessageEntered += MessageEntered;
-
-            InitializeControls();
-
-            m_terminalSettingsManager.Load();
-
-            if(Sync.IsClient)
-            {
-                m_sync.SendLogin();
-
-                foreach (var item in NaniteBlocks)
-                {
-                    m_sync.SendNeedTerminalSettings(item.Key);
-                }
-
-                foreach (var item in AssemblerBlocks)
-                {
-                    m_sync.SendNeedAssemblerSettings(item.Value.EntityId);
-                }
-
-                foreach (var item in HammerTerminalSettings)
-                {
-                    m_sync.SendNeedHammerTerminalSettings(item.Key);
-                }
-
-                foreach (var item in BeaconTerminalSettings)
-                {
-                    m_sync.SendNeedBeaconTerminalSettings(item.Key);
-                }
-            }
-        }
-
-        private void InitializeControls()
+        public void InitializeControls()
         {
             MyAPIGateway.TerminalControls.CustomControlGetter += CustomControlGetter;
             MyAPIGateway.TerminalControls.CustomActionGetter += CustomActionGetter;
@@ -681,14 +655,6 @@ namespace NaniteConstructionSystem
                 m_customBeaconControls.Add(areaAllowProjectionCheck);
             }
 
-            /*
-            var blueprintButton = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlButton, IMyProjector>("SelectBlueprint");
-            blueprintButton.Title = MyStringId.GetOrCompute("Select Blueprint ...");
-            blueprintButton.Tooltip = MyStringId.GetOrCompute("Select a blueprint to project");
-            blueprintButton.Action = SelectBlueprint;
-            m_customBeaconControls.Add(blueprintButton);
-            */
-
             // -- Separator
             var separateSliderArea = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSeparator, IMyProjector>("SeparateSliderArea");
             m_customBeaconControls.Add(separateSliderArea);
@@ -1028,11 +994,6 @@ namespace NaniteConstructionSystem
             m_customBeaconActions.Add(heightSliderActionDec);
         }
 
-        private void SelectBlueprint(IMyTerminalBlock block)
-        {
-            m_oldAction(block);
-        }
-
         private void OreListSelected(IMyTerminalBlock block, List<MyTerminalControlListBoxItem> list)
         {
             if (!HammerTerminalSettings.ContainsKey(block.EntityId))
@@ -1094,19 +1055,6 @@ namespace NaniteConstructionSystem
         {
             if(block.BlockDefinition.SubtypeName == "LargeNaniteAreaBeacon")
             {
-                if (m_oldAction == null)
-                {
-                    IMyTerminalControlButton button = null;
-                    foreach (var item in controls)
-                    {
-                        if (item.Id == "Blueprint")
-                        {
-                            button = item as IMyTerminalControlButton;
-                            m_oldAction = button.Action;
-                        }
-                    }
-                }
-
                 controls.RemoveRange(controls.Count - 17, 16);
                 controls.AddRange(m_customBeaconControls);
                 return;
@@ -1246,32 +1194,36 @@ namespace NaniteConstructionSystem
             try
             {
                 m_settings = NaniteSettings.Load();
-
-                var def = MyDefinitionManager.Static.GetCubeBlockDefinition(new MyDefinitionId(typeof(MyObjectBuilder_OxygenFarm), "LargeNaniteFactory"));
-                foreach (var item in def.Components)
-                {
-                    item.Count = (int)((float)item.Count * m_settings.FactoryComponentMultiplier);
-                    if (item.Count < 1)
-                        item.Count = 1;
-                }
-
-                foreach (var item in MyDefinitionManager.Static.GetAllDefinitions())
-                {
-                    if (item.Id.TypeId == typeof(MyObjectBuilder_UpgradeModule) && item.Id.SubtypeName.Contains("Nanite"))
-                    {
-                        MyCubeBlockDefinition cubeDef = (MyCubeBlockDefinition)item;
-                        foreach (var component in cubeDef.Components)
-                        {
-                            component.Count = (int)((float)component.Count * m_settings.UpgradeComponentMultiplier);
-                            if (component.Count < 1)
-                                component.Count = 1;
-                        }
-                    }
-                }
+                UpdateSettingsChanges();
             }
             catch(Exception ex)
             {
                 Logging.Instance.WriteLine(string.Format("LoadSettings error: {0}", ex.ToString()));
+            }
+        }
+
+        public void UpdateSettingsChanges()
+        {
+            var def = MyDefinitionManager.Static.GetCubeBlockDefinition(new MyDefinitionId(typeof(MyObjectBuilder_OxygenFarm), "LargeNaniteFactory"));
+            foreach (var item in def.Components)
+            {
+                item.Count = (int)((float)item.Count * m_settings.FactoryComponentMultiplier);
+                if (item.Count < 1)
+                    item.Count = 1;
+            }
+
+            foreach (var item in MyDefinitionManager.Static.GetAllDefinitions())
+            {
+                if (item.Id.TypeId == typeof(MyObjectBuilder_UpgradeModule) && item.Id.SubtypeName.Contains("Nanite"))
+                {
+                    MyCubeBlockDefinition cubeDef = (MyCubeBlockDefinition)item;
+                    foreach (var component in cubeDef.Components)
+                    {
+                        component.Count = (int)((float)component.Count * m_settings.UpgradeComponentMultiplier);
+                        if (component.Count < 1)
+                            component.Count = 1;
+                    }
+                }
             }
         }
 

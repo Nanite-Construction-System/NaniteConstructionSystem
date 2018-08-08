@@ -13,7 +13,7 @@ using NaniteConstructionSystem.Extensions;
 
 namespace NaniteConstructionSystem.Entities.Beacons
 {
-    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_Projector), true, "LargeNaniteAreaBeacon")]
+    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_Projector), false, "LargeNaniteAreaBeacon")]
     public class NaniteAreaBeaconLogic : MyGameLogicComponent
     {
         private NaniteBeacon m_beacon = null;

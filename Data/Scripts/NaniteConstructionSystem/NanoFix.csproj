@@ -151,6 +151,7 @@
     <Compile Include="Extensions\OrderedSet.cs" />
     <Compile Include="Extensions\Sync.cs" />
     <Compile Include="Logging.cs" />
+    <Compile Include="MessageHub.cs" />
     <Compile Include="Particles\NaniteParticle.cs" />
     <Compile Include="Particles\NaniteParticleManager.cs" />
     <Compile Include="Particles\NaniteParticleOld.cs" />

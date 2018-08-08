@@ -12,7 +12,7 @@ using NaniteConstructionSystem.Extensions;
 
 namespace NaniteConstructionSystem.Entities.Beacons
 {
-    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_OreDetector), true, "NaniteUltrasonicHammer")]
+    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_OreDetector), false, "NaniteUltrasonicHammer")]
     public class NaniteMiningHammer : MyGameLogicComponent
     {
         private NaniteMining m_mining = null;

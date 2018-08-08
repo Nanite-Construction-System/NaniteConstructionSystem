@@ -5,7 +5,7 @@ using Sandbox.ModAPI;
 
 namespace NaniteConstructionSystem.Entities.Beacons
 {
-    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_OxygenFarm), true, "LargeNaniteBeaconProjection", "SmallNaniteBeaconProjection")]
+    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_OxygenFarm), false, "LargeNaniteBeaconProjection", "SmallNaniteBeaconProjection")]
     public class NaniteBeaconProjectionLogic : MyGameLogicComponent
     {
         private NaniteBeacon m_beacon = null;

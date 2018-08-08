@@ -1,28 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <CubeBlocks>
-<!-- 
-    <Definition xsi:type="MyObjectBuilder_OxygenFarmDefinition">
+    <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
       <Id>
-        <TypeId>OxygenFarm</TypeId>
-        <SubtypeId>SmallNaniteConstructionBlock</SubtypeId>
+        <TypeId>ShipWelder</TypeId>
+        <SubtypeId>LargeNaniteControlFacility</SubtypeId>
       </Id>
-      <DisplayName>Nanite Control Factory</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\container.dds</Icon>
-      <CubeSize>Small</CubeSize>
+      <DisplayName>Nanite Control Facility</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\NaniteFactory.dds</Icon>
+      <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="3" y="3" z="3" />
       <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Cubes\Small\NanoRepairModuleSmall.mwm</Model>
+      <Model>Models\Cubes\Large\NanoRepairModule.mwm</Model>
       <Components>
-        <Component Subtype="InteriorPlate" Count="20" />
-        <Component Subtype="Construction" Count="10" />
-        <Component Subtype="Computer" Count="4" />
-        <Component Subtype="Motor" Count="4" />
-        <Component Subtype="Display" Count="1" />
-        <Component Subtype="InteriorPlate" Count="10" />
+        <Component Subtype="InteriorPlate" Count="300" />
+        <Component Subtype="Construction" Count="400" />
+        <Component Subtype="MetalGrid" Count="150" />
+        <Component Subtype="LargeTube" Count="150" />		
+        <Component Subtype="GravityGenerator" Count="350" />
+        <Component Subtype="Detector" Count="25" />
+        <Component Subtype="PowerCell" Count="750" />
+        <Component Subtype="Computer" Count="450" />
+        <Component Subtype="Motor" Count="150" />
+        <Component Subtype="Superconductor" Count="1200" />
+        <Component Subtype="Display" Count="4" />
+		<Component Subtype="SteelPlate" Count="900" />
+        <Component Subtype="InteriorPlate" Count="400" />
       </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
+      <CriticalComponent Subtype="Display" Index="0" />
 	  <MountPoints>
         <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="3" EndY="3" />
         <MountPoint Side="Left" StartX="0" StartY="0" EndX="3" EndY="1" />
@@ -30,31 +36,36 @@
         <MountPoint Side="Front" StartX="0" StartY="0" EndX="3" EndY="1" />
         <MountPoint Side="Back" StartX="0" StartY="0" EndX="3" EndY="1" />
       </MountPoints>	  
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Small\CargoContainerMediumConstruction_1.mwm" />
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\CargoContainerMediumConstruction_2.mwm" />
-      </BuildProgressModels>
-      <BlockPairName>NaniteControlFactory</BlockPairName>
+	  <BuildProgressModels>
+        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\NanoRepairModule_Cons1.mwm" />
+        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NanoRepairModule_Cons2.mwm" />
+        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\NanoRepairModule_Cons3.mwm" />
+        <Model BuildPercentUpperBound="0.83" File="Models\Cubes\Large\NanoRepairModule_Cons4.mwm" />
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NanoRepairModule_Cons5.mwm" />
+      </BuildProgressModels> 
+	  <InventorySize>
+        <X>1</X>
+        <Y>1</Y>
+        <Z>1</Z>
+      </InventorySize>   
+	  <BlockPairName>NaniteControlFactory</BlockPairName>
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
+      <BuildTimeSeconds>300</BuildTimeSeconds>
       <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>14</BuildTimeSeconds>
       <DamageEffectId>212</DamageEffectId>
       <DamagedSound>ParticleHeavyMech</DamagedSound>
-	  <Public>false</Public>	  
-      <InventorySize>
-        <X>2.5</X>
-        <Y>2.5</Y>
-        <Z>2.5</Z>
-      </InventorySize>	  	  
+	  <Public>true</Public>
+	  <PrimarySound>NaniteModule</PrimarySound>	  	  
+      <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>	
+	  <PCU>2500</PCU>
     </Definition>
--->	
     <Definition xsi:type="MyObjectBuilder_OxygenFarmDefinition">
       <Id>
         <TypeId>OxygenFarm</TypeId>
         <SubtypeId>LargeNaniteFactory</SubtypeId>
       </Id>
-      <DisplayName>Nanite Control Factory</DisplayName>
+      <DisplayName>OLD Nanite Control Factory</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\NaniteFactory.dds</Icon>
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
