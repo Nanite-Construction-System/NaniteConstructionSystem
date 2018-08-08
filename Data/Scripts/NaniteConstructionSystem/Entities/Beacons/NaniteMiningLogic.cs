@@ -2,13 +2,6 @@
 using VRage.Game.Components;
 using VRage.ObjectBuilders;
 using Sandbox.ModAPI;
-using VRage.Game.ModAPI;
-using VRage.ModAPI;
-using VRage.Game;
-using System.Collections.Generic;
-using VRageMath;
-using VRage.Utils;
-using NaniteConstructionSystem.Extensions;
 
 namespace NaniteConstructionSystem.Entities.Beacons
 {
@@ -19,7 +12,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
-            Logging.Instance.WriteLine(string.Format("ADDING Mining Hammer: {0}", Entity.EntityId));
+            Logging.Instance.WriteLine($"ADDING Mining Hammer: {Entity.EntityId}");
             m_mining = new NaniteMining((IMyTerminalBlock)Entity);
             NaniteConstructionManager.MiningList.Add(m_mining);
             NaniteConstructionManager.NaniteSync.SendNeedHammerTerminalSettings(Entity.EntityId);

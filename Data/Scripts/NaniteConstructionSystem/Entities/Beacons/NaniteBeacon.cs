@@ -1,13 +1,7 @@
 ﻿using System.Collections.Generic;
 using Sandbox.ModAPI;
-using VRageMath;
-using Sandbox.Game.Lights;
-using VRage.Utils;
-using Sandbox.Game.Entities;
-using VRage.Game.Entity;
 
 using NaniteConstructionSystem.Entities.Effects;
-using NaniteConstructionSystem.Extensions;
 
 namespace NaniteConstructionSystem.Entities.Beacons
 {

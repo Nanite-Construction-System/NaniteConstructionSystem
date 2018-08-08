@@ -2,12 +2,6 @@
 using VRage.Game.Components;
 using VRage.ObjectBuilders;
 using Sandbox.ModAPI;
-using VRage.Game.ModAPI;
-using VRage.ModAPI;
-using VRage.Game;
-using System.Collections.Generic;
-using VRageMath;
-using VRage.Utils;
 
 using NaniteConstructionSystem.Extensions;
 
@@ -29,7 +23,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
         {
             base.UpdateOnceBeforeFrame();
 
-            Logging.Instance.WriteLine(string.Format("ADDING Area Beacon: {0}", Entity.EntityId));
+            Logging.Instance.WriteLine($"ADDING Area Beacon: {Entity.EntityId}");
             m_beacon = new NaniteAreaBeacon((IMyTerminalBlock)Entity);
 
             if (Sync.IsClient)

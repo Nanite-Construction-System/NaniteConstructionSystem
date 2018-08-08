@@ -21,7 +21,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
         {
             base.UpdateOnceBeforeFrame();
 
-            Logging.Instance.WriteLine(string.Format("ADDING Projection Beacon: {0}", Entity.EntityId));
+            Logging.Instance.WriteLine($"ADDING Projection Beacon: {Entity.EntityId}");
             m_beacon = new NaniteBeaconProjection((IMyTerminalBlock)Entity);
         }
 

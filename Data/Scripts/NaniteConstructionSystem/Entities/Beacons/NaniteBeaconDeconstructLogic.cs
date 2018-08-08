@@ -21,7 +21,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
         {
             base.UpdateOnceBeforeFrame();
 
-            Logging.Instance.WriteLine(string.Format("ADDING Deconstruction Beacon: {0}", Entity.EntityId));
+            Logging.Instance.WriteLine($"ADDING Deconstruction Beacon: {Entity.EntityId}");
             m_beacon = new NaniteBeaconDeconstruct((IMyTerminalBlock)Entity);
         }
 

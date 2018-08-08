@@ -106,8 +106,6 @@
   <ItemGroup>
     <Compile Include="Core.cs" />
     <Compile Include="Entities\Beacons\NaniteAreaBeacon.cs" />
-    <Compile Include="Entities\Beacons\NaniteAreaBeaconConstruct.cs" />
-    <Compile Include="Entities\Beacons\NaniteAreaBeaconConstructLogic.cs" />
     <Compile Include="Entities\Beacons\NaniteAreaBeaconLogic.cs" />
     <Compile Include="Entities\Beacons\NaniteBeacon.cs" />
     <Compile Include="Entities\Beacons\NaniteBeaconConstruct.cs" />

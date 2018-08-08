@@ -21,7 +21,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
         {
             base.UpdateOnceBeforeFrame();
 
-            Logging.Instance.WriteLine(string.Format("ADDING Repair Beacon: {0}", Entity.EntityId));
+            Logging.Instance.WriteLine($"ADDING Repair Beacon: {Entity.EntityId}");
             m_beacon = new NaniteBeaconConstruct((IMyTerminalBlock)Entity);
         }
 
