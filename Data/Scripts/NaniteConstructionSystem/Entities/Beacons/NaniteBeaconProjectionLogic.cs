@@ -12,14 +12,29 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
-            Logging.Instance.WriteLine(string.Format("ADDING Projection Beacon: {0}", Entity.EntityId));
-            m_beacon = new NaniteBeaconProjection((IMyTerminalBlock)Entity);
-            NaniteConstructionManager.BeaconList.Add(m_beacon);
+            base.Init(objectBuilder);
+            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
+            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_10TH_FRAME;
         }
 
-        public override MyObjectBuilder_EntityBase GetObjectBuilder(bool copy = false)
+        public override void UpdateOnceBeforeFrame()
         {
-            return null;
+            base.UpdateOnceBeforeFrame();
+
+            Logging.Instance.WriteLine(string.Format("ADDING Projection Beacon: {0}", Entity.EntityId));
+            m_beacon = new NaniteBeaconProjection((IMyTerminalBlock)Entity);
+        }
+
+        public override void Close()
+        {
+            m_beacon.Close();
+            base.Close();
+        }
+
+        public override void UpdateBeforeSimulation10()
+        {
+            base.UpdateBeforeSimulation10();
+            m_beacon.Update();
         }
     }
 }

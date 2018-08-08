@@ -16,8 +16,6 @@ namespace NaniteConstructionSystem.Entities.Beacons
 {
     public class NaniteAreaBeacon : NaniteBeacon
     {
-        int count = 0;
-
         private MatrixD m_areaMatrix;
         public MatrixD AreaMatrix
         {
@@ -49,21 +47,12 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
         public NaniteAreaBeacon(IMyTerminalBlock beaconBlock) : base(beaconBlock)
         {
-
+            m_effects.Add(new NaniteAreaBeaconEffect((MyCubeBlock)m_beaconBlock));
         }
 
         public override void Update()
         {
-            if(!m_initialized)
-            {
-                m_initialized = true;
-                m_effects.Add(new NaniteAreaBeaconEffect((MyCubeBlock)m_beaconBlock));
-            }
-
-            if (!NaniteConstructionManager.BeaconTerminalSettings.ContainsKey(BeaconBlock.EntityId))
-                NaniteConstructionManager.BeaconTerminalSettings.Add(BeaconBlock.EntityId, new NaniteBeaconTerminalSettings());
-
-            var setting = NaniteConstructionManager.BeaconTerminalSettings[BeaconBlock.EntityId];
+            var setting = Settings;
 
             m_areaMatrix = BeaconBlock.WorldMatrix * MatrixD.CreateRotationX(MathHelper.ToRadians(setting.RotationX));
             m_areaMatrix *= MatrixD.CreateRotationY(MathHelper.ToRadians(setting.RotationY));
@@ -109,7 +98,10 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
         private void DrawTransparentBox(MatrixD matrix, BoundingBoxD bb, Color? lineColor = null, bool drawBorder = true)
         {
-            count++;
+            // Client is not synced yet
+            if (Sync.IsClient && NaniteConstructionManager.Settings == null)
+                return;
+
             Color color = Color.FromNonPremultiplied(new Vector4(0.1f, 0.1f, 0.1f, 0.7f));
             MySimpleObjectDraw.DrawTransparentBox(ref matrix, ref bb, ref color, MySimpleObjectRasterizer.Solid, 1, 0.04f, MyStringId.GetOrCompute("HoneyComb"), null, false);
 

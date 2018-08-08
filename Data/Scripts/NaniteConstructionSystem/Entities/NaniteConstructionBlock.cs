@@ -108,21 +108,32 @@ namespace NaniteConstructionSystem.Entities
         /// <param name="entity">The IMyEntity of the block</param>
         public NaniteConstructionBlock(IMyEntity entity)
         {
-            m_constructionBlock = (IMyTerminalBlock)entity;
-            var inventory = ((MyCubeBlock)m_constructionBlock).GetInventory();
-            inventory.SetFlags(VRage.Game.MyInventoryFlags.CanReceive | VRage.Game.MyInventoryFlags.CanSend);
-            m_constructionBlock.CustomNameChanged += CustomNameChanged;
-            m_defCache = new Dictionary<MyDefinitionId, MyBlueprintDefinitionBase>();
+            int pos = 0;
+            try
+            {
+                m_constructionBlock = (IMyTerminalBlock)entity;
+                pos = 1;
+                var inventory = ((MyCubeBlock)entity).GetInventory();
+                pos = 2;
+                inventory.SetFlags(MyInventoryFlags.CanReceive |MyInventoryFlags.CanSend);
+                pos = 3;
+                m_constructionBlock.CustomNameChanged += CustomNameChanged;
+                pos = 4;
+                m_defCache = new Dictionary<MyDefinitionId, MyBlueprintDefinitionBase>();
 
-            MyCubeBlock block = (MyCubeBlock)entity;
-            block.UpgradeValues.Add("ConstructionNanites", 0f);
-            block.UpgradeValues.Add("DeconstructionNanites", 0f);
-            block.UpgradeValues.Add("ProjectionNanites", 0f);
-            block.UpgradeValues.Add("CleanupNanites", 0f);
-            block.UpgradeValues.Add("MiningNanites", 0f);
-            block.UpgradeValues.Add("MedicalNanites", 0f);
-            block.UpgradeValues.Add("SpeedNanites", 0f);
-            block.UpgradeValues.Add("PowerNanites", 0f);
+                pos = 5;
+                MyCubeBlock block = (MyCubeBlock)entity;
+                block.UpgradeValues.Add("ConstructionNanites", 0f);
+                block.UpgradeValues.Add("DeconstructionNanites", 0f);
+                block.UpgradeValues.Add("ProjectionNanites", 0f);
+                block.UpgradeValues.Add("CleanupNanites", 0f);
+                block.UpgradeValues.Add("MiningNanites", 0f);
+                block.UpgradeValues.Add("MedicalNanites", 0f);
+                block.UpgradeValues.Add("SpeedNanites", 0f);
+                block.UpgradeValues.Add("PowerNanites", 0f);
+                pos = 6;
+            }
+            catch (Exception ex) { Logging.Instance.WriteLine($"Exception in NaniteConstructionBlock: {pos} {ex}"); }
         }
 
         private void CustomNameChanged(IMyTerminalBlock block)
@@ -261,10 +272,21 @@ namespace NaniteConstructionSystem.Entities
 
             ProcessTargetItems();
 
-            if(!Sync.IsServer && m_updateCount % 60 == 0)
+            if (!Sync.IsServer && m_updateCount % 60 == 0)
+            {
                 CleanupTargets();
+                if (MyAPIGateway.Gui?.GetCurrentScreen == MyTerminalPageEnum.ControlPanel)
+                {
+                    m_constructionBlock.RefreshCustomInfo();
 
-            ((IMyFunctionalBlock)m_constructionBlock).RefreshCustomInfo();
+                    // Toggle to trigger UI update
+                    m_constructionBlock.ShowInToolbarConfig = !m_constructionBlock.ShowInToolbarConfig;
+                    m_constructionBlock.ShowInToolbarConfig = !m_constructionBlock.ShowInToolbarConfig;
+                }
+            }
+
+            if (Sync.IsServer)
+                m_constructionBlock.RefreshCustomInfo();
         }
 
         /// <summary>

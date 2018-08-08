@@ -10,25 +10,24 @@ namespace NaniteConstructionSystem.Entities
     public class LargeControlFacilityLogic : MyGameLogicComponent
     {
         private NaniteConstructionBlock m_block = null;
+
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
+            base.Init(objectBuilder);
+            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
+        }
+
+        public override void UpdateOnceBeforeFrame()
+        {
+            base.UpdateOnceBeforeFrame();
+
             m_block = new NaniteConstructionBlock(Entity);
             NaniteConstructionManager.NaniteBlocks.Add(Entity.EntityId, m_block);
             IMySlimBlock slimBlock = ((MyCubeBlock)m_block.ConstructionBlock).SlimBlock as IMySlimBlock;
             Logging.Instance.WriteLine(string.Format("ADDING Nanite Factory: conid={0} physics={1} ratio={2}", Entity.EntityId, m_block.ConstructionBlock.CubeGrid.Physics == null, slimBlock.BuildLevelRatio));
 
-            if(NaniteConstructionManager.NaniteSync != null)
+            if (NaniteConstructionManager.NaniteSync != null)
                 NaniteConstructionManager.NaniteSync.SendNeedTerminalSettings(Entity.EntityId);
-        }
-
-        /// <summary>
-        /// GetObjectBuilder on a block is always null
-        /// </summary>
-        /// <param name="copy"></param>
-        /// <returns></returns>
-        public override MyObjectBuilder_EntityBase GetObjectBuilder(bool copy = false)
-        {
-            return null;
         }
 
         public override void Close()

@@ -187,7 +187,7 @@ namespace NaniteConstructionSystem
                 Logging.Instance.WriteLine(string.Format("Here: {0} / {1}", slimBlock.BuildIntegrity, slimBlock.MaxIntegrity));
             }
 
-            var def = MyDefinitionManager.Static.GetCubeBlockDefinition(new MyDefinitionId(typeof(MyObjectBuilder_ShipWelder), "LargeNaniteFactory"));
+            var def = MyDefinitionManager.Static.GetCubeBlockDefinition(new MyDefinitionId(typeof(MyObjectBuilder_ShipWelder), "LargeNaniteControlFacility"));
             foreach (var item in def.Components)
             {
                 item.Count = (int)((float)item.Count * NaniteConstructionManager.Settings.FactoryComponentMultiplier);

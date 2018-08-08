@@ -163,9 +163,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
 
                 // Add 
-                foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x is NaniteBeaconDeconstruct && Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), x.BeaconBlock.GetPosition()) < m_maxDistance * m_maxDistance))
+                foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteBeaconDeconstruct && Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), x.Value.BeaconBlock.GetPosition()) < m_maxDistance * m_maxDistance))
                 {
-                    IMyCubeBlock item = (IMyCubeBlock)beaconBlock.BeaconBlock;
+                    IMyCubeBlock item = (IMyCubeBlock)beaconBlock.Value.BeaconBlock;
 
                     if (!((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional)
 						continue;
@@ -223,9 +223,9 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void CheckAreaBeacons()
         {
-            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x is NaniteAreaBeacon))
+            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteAreaBeacon))
             {
-                IMyCubeBlock cubeBlock = (IMyCubeBlock)beaconBlock.BeaconBlock;
+                IMyCubeBlock cubeBlock = (IMyCubeBlock)beaconBlock.Value.BeaconBlock;
 
 				if (!((IMyFunctionalBlock)cubeBlock).Enabled || !((IMyFunctionalBlock)cubeBlock).IsFunctional)
 					continue;
@@ -234,7 +234,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (!(relation == MyRelationsBetweenPlayerAndBlock.Owner || relation == MyRelationsBetweenPlayerAndBlock.FactionShare || (MyAPIGateway.Session.CreativeMode && relation == MyRelationsBetweenPlayerAndBlock.NoOwnership)))
                     continue;
 
-                var item = beaconBlock as NaniteAreaBeacon;
+                var item = beaconBlock.Value as NaniteAreaBeacon;
                 if (!item.Settings.AllowDeconstruction)
                     continue;
 

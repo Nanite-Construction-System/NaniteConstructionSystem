@@ -48,7 +48,7 @@
         <Y>1</Y>
         <Z>1</Z>
       </InventorySize>   
-	  <BlockPairName>NaniteControlFactory</BlockPairName>
+	  <BlockPairName>LargeNaniteControlFacility</BlockPairName>
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <BuildTimeSeconds>300</BuildTimeSeconds>

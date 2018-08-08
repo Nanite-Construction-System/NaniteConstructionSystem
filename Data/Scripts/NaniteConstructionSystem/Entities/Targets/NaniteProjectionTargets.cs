@@ -340,9 +340,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                 CheckBlockProjection(item);
             }
 
-            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x is NaniteBeaconProjection && Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), x.BeaconBlock.GetPosition()) < m_maxDistance * m_maxDistance))
+            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteBeaconProjection && Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), x.Value.BeaconBlock.GetPosition()) < m_maxDistance * m_maxDistance))
             {
-                IMyCubeBlock item = (IMyCubeBlock)beaconBlock.BeaconBlock;
+                IMyCubeBlock item = (IMyCubeBlock)beaconBlock.Value.BeaconBlock;
 
 				if (!((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional)
 					continue;
@@ -383,14 +383,14 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void CheckAreaBeacons()
         {
-            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x is NaniteAreaBeacon))
+            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteAreaBeacon))
             {
-                IMyCubeBlock cubeBlock = beaconBlock.BeaconBlock;
+                IMyCubeBlock cubeBlock = beaconBlock.Value.BeaconBlock;
 
 				if (!((IMyFunctionalBlock)cubeBlock).Enabled || !((IMyFunctionalBlock)cubeBlock).IsFunctional)
 					continue;
 
-				var item = beaconBlock as NaniteAreaBeacon;
+				var item = beaconBlock.Value as NaniteAreaBeacon;
                 if (!item.Settings.AllowProjection)
                     continue;
 

@@ -25,6 +25,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
         {
             m_beaconBlock = beaconBlock;
             m_effects = new List<NaniteBlockEffectBase>();
+            NaniteConstructionManager.BeaconList.Add(m_beaconBlock.EntityId, this);
         }
 
         public virtual void Update()
@@ -52,11 +53,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
             m_effects.Clear();
 
-            // I'm putting this here because for some reason the Logic component is not running it's closed method??? wtf.
-            if (NaniteConstructionManager.BeaconList.Contains(this))
-            {
-                NaniteConstructionManager.BeaconList.Remove(this);
-            }
+            NaniteConstructionManager.BeaconList.Remove(m_beaconBlock.EntityId);
         }
     }
 }

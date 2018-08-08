@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Sandbox.ModAPI;
 using VRageMath;
-using Sandbox.Game.Entities;
 using VRage.Game;
-
-using NaniteConstructionSystem.Entities.Effects;
-using NaniteConstructionSystem.Extensions;
 
 namespace NaniteConstructionSystem.Entities.Beacons
 {
@@ -16,7 +10,6 @@ namespace NaniteConstructionSystem.Entities.Beacons
         int count = 0;
         public NaniteAreaBeaconConstruct(IMyTerminalBlock beaconBlock) : base(beaconBlock)
         {
-
         }
 
         public override void Update()

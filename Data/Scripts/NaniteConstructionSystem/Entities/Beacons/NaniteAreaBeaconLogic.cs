@@ -20,19 +20,34 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
-            Logging.Instance.WriteLine(string.Format("ADDING Area Beacon: {0}", Entity.EntityId));
-            m_beacon = new NaniteAreaBeacon((IMyTerminalBlock)Entity);
-            NaniteConstructionManager.BeaconList.Add(m_beacon);
-
-            if(Sync.IsClient)
-            {
-                NaniteConstructionManager.NaniteSync.SendNeedBeaconTerminalSettings(Entity.EntityId);
-            }            
+            base.Init(objectBuilder);
+            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
+            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_FRAME;
         }
 
-        public override MyObjectBuilder_EntityBase GetObjectBuilder(bool copy = false)
+        public override void UpdateOnceBeforeFrame()
         {
-            return null;
+            base.UpdateOnceBeforeFrame();
+
+            Logging.Instance.WriteLine(string.Format("ADDING Area Beacon: {0}", Entity.EntityId));
+            m_beacon = new NaniteAreaBeacon((IMyTerminalBlock)Entity);
+
+            if (Sync.IsClient)
+            {
+                NaniteConstructionManager.NaniteSync.SendNeedBeaconTerminalSettings(Entity.EntityId);
+            }
+        }
+
+        public override void Close()
+        {
+            m_beacon.Close();
+            base.Close();
+        }
+
+        public override void UpdateBeforeSimulation()
+        {
+            base.UpdateBeforeSimulation();
+            m_beacon.Update();
         }
     }
 }

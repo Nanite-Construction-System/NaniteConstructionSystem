@@ -220,17 +220,17 @@ namespace NaniteConstructionSystem.Entities
             }
         }
 
-        public void SendLogin()
-        {
-            LoginData data = new LoginData();
+        //public void SendLogin()
+        //{
+        //    LoginData data = new LoginData();
 
-            if (MyAPIGateway.Session.Player != null)
-                data.SteamId = MyAPIGateway.Session.Player.SteamUserId;
-            else
-                data.SteamId = 0;
+        //    if (MyAPIGateway.Session.Player != null)
+        //        data.SteamId = MyAPIGateway.Session.Player.SteamUserId;
+        //    else
+        //        data.SteamId = 0;
 
-            MyAPIGateway.Multiplayer.SendMessageToServer(8955, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
-        }
+        //    MyAPIGateway.Multiplayer.SendMessageToServer(8955, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
+        //}
 
        /* private void HandleStartParticle(byte[] data)
         {

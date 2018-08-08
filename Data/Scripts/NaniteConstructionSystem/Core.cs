@@ -52,13 +52,13 @@ namespace NaniteConstructionSystem
             }
         }
 
-        private static HashSet<NaniteBeacon> m_beaconList;
-        public static HashSet<NaniteBeacon> BeaconList
+        private static Dictionary<long, NaniteBeacon> m_beaconList;
+        public static Dictionary<long, NaniteBeacon> BeaconList
         {
             get
             {
                 if (m_beaconList == null)
-                    m_beaconList = new HashSet<NaniteBeacon>();
+                    m_beaconList = new Dictionary<long, NaniteBeacon>();
 
                 return m_beaconList;
             }
@@ -199,13 +199,50 @@ namespace NaniteConstructionSystem
                     InitializeControls();
                 }
 
-                m_terminalSettingsManager.Load();
+                MyAPIGateway.TerminalControls.CustomControlGetter += CustomControlGetter;
+                MyAPIGateway.TerminalControls.CustomActionGetter += CustomActionGetter;
 
-                //MyAPIGateway.Multiplayer.RegisterMessageHandler(Extensions.MessageUtils.MessageId, Extensions.MessageUtils.HandleMessage);
+                m_terminalSettingsManager.Load();
 
                 MyAPIGateway.Session.OnSessionReady += Session_OnSessionReady;
             }
-            catch (Exception ex) { NaniteConstructionSystem.Logging.Instance.WriteLine($"Exception in BeforeStart: {ex}"); }
+            catch (Exception ex) { Logging.Instance.WriteLine($"Exception in BeforeStart: {ex}"); }
+        }
+
+        protected override void UnloadData()
+        {
+            try
+            {
+                MyAPIGateway.Multiplayer.UnregisterMessageHandler(MessageHub.MessageId, MessageHub.HandleMessage);
+                m_sync.Unload();
+
+                if (!Sync.IsServer)
+                {
+                    MyAPIGateway.Utilities.MessageEntered -= MessageEntered;
+                    MyAPIGateway.Entities.OnEntityAdd -= Entities_OnEntityAdd;
+                }
+                MyAPIGateway.Session.OnSessionReady -= Session_OnSessionReady;
+
+                NaniteBlocks.Clear();
+                ProjectorBlocks.Clear();
+                AssemblerBlocks.Clear();
+
+                //foreach (var item in BeaconList.ToList())
+                //    item.Value.Close();
+
+                BeaconList.Clear();
+
+                foreach (var item in MiningList.ToList())
+                    item.Close();
+
+                MiningList.Clear();
+
+                Logging.Instance.Close();
+
+                //if(Logging.Instance != null)
+                //    Logging.Instance.Close();
+            }
+            catch (Exception ex) { Logging.Instance.WriteLine($"Exception in BeforeStart: {ex}"); }
         }
 
         private void Session_OnSessionReady()
@@ -214,7 +251,7 @@ namespace NaniteConstructionSystem
 
             if (Sync.IsClient)
             {
-                m_sync.SendLogin();
+                MessageHub.SendMessageToServer(new MessageClientConnected());
 
                 foreach (var item in NaniteBlocks)
                 {
@@ -273,20 +310,18 @@ namespace NaniteConstructionSystem
             }
         }
 
-        private void ProcessBeaconBlocks()
-        {
-            foreach(var item in BeaconList.ToList())
-            {
-                if(item.BeaconBlock.Closed || item.BeaconBlock.CubeGrid.Closed) // || item.BeaconBlock.CubeGrid.Physics == null)
-                {
-                    Logging.Instance.WriteLine(string.Format("REMOVING {1} Beacon: {0}", item.BeaconBlock.EntityId, item.GetType().Name));
-                    item.Close();
-                    continue;
-                }
-
-                item.Update();
-            }
-        }
+        //private void ProcessBeaconBlocks()
+        //{
+        //    foreach(var item in BeaconList.ToList())
+        //    {
+        //        if(item.Value.BeaconBlock.Closed || item.Value.BeaconBlock.CubeGrid.Closed) // || item.BeaconBlock.CubeGrid.Physics == null)
+        //        {
+        //            Logging.Instance.WriteLine(string.Format("REMOVING {1} Beacon: {0}", item.Value.BeaconBlock.EntityId, item.GetType().Name));
+        //            item.Value.Close();
+        //            continue;
+        //        }
+        //    }
+        //}
 
         private void ProcessParticleEffects()
         {
@@ -313,9 +348,6 @@ namespace NaniteConstructionSystem
 
         public void InitializeControls()
         {
-            MyAPIGateway.TerminalControls.CustomControlGetter += CustomControlGetter;
-            MyAPIGateway.TerminalControls.CustomActionGetter += CustomActionGetter;
-
             // --- Repair Checkbox
             if (Settings.ConstructionEnabled)
             {
@@ -1053,7 +1085,8 @@ namespace NaniteConstructionSystem
 
         private void CustomControlGetter(IMyTerminalBlock block, List<IMyTerminalControl> controls)
         {
-            if(block.BlockDefinition.SubtypeName == "LargeNaniteAreaBeacon")
+            Logging.Instance.WriteLine($"CustomControlGetter : {block.BlockDefinition.SubtypeName}");
+            if (block.BlockDefinition.SubtypeName == "LargeNaniteAreaBeacon")
             {
                 controls.RemoveRange(controls.Count - 17, 16);
                 controls.AddRange(m_customBeaconControls);
@@ -1300,33 +1333,6 @@ namespace NaniteConstructionSystem
             }
 
             return blockList;
-        }
-
-        protected override void UnloadData()
-        {
-            m_sync.Unload();
-
-            MyAPIGateway.Utilities.MessageEntered -= MessageEntered;
-            MyAPIGateway.Entities.OnEntityAdd -= Entities_OnEntityAdd;
-
-            NaniteBlocks.Clear();
-            ProjectorBlocks.Clear();
-            AssemblerBlocks.Clear();
-
-            foreach (var item in BeaconList.ToList())
-                item.Close();
-
-            BeaconList.Clear();
-
-            foreach (var item in MiningList.ToList())
-                item.Close();
-
-            MiningList.Clear();
-
-            Logging.Instance.Close();
-
-            //if(Logging.Instance != null)
-            //    Logging.Instance.Close();
         }
 
         public override void SaveData()

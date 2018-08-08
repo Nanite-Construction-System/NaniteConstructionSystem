@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using VRageMath;
-using Sandbox.ModAPI;
 using VRage.ModAPI;
 using VRage.Game;
 using VRage.ObjectBuilders;
 using VRage.Game.Entity;
-using VRage.Utils;
 using Sandbox.Game.Entities;
-using System.IO;
 using NaniteConstructionSystem.Extensions;
-using NaniteConstructionSystem.Entities.Beacons;
 
 namespace NaniteConstructionSystem.Entities.Effects
 {
