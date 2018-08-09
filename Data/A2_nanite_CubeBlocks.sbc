@@ -1099,7 +1099,7 @@
       <EdgeType>Light</EdgeType>
       <DamageEffectId>212</DamageEffectId>
       <DamagedSound>ParticleHeavyMech</DamagedSound>
-	  <GuiVisible>false</GuiVisible>
+      <Public>false</Public>
 	  <PrimarySound>NaniteModule</PrimarySound>
       <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>	
 	  <PCU>1</PCU>

@@ -9,7 +9,7 @@
       <DisplayName>DisplayName_Category_LargeBlocks</DisplayName>
       <Name>LargeBlocks</Name>
       <ItemIds>
-		<string>OxygenFarm/LargeNaniteFactory</string>
+		<string>ShipWelder/LargeNaniteControlFacility</string>
       </ItemIds>
     </Category>
     <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
@@ -186,7 +186,7 @@
       <Name>NaniteBlocks</Name>
       <Public>true</Public>
       <ItemIds>
-		<string>OxygenFarm/LargeNaniteFactory</string>
+		<string>ShipWelder/LargeNaniteControlFacility</string>
 		<string>OxygenFarm/LargeNaniteBeaconDeconstruct</string>		
 		<string>OxygenFarm/SmallNaniteBeaconDeconstruct</string>		
 		<string>OxygenFarm/LargeNaniteBeaconConstruct</string>		
