@@ -2,20 +2,21 @@
 using Sandbox.ModAPI;
 
 using NaniteConstructionSystem.Entities.Effects;
+using NaniteConstructionSystem.Extensions;
 
 namespace NaniteConstructionSystem.Entities.Beacons
 {
     public class NaniteBeacon
     {
-        protected IMyTerminalBlock m_beaconBlock;
-        public IMyTerminalBlock BeaconBlock
+        protected IMyFunctionalBlock m_beaconBlock;
+        public IMyFunctionalBlock BeaconBlock
         {
             get { return m_beaconBlock; }
         }
 
         protected List<NaniteBlockEffectBase> m_effects;
 
-        public NaniteBeacon(IMyTerminalBlock beaconBlock)
+        public NaniteBeacon(IMyFunctionalBlock beaconBlock)
         {
             m_beaconBlock = beaconBlock;
             m_effects = new List<NaniteBlockEffectBase>();
@@ -24,20 +25,16 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
         public virtual void Update()
         {
-            var functional = m_beaconBlock as IMyFunctionalBlock;
-            if (functional != null)
+            if (m_beaconBlock.Enabled)
             {
-                if (!functional.Enabled)
-                {
-                    foreach (var item in m_effects)
-                        item.InactiveUpdate();
-
-                    return;
-                }
+                foreach (var item in m_effects)
+                    item.ActiveUpdate();
             }
-
-            foreach (var item in m_effects)
-                item.ActiveUpdate();
+            else
+            {
+                foreach (var item in m_effects)
+                    item.InactiveUpdate();
+            }
         }
 
         public virtual void Close()

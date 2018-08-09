@@ -400,9 +400,9 @@ namespace NaniteConstructionSystem.Entities.Targets
             // Find beacons in range
             foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteBeaconConstruct && Vector3D.Distance(m_constructionBlock.ConstructionBlock.GetPosition(), x.Value.BeaconBlock.GetPosition()) < m_maxDistance))
             {
-                IMyCubeBlock item = (IMyCubeBlock)beaconBlock.Value.BeaconBlock;
+                var item = beaconBlock.Value.BeaconBlock;
 
-                if (!((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional)
+                if (!item.Enabled || !item.IsFunctional)
                     continue;
 
                 MyRelationsBetweenPlayerAndBlock relation = item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId);

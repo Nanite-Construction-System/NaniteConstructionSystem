@@ -2,6 +2,7 @@
 using VRage.Game.Components;
 using VRage.ObjectBuilders;
 using Sandbox.ModAPI;
+using NaniteConstructionSystem.Extensions;
 
 namespace NaniteConstructionSystem.Entities.Beacons
 {
@@ -14,7 +15,8 @@ namespace NaniteConstructionSystem.Entities.Beacons
         {
             base.Init(objectBuilder);
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
-            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_10TH_FRAME;
+            if (Sync.IsClient)
+                NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_10TH_FRAME;
         }
 
         public override void UpdateOnceBeforeFrame()
@@ -22,7 +24,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
             base.UpdateOnceBeforeFrame();
 
             Logging.Instance.WriteLine($"ADDING Repair Beacon: {Entity.EntityId}");
-            m_beacon = new NaniteBeaconConstruct((IMyTerminalBlock)Entity);
+            m_beacon = new NaniteBeaconConstruct((IMyFunctionalBlock)Entity);
         }
 
         public override void Close()

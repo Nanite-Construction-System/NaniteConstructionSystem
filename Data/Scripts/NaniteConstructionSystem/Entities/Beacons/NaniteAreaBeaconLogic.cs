@@ -16,7 +16,8 @@ namespace NaniteConstructionSystem.Entities.Beacons
         {
             base.Init(objectBuilder);
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
-            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_FRAME;
+            if (Sync.IsClient)
+                NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_FRAME;
         }
 
         public override void UpdateOnceBeforeFrame()
@@ -24,7 +25,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
             base.UpdateOnceBeforeFrame();
 
             Logging.Instance.WriteLine($"ADDING Area Beacon: {Entity.EntityId}");
-            m_beacon = new NaniteAreaBeacon((IMyTerminalBlock)Entity);
+            m_beacon = new NaniteAreaBeacon((IMyFunctionalBlock)Entity);
 
             if (Sync.IsClient)
             {

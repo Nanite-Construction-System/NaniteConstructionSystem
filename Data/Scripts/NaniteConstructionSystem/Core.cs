@@ -310,19 +310,6 @@ namespace NaniteConstructionSystem
             }
         }
 
-        //private void ProcessBeaconBlocks()
-        //{
-        //    foreach(var item in BeaconList.ToList())
-        //    {
-        //        if(item.Value.BeaconBlock.Closed || item.Value.BeaconBlock.CubeGrid.Closed) // || item.BeaconBlock.CubeGrid.Physics == null)
-        //        {
-        //            Logging.Instance.WriteLine(string.Format("REMOVING {1} Beacon: {0}", item.Value.BeaconBlock.EntityId, item.GetType().Name));
-        //            item.Value.Close();
-        //            continue;
-        //        }
-        //    }
-        //}
-
         private void ProcessParticleEffects()
         {
             ParticleManager.Update();
@@ -351,7 +338,7 @@ namespace NaniteConstructionSystem
             // --- Repair Checkbox
             if (Settings.ConstructionEnabled)
             {
-                var repairCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowRepair");
+                var repairCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, Ingame.IMyShipWelder>("AllowRepair");
                 repairCheck.Title = MyStringId.GetOrCompute("Repair / Construction");
                 repairCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will repair or construct unbuilt blocks.");
                 repairCheck.Getter = (x) =>
@@ -377,7 +364,7 @@ namespace NaniteConstructionSystem
             // --- Projection Checkbox
             if (Settings.ProjectionEnabled)
             {
-                var projectionCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowProjection");
+                var projectionCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, Ingame.IMyShipWelder>("AllowProjection");
                 projectionCheck.Title = MyStringId.GetOrCompute("Projection Construction");
                 projectionCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will repair or construct unbuilt blocks.");
                 projectionCheck.Getter = (x) =>
@@ -402,7 +389,7 @@ namespace NaniteConstructionSystem
             // --- Cleanup Checkbox
             if (Settings.CleanupEnabled)
             {
-                var cleanupCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowCleanup");
+                var cleanupCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, Ingame.IMyShipWelder>("AllowCleanup");
                 cleanupCheck.Title = MyStringId.GetOrCompute("Cleanup");
                 cleanupCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will cleanup floating objects, ore, components, or corpses.  It will return the objects back to the factory.");
                 cleanupCheck.Getter = (x) =>
@@ -427,7 +414,7 @@ namespace NaniteConstructionSystem
             // --- Deconstruction Checkbox
             if (Settings.DeconstructionEnabled)
             {
-                var deconstructCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowDeconstruct");
+                var deconstructCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, Ingame.IMyShipWelder>("AllowDeconstruct");
                 deconstructCheck.Title = MyStringId.GetOrCompute("Deconstruction");
                 deconstructCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will attempt to deconstruct ships that have a deconstruction beacon on them.");
                 deconstructCheck.Getter = (x) =>
@@ -452,7 +439,7 @@ namespace NaniteConstructionSystem
             // --- Mining Checkbox
             if (Settings.MiningEnabled)
             {
-                var miningCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowMining");
+                var miningCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, Ingame.IMyShipWelder>("AllowMining");
                 miningCheck.Title = MyStringId.GetOrCompute("Mining");
                 miningCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will attempt to mine resources if it detects a NUHOL.");
                 miningCheck.Getter = (x) =>
@@ -477,7 +464,7 @@ namespace NaniteConstructionSystem
             // --- Medical Checkbox
             if (Settings.MedicalEnabled)
             {
-                var medicalCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("AllowMedical");
+                var medicalCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, Ingame.IMyShipWelder>("AllowMedical");
                 medicalCheck.Title = MyStringId.GetOrCompute("Medical");
                 medicalCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will attempt to heal players.");
                 medicalCheck.Getter = (x) =>
@@ -500,7 +487,7 @@ namespace NaniteConstructionSystem
             }
 
             // --- Max Nanites
-            var maxNaniteTextBox = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlTextbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("MaxNaniteText");
+            var maxNaniteTextBox = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlTextbox, Ingame.IMyShipWelder>("MaxNaniteText");
             maxNaniteTextBox.Title = MyStringId.GetOrCompute("Max. Nanites (0 = unlimited)");
             maxNaniteTextBox.Tooltip = MyStringId.GetOrCompute("This is the maximum nanites that the factory will release.");
             maxNaniteTextBox.Getter = (x) =>
@@ -525,7 +512,7 @@ namespace NaniteConstructionSystem
             m_customControls.Add(maxNaniteTextBox);
 
             // --- Use Assembler Checkbox
-            var useAssemblerCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, SpaceEngineers.Game.ModAPI.Ingame.IMyOxygenFarm>("UseAssemblers");
+            var useAssemblerCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, Ingame.IMyShipWelder>("UseAssemblers");
             useAssemblerCheck.Title = MyStringId.GetOrCompute("Use Assemblers");
             useAssemblerCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will queue component parts in marked assemblers that are attached to the factory");
             useAssemblerCheck.Getter = (x) =>
@@ -1237,7 +1224,7 @@ namespace NaniteConstructionSystem
 
         public void UpdateSettingsChanges()
         {
-            var def = MyDefinitionManager.Static.GetCubeBlockDefinition(new MyDefinitionId(typeof(MyObjectBuilder_OxygenFarm), "LargeNaniteFactory"));
+            var def = MyDefinitionManager.Static.GetCubeBlockDefinition(new MyDefinitionId(typeof(MyObjectBuilder_ShipWelder), "LargeNaniteControlFacility"));
             foreach (var item in def.Components)
             {
                 item.Count = (int)((float)item.Count * m_settings.FactoryComponentMultiplier);

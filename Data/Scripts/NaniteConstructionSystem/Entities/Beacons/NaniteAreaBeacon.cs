@@ -28,12 +28,6 @@ namespace NaniteConstructionSystem.Entities.Beacons
             get { return m_areaBoundingBox; }
         }
 
-        private bool m_initialized;
-        public bool Initialized
-        {
-            get { return m_initialized; }
-        }
-
         public NaniteBeaconTerminalSettings Settings
         {
             get
@@ -45,7 +39,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
             }
         }
 
-        public NaniteAreaBeacon(IMyTerminalBlock beaconBlock) : base(beaconBlock)
+        public NaniteAreaBeacon(IMyFunctionalBlock beaconBlock) : base(beaconBlock)
         {
             m_effects.Add(new NaniteAreaBeaconEffect((MyCubeBlock)m_beaconBlock));
         }
@@ -60,9 +54,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
             m_areaMatrix.Translation = BeaconBlock.WorldMatrix.Translation + Vector3D.Transform(new Vector3D(setting.OffsetX, setting.OffsetY, setting.OffsetZ), BeaconBlock.WorldMatrix.GetOrientation());
             m_areaBoundingBox = new BoundingBoxD(Vector3D.Zero, new Vector3D(setting.Height, setting.Width, setting.Depth));
 
-            var functional = BeaconBlock as IMyFunctionalBlock;
-
-            if (setting.HighlightArea && functional.Enabled && !Sync.IsDedicated)
+            if (setting.HighlightArea && BeaconBlock.Enabled && !Sync.IsDedicated)
             {
                 DrawTransparentBox(m_areaMatrix, m_areaBoundingBox);
             }

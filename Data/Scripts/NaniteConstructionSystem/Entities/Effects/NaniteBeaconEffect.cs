@@ -8,6 +8,7 @@ using VRage.Game;
 using Sandbox.Definitions;
 
 using NaniteConstructionSystem.Extensions;
+using System;
 
 namespace NaniteConstructionSystem.Entities.Effects
 {
@@ -43,7 +44,7 @@ namespace NaniteConstructionSystem.Entities.Effects
             m_light.GlareOn = true;
             m_light.GlareQuerySize = 1;
             m_light.GlareIntensity = 0.5f;
-        
+
             var flareId = new MyDefinitionId(typeof(MyObjectBuilder_FlareDefinition), "BeaconSmall");
             var flare = (MyFlareDefinition)MyDefinitionManager.Static.GetDefinition(flareId);
             m_light.GlareSize = flare.Size;
