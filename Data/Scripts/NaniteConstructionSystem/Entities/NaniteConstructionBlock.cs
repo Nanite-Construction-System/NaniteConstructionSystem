@@ -23,6 +23,7 @@ using NaniteConstructionSystem.Entities.Tools;
 using NaniteConstructionSystem.Entities.Beacons;
 using NaniteConstructionSystem.Extensions;
 using NaniteConstructionSystem.Settings;
+using VRage.Collections;
 
 namespace NaniteConstructionSystem.Entities
 {
@@ -108,32 +109,21 @@ namespace NaniteConstructionSystem.Entities
         /// <param name="entity">The IMyEntity of the block</param>
         public NaniteConstructionBlock(IMyEntity entity)
         {
-            int pos = 0;
-            try
-            {
-                m_constructionBlock = (IMyTerminalBlock)entity;
-                pos = 1;
-                var inventory = ((MyCubeBlock)entity).GetInventory();
-                pos = 2;
-                inventory.SetFlags(MyInventoryFlags.CanReceive |MyInventoryFlags.CanSend);
-                pos = 3;
-                m_constructionBlock.CustomNameChanged += CustomNameChanged;
-                pos = 4;
-                m_defCache = new Dictionary<MyDefinitionId, MyBlueprintDefinitionBase>();
+            m_constructionBlock = (IMyTerminalBlock)entity;
+            var inventory = ((MyCubeBlock)entity).GetInventory();
+            inventory.SetFlags(MyInventoryFlags.CanReceive |MyInventoryFlags.CanSend);
+            m_constructionBlock.CustomNameChanged += CustomNameChanged;
+            m_defCache = new Dictionary<MyDefinitionId, MyBlueprintDefinitionBase>();
 
-                pos = 5;
-                MyCubeBlock block = (MyCubeBlock)entity;
-                block.UpgradeValues.Add("ConstructionNanites", 0f);
-                block.UpgradeValues.Add("DeconstructionNanites", 0f);
-                block.UpgradeValues.Add("ProjectionNanites", 0f);
-                block.UpgradeValues.Add("CleanupNanites", 0f);
-                block.UpgradeValues.Add("MiningNanites", 0f);
-                block.UpgradeValues.Add("MedicalNanites", 0f);
-                block.UpgradeValues.Add("SpeedNanites", 0f);
-                block.UpgradeValues.Add("PowerNanites", 0f);
-                pos = 6;
-            }
-            catch (Exception ex) { Logging.Instance.WriteLine($"Exception in NaniteConstructionBlock: {pos} {ex}"); }
+            MyCubeBlock block = (MyCubeBlock)entity;
+            block.UpgradeValues.Add("ConstructionNanites", 0f);
+            block.UpgradeValues.Add("DeconstructionNanites", 0f);
+            block.UpgradeValues.Add("ProjectionNanites", 0f);
+            block.UpgradeValues.Add("CleanupNanites", 0f);
+            block.UpgradeValues.Add("MiningNanites", 0f);
+            block.UpgradeValues.Add("MedicalNanites", 0f);
+            block.UpgradeValues.Add("SpeedNanites", 0f);
+            block.UpgradeValues.Add("PowerNanites", 0f);
         }
 
         private void CustomNameChanged(IMyTerminalBlock block)
@@ -624,10 +614,10 @@ namespace NaniteConstructionSystem.Entities
                 pos = 1;
                 List<Ingame.IMyTerminalBlock> terminalBlocks = new List<Ingame.IMyTerminalBlock>();
                 system.GetBlocks(terminalBlocks);
-                List<IMyCubeGrid> gridList = new List<IMyCubeGrid>();
+                MyConcurrentList<IMyCubeGrid> gridList = new MyConcurrentList<IMyCubeGrid>();
                 gridList.Add(m_constructionBlock.CubeGrid);
                 pos = 2;
-                foreach (var item in terminalBlocks)
+                MyAPIGateway.Parallel.ForEach(terminalBlocks, item =>
                 {
                     if (!gridList.Contains((IMyCubeGrid)item.CubeGrid))
                         gridList.Add((IMyCubeGrid)item.CubeGrid);
@@ -665,17 +655,17 @@ namespace NaniteConstructionSystem.Entities
                                 gridList.Add((IMyCubeGrid)motorRotor.Base.CubeGrid);
                         }
                     }
-                }
+                });
                 pos = 3;
 
                 List<IMySlimBlock> blocks = new List<IMySlimBlock>();
-                foreach (var item in gridList)
+                foreach (var item in gridList.ToList())
                 {
                     item.GetBlocks(blocks);
                 }
                 pos = 4;
                 foreach (var item in m_targets)
-                    item.ParallelUpdate(gridList, blocks);
+                    item.ParallelUpdate(gridList.ToList(), blocks);
                 pos = 5;
             }
             catch(Exception ex)

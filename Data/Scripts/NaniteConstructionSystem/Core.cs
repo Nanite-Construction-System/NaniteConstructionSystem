@@ -284,7 +284,6 @@ namespace NaniteConstructionSystem
             try
             {
                 ProcessNaniteBlocks();
-                //ProcessBeaconBlocks();
                 ProcessParticleEffects();
                 //ProcessMiningBlocks();
             }
