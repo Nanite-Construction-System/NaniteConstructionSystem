@@ -497,10 +497,6 @@
         </BlockVariant>
         <BlockVariant>
           <TypeId>UpgradeModule</TypeId>
-          <SubtypeId>NaniteHackingUpgrade</SubtypeId>
-        </BlockVariant>
-        <BlockVariant>
-          <TypeId>UpgradeModule</TypeId>
           <SubtypeId>NaniteMiningUpgrade</SubtypeId>
         </BlockVariant>
         <BlockVariant>
@@ -861,138 +857,7 @@
       <DamagedSound>ParticleElectrical</DamagedSound>
 	  <GuiVisible>false</GuiVisible>
       <PCU>5</PCU>
-    </Definition>		
-	<!--
-	<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>NaniteHackingUpgrade</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Hacking Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteHackingIcon.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Cubes\Large\NaniteHacking.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="80" />
-        <Component Subtype="Construction" Count="40" />
-        <Component Subtype="SmallTube" Count="20" />
-        <Component Subtype="LargeTube" Count="10" />
-        <Component Subtype="Motor" Count="2" />
-        <Component Subtype="SteelPlate" Count="20" />
-      </Components>
-      <CriticalComponent Subtype="Motor" Index="0" />
-      <MountPoints>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1" />
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm" />
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteConstruction_Constr2.mwm" />
-      </BuildProgressModels>
-      <BlockPairName>UpgradeHacking</BlockPairName>
-      <MirroringX>Z</MirroringX>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Upgrades>
-        <MyUpgradeModuleInfo>
-          <UpgradeType>Effectiveness</UpgradeType>
-          <Modifier>5</Modifier>
-          <ModifierType>Multiplicative</ModifierType>
-        </MyUpgradeModuleInfo>
-      </Upgrades>
-      <PrimarySound>BlockModuleEfficiency</PrimarySound>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
     </Definition>
-	<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>NaniteMiningUpgrade</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Mining Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteMiningIcon.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Cubes\Large\NaniteMining.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="80" />
-        <Component Subtype="Construction" Count="40" />
-        <Component Subtype="SmallTube" Count="20" />
-        <Component Subtype="LargeTube" Count="10" />
-        <Component Subtype="Motor" Count="2" />
-        <Component Subtype="SteelPlate" Count="20" />
-      </Components>
-      <CriticalComponent Subtype="Motor" Index="0" />
-      <MountPoints>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1" />
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm" />
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteConstruction_Constr2.mwm" />
-      </BuildProgressModels>
-      <BlockPairName>UpgradeMining</BlockPairName>
-      <MirroringX>Z</MirroringX>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Upgrades>
-        <MyUpgradeModuleInfo>
-          <UpgradeType>Effectiveness</UpgradeType>
-          <Modifier>5</Modifier>
-          <ModifierType>Multiplicative</ModifierType>
-        </MyUpgradeModuleInfo>
-      </Upgrades>
-      <PrimarySound>BlockModuleEfficiency</PrimarySound>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-    </Definition>
-	<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>NaniteHealingUpgrade</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Healing Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteHealingIcon.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Cubes\Large\NaniteHealing.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="80" />
-        <Component Subtype="Construction" Count="40" />
-        <Component Subtype="SmallTube" Count="20" />
-        <Component Subtype="LargeTube" Count="10" />
-        <Component Subtype="Motor" Count="2" />
-        <Component Subtype="SteelPlate" Count="20" />
-      </Components>
-      <CriticalComponent Subtype="Motor" Index="0" />
-      <MountPoints>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1" />
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm" />
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteConstruction_Constr2.mwm" />
-      </BuildProgressModels>
-      <BlockPairName>UpgradeHealing</BlockPairName>
-      <MirroringX>Z</MirroringX>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Upgrades>
-        <MyUpgradeModuleInfo>
-          <UpgradeType>Effectiveness</UpgradeType>
-          <Modifier>5</Modifier>
-          <ModifierType>Multiplicative</ModifierType>
-        </MyUpgradeModuleInfo>
-      </Upgrades>
-      <PrimarySound>BlockModuleEfficiency</PrimarySound>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-    </Definition>
-	-->
 	<!-- End Upgrades-->
     <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
       <Id>
