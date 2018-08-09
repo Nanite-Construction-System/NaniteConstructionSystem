@@ -3,6 +3,8 @@ using VRage.Game.Components;
 using VRage.ObjectBuilders;
 using Sandbox.ModAPI;
 
+using NaniteConstructionSystem.Extensions;
+
 namespace NaniteConstructionSystem.Entities.Beacons
 {
     [MyEntityComponentDescriptor(typeof(MyObjectBuilder_OxygenFarm), false, "LargeNaniteBeaconConstruct", "SmallNaniteBeaconConstruct")]
@@ -23,6 +25,11 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
             Logging.Instance.WriteLine($"ADDING Repair Beacon: {Entity.EntityId}");
             m_beacon = new NaniteBeaconConstruct((IMyTerminalBlock)Entity);
+
+            if (Sync.IsClient)
+            {
+                NaniteConstructionManager.NaniteSync.SendNeedBeaconTerminalSettings(Entity.EntityId);
+            }
         }
 
         public override void Close()
