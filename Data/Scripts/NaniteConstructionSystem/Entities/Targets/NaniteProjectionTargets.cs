@@ -465,7 +465,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 if(projector.ProjectedGrid == block.CubeGrid)
                 {
-                    projector.Build(block, 0, m_constructionBlock.ConstructionBlock.EntityId, false);
+                    projector.Build(block, m_constructionBlock.ConstructionBlock.OwnerId, m_constructionBlock.ConstructionBlock.EntityId, false);
                     break;
                 }
             }
