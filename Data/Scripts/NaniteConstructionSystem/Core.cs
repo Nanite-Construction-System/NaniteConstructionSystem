@@ -20,6 +20,7 @@ using NaniteConstructionSystem.Extensions;
 using NaniteConstructionSystem.Entities.Beacons;
 using NaniteConstructionSystem.Particles;
 using NaniteConstructionSystem.Settings;
+using NaniteConstructionSystem.Entities.Detectors;
 
 namespace NaniteConstructionSystem
 {
@@ -1078,14 +1079,12 @@ namespace NaniteConstructionSystem
                 controls.AddRange(m_customBeaconControls);
                 return;
             }
-
-            if(block.BlockDefinition.TypeId == typeof(MyObjectBuilder_Assembler))
+            else if (block.BlockDefinition.TypeId == typeof(MyObjectBuilder_Assembler))
             {
                 controls.Add(m_customAssemblerControl);
                 return;
             }
-
-            if(block.BlockDefinition.SubtypeName == "NaniteUltrasonicHammer")
+            else if (block.BlockDefinition.SubtypeName == "NaniteUltrasonicHammer")
             {
                 controls.RemoveAt(controls.Count - 1);
                 controls.RemoveAt(controls.Count - 1);
@@ -1093,6 +1092,16 @@ namespace NaniteConstructionSystem
                     controls.Add(item);
 
                 return;
+            }
+            else if (block.BlockDefinition.SubtypeName == "BigNaniteOreDetector")
+            {
+                Logging.Instance.WriteLine($"BigNaniteOreDetector count {controls.Count}");
+                // Change range slider
+                (controls[8] as IMyTerminalControlSlider).SetLimits(0, (block.GameLogic as BigNaniteOreDetectorLogic).Detector.GetMaxRange());
+                (controls[8] as IMyTerminalControlSlider).RedrawControl();
+
+                // due range hack the broatcast, is bugged and show everything in max range, also if a lower range is selected
+                controls.RemoveAt(9);
             }
 
             if (!(block.BlockDefinition.SubtypeName == "LargeNaniteFactory"))

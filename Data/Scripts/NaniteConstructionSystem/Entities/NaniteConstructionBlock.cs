@@ -24,6 +24,7 @@ using NaniteConstructionSystem.Entities.Beacons;
 using NaniteConstructionSystem.Extensions;
 using NaniteConstructionSystem.Settings;
 using VRage.Collections;
+using NaniteConstructionSystem.Entities.Detectors;
 
 namespace NaniteConstructionSystem.Entities
 {

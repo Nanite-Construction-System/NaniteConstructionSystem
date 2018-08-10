@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <CubeBlocks>
+	<!-- Nanite Control Facilities -->
     <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
       <Id>
         <TypeId>ShipWelder</TypeId>
@@ -60,6 +61,8 @@
       <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>	
 	  <PCU>2500</PCU>
     </Definition>
+	
+	<!-- Nanite Upgrades -->
     <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
       <Id>
         <TypeId>UpgradeModule</TypeId>
@@ -434,7 +437,8 @@
       <DamagedSound>ParticleElectrical</DamagedSound>
       <PCU>225</PCU>
     </Definition>
-    <!-- Upgrade Modules -->   
+	
+    <!-- Facility Upgrade Modules -->   
     <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
       <Id>
         <TypeId>UpgradeModule</TypeId>
@@ -858,7 +862,58 @@
 	  <GuiVisible>false</GuiVisible>
       <PCU>5</PCU>
     </Definition>
-	<!-- End Upgrades-->
+	
+    <!-- Ore Detector Upgrade Modules -->   
+    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+      <Id>
+        <TypeId>UpgradeModule</TypeId>
+        <SubtypeId>NaniteOreDetectorUpgradeRange</SubtypeId>
+      </Id>
+      <DisplayName>Nanite Ore Detector Range Upgrade</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>	  
+      <CubeSize>Large</CubeSize>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="1" y="1" z="1" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\Large\NaniteConstruction.mwm</Model>
+      <Components>
+        <Component Subtype="InteriorPlate" Count="120" />
+        <Component Subtype="Construction" Count="40" />
+        <Component Subtype="SmallTube" Count="20" />
+        <Component Subtype="LargeTube" Count="10" />
+        <Component Subtype="Computer" Count="40" />		
+        <Component Subtype="GravityGenerator" Count="5" />
+        <Component Subtype="PowerCell" Count="25" />
+        <Component Subtype="Superconductor" Count="50" />
+        <Component Subtype="Motor" Count="5" />
+        <Component Subtype="SteelPlate" Count="40" />
+      </Components>
+      <CriticalComponent Subtype="Computer" Index="0" />
+      <MountPoints>
+        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1" />
+      </MountPoints>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm" />
+        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteConstruction_Constr2.mwm" />
+      </BuildProgressModels>
+      <BlockPairName>NaniteOreDetectorUpgradeRange</BlockPairName>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
+      <MirroringX>Z</MirroringX>
+      <MirroringZ>X</MirroringZ>
+      <EdgeType>Light</EdgeType>
+      <Upgrades>
+        <MyUpgradeModuleInfo>
+          <UpgradeType>Range</UpgradeType>
+          <Modifier>1</Modifier>
+          <ModifierType>Additive</ModifierType>
+        </MyUpgradeModuleInfo>
+      </Upgrades>
+      <PrimarySound>BlockModuleEfficiency</PrimarySound>
+      <DamageEffectId>214</DamageEffectId>
+      <DamagedSound>ParticleElectrical</DamagedSound>
+      <PCU>5</PCU>
+    </Definition>	
+	
     <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
       <Id>
         <TypeId>ShipWelder</TypeId>
@@ -1103,6 +1158,68 @@
 	  <PrimarySound>NaniteModule</PrimarySound>
       <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>	
 	  <PCU>1</PCU>
+    </Definition>
+	
+	<!-- Nanite Ore Detector -->
+    <Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
+      <Id>
+        <TypeId>OreDetector</TypeId>
+        <SubtypeId>BigNaniteOreDetector</SubtypeId>
+      </Id>
+      <DisplayName>Big Nanite Ore Detector</DisplayName>
+      <Icon>Textures\GUI\Icons\Cubes\NaniteFactory.dds</Icon>
+      <CubeSize>Large</CubeSize>
+      <BlockTopology>TriangleMesh</BlockTopology>
+      <Size x="3" y="3" z="3" />
+      <ModelOffset x="0" y="0" z="0" />
+      <Model>Models\Cubes\Large\NanoRepairModule.mwm</Model>
+      <Components>
+        <Component Subtype="InteriorPlate" Count="300" />
+        <Component Subtype="Construction" Count="400" />
+        <Component Subtype="MetalGrid" Count="150" />
+        <Component Subtype="LargeTube" Count="150" />		
+        <Component Subtype="GravityGenerator" Count="350" />
+        <Component Subtype="Detector" Count="25" />
+        <Component Subtype="PowerCell" Count="750" />
+        <Component Subtype="Computer" Count="450" />
+        <Component Subtype="Motor" Count="150" />
+        <Component Subtype="Superconductor" Count="1200" />
+        <Component Subtype="Display" Count="4" />
+		<Component Subtype="SteelPlate" Count="900" />
+        <Component Subtype="InteriorPlate" Count="400" />
+      </Components>
+      <CriticalComponent Subtype="Display" Index="0" />
+	  <MountPoints>
+        <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="3" EndY="3" />
+        <MountPoint Side="Left" StartX="0" StartY="0" EndX="3" EndY="1" />
+        <MountPoint Side="Right" StartX="0" StartY="0" EndX="3" EndY="1" />
+        <MountPoint Side="Front" StartX="0" StartY="0" EndX="3" EndY="1" />
+        <MountPoint Side="Back" StartX="0" StartY="0" EndX="3" EndY="1" />
+      </MountPoints>	  
+	  <BuildProgressModels>
+        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\NanoRepairModule_Cons1.mwm" />
+        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NanoRepairModule_Cons2.mwm" />
+        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\NanoRepairModule_Cons3.mwm" />
+        <Model BuildPercentUpperBound="0.83" File="Models\Cubes\Large\NanoRepairModule_Cons4.mwm" />
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NanoRepairModule_Cons5.mwm" />
+      </BuildProgressModels> 
+	  <InventorySize>
+        <X>1</X>
+        <Y>1</Y>
+        <Z>1</Z>
+      </InventorySize>   
+	  <BlockPairName>BigNaniteOreDetector</BlockPairName>
+      <MirroringY>Z</MirroringY>
+      <MirroringZ>Y</MirroringZ>
+      <BuildTimeSeconds>300</BuildTimeSeconds>
+      <EdgeType>Light</EdgeType>
+      <DamageEffectId>212</DamageEffectId>
+      <DamagedSound>ParticleHeavyMech</DamagedSound>
+	  <Public>true</Public>
+	  <MaximumRange>3000</MaximumRange>
+	  <PrimarySound>NaniteModule</PrimarySound>	  	  
+      <ResourceSinkGroup>Utility</ResourceSinkGroup>	
+	  <PCU>2500</PCU>
     </Definition>
   </CubeBlocks>
   <BlockPositions>
