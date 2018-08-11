@@ -13,7 +13,6 @@ using Sandbox.Definitions;
 using Sandbox.Common.ObjectBuilders;
 using Ingame = Sandbox.ModAPI.Ingame;
 using Sandbox.ModAPI.Interfaces.Terminal;
-using Sandbox.Game.Components;
 
 using NaniteConstructionSystem.Entities;
 using NaniteConstructionSystem.Extensions;
@@ -169,6 +168,8 @@ namespace NaniteConstructionSystem
         private List<IMyTerminalControl> m_customHammerControls = new List<IMyTerminalControl>();
         private List<IMyTerminalControl> m_customBeaconControls = new List<IMyTerminalControl>();
         private List<IMyTerminalAction> m_customBeaconActions = new List<IMyTerminalAction>();
+        private List<IMyTerminalControl> m_customOreDetectorControls = new List<IMyTerminalControl>();
+
 
         public NaniteConstructionManager()
         {
@@ -982,6 +983,27 @@ namespace NaniteConstructionSystem
 
             m_customBeaconControls.Add(rotationZSlider);
             CreateSliderActions("RotationZ", rotationZSlider, 0, 359, true);
+
+            // Range slider
+            var detectRangeSlider = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyOreDetector>("Range");
+            detectRangeSlider.Title = MyStringId.GetOrCompute("Range");
+            detectRangeSlider.Tooltip = MyStringId.GetOrCompute("Maximum detection range");
+            detectRangeSlider.SetLimits(0, 350);
+            detectRangeSlider.Getter = (x) =>
+            {
+                return (x.GameLogic as BigNaniteOreDetectorLogic).Detector.Range;
+            };
+
+            detectRangeSlider.Setter = (x, y) =>
+            {
+                (x.GameLogic as BigNaniteOreDetectorLogic).Detector.Range = y;
+            };
+
+            detectRangeSlider.Writer = (x, y) =>
+            {
+                y.Append($"{Math.Round((x.GameLogic as BigNaniteOreDetectorLogic).Detector.Range)} m");
+            };
+            m_customOreDetectorControls.Add(detectRangeSlider);
         }
 
         private void CreateSliderActions(string sliderName, IMyTerminalControlSlider slider, int minValue, int maxValue, bool wrap = false)
@@ -1095,13 +1117,10 @@ namespace NaniteConstructionSystem
             }
             else if (block.BlockDefinition.SubtypeName == "BigNaniteOreDetector")
             {
-                Logging.Instance.WriteLine($"BigNaniteOreDetector count {controls.Count}");
-                // Change range slider
-                (controls[8] as IMyTerminalControlSlider).SetLimits(0, (block.GameLogic as BigNaniteOreDetectorLogic).Detector.GetMaxRange());
-                (controls[8] as IMyTerminalControlSlider).RedrawControl();
-
-                // due range hack the broatcast, is bugged and show everything in max range, also if a lower range is selected
-                controls.RemoveAt(9);
+                controls.RemoveRange(controls.Count - 2, 2);
+                (m_customOreDetectorControls[0] as IMyTerminalControlSlider).SetLimits(0, (block.GameLogic as BigNaniteOreDetectorLogic).Detector.MaxRange);
+                controls.AddRange(m_customOreDetectorControls);
+                return;
             }
 
             if (!(block.BlockDefinition.SubtypeName == "LargeNaniteFactory"))

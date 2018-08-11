@@ -11,6 +11,8 @@ namespace NaniteConstructionSystem.Entities.Detectors
     [MyEntityComponentDescriptor(typeof(MyObjectBuilder_OreDetector), false, "BigNaniteOreDetector")]
     class BigNaniteOreDetectorLogic : MyGameLogicComponent
     {
+        public MyModStorageComponentBase Storage { get; set; }
+
         private BigNaniteOreDetector m_detector = null;
         public BigNaniteOreDetector Detector
         {
@@ -27,9 +29,14 @@ namespace NaniteConstructionSystem.Entities.Detectors
             (Entity as IMyOreDetector).AppendingCustomInfo += AppendingCustomInfo;
         }
 
-        private void AppendingCustomInfo(IMyTerminalBlock arg1, StringBuilder arg2)
+        private void AppendingCustomInfo(IMyTerminalBlock block, StringBuilder sb)
         {
-            arg2.Append($"Range: {(arg1 as IMyOreDetector).Range}");
+            sb.Append("Type: Nanite Ore Detector\n");
+            sb.Append($"Current Input: {Detector.Power} MW\n");
+            sb.Append($"Frequnecy:\n");
+            foreach (var freq in Detector.GetScanningFrequencies())
+                sb.Append($" - [{freq}]\n");
+            sb.Append($"Range: {Detector.Range}");
         }
 
         public override void UpdateOnceBeforeFrame()
