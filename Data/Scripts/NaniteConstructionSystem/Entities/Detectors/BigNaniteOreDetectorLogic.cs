@@ -23,8 +23,8 @@ namespace NaniteConstructionSystem.Entities.Detectors
         {
             base.Init(objectBuilder);
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
-            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_FRAME;
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_10TH_FRAME;
+            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
 
             (Entity as IMyOreDetector).AppendingCustomInfo += AppendingCustomInfo;
         }
@@ -33,7 +33,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
         {
             sb.Append("Type: Nanite Ore Detector\n");
             sb.Append($"Current Input: {Detector.Power} MW\n");
-            sb.Append($"Frequnecy:\n");
+            sb.Append($"Frequency:\n");
             foreach (var freq in Detector.GetScanningFrequencies())
                 sb.Append($" - [{freq}]\n");
             sb.Append($"Range: {Detector.Range}");
@@ -59,6 +59,12 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 (Entity as IMyOreDetector).ShowInToolbarConfig = !(Entity as IMyOreDetector).ShowInToolbarConfig;
                 (Entity as IMyOreDetector).ShowInToolbarConfig = !(Entity as IMyOreDetector).ShowInToolbarConfig;
             }
+        }
+
+        public override void UpdateBeforeSimulation100()
+        {
+            base.UpdateBeforeSimulation100();
+            Detector.Sink.Update();
         }
     }
 }

@@ -557,17 +557,17 @@ namespace NaniteConstructionSystem
             m_customAssemblerControl = allowFactoryCheck;
             //MyAPIGateway.TerminalControls.AddControl<Ingame.IMyAssembler>(allowFactoryCheck);
 
-            // --- Mining Hammer
-            var separate = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSeparator, Ingame.IMyOreDetector>("Separate");
-            m_customHammerControls.Add(separate);
+            //// --- Mining Hammer
+            //var separate = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSeparator, Ingame.IMyOreDetector>("Separate");
+            //m_customHammerControls.Add(separate);
 
-            var oreList = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlListbox, Ingame.IMyOreDetector>("OreList");
-            oreList.Title = MyStringId.GetOrCompute("Valid Ores (deselect to ignore): ");
-            oreList.Multiselect = true;
-            oreList.VisibleRowsCount = 8;
-            oreList.ListContent = OreListContent;
-            oreList.ItemSelected = OreListSelected;
-            m_customHammerControls.Add(oreList);
+            //var oreList = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlListbox, Ingame.IMyOreDetector>("OreList");
+            //oreList.Title = MyStringId.GetOrCompute("Valid Ores (deselect to ignore): ");
+            //oreList.Multiselect = true;
+            //oreList.VisibleRowsCount = 8;
+            //oreList.ListContent = OreListContent;
+            //oreList.ItemSelected = OreListSelected;
+            //m_customHammerControls.Add(oreList);
 
             // --- Area Beacons
             // -- Separator
@@ -1004,6 +1004,27 @@ namespace NaniteConstructionSystem
                 y.Append($"{Math.Round((x.GameLogic as BigNaniteOreDetectorLogic).Detector.Range)} m");
             };
             m_customOreDetectorControls.Add(detectRangeSlider);
+
+            var separate = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSeparator, Ingame.IMyOreDetector>("Separate");
+            m_customOreDetectorControls.Add(separate);
+
+            var oreList = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlListbox, Ingame.IMyOreDetector>("OreList");
+            oreList.Title = MyStringId.GetOrCompute("Valid Ores (deselect to ignore): ");
+            oreList.Multiselect = true;
+            oreList.VisibleRowsCount = 8;
+            oreList.ListContent = (x, y, z) =>
+            {
+                y.AddList((x.GameLogic as BigNaniteOreDetectorLogic).Detector.GetOreList());
+            };
+            oreList.ItemSelected = (x, y) =>
+            {
+
+            };
+            oreList.Visible = (x) =>
+            {
+                return (x.GameLogic as BigNaniteOreDetectorLogic).Detector.HasFilterUpgrade;
+            };
+            m_customOreDetectorControls.Add(oreList);
         }
 
         private void CreateSliderActions(string sliderName, IMyTerminalControlSlider slider, int minValue, int maxValue, bool wrap = false)

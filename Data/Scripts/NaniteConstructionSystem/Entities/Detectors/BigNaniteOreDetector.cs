@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.EntityComponents;
@@ -6,6 +7,7 @@ using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ObjectBuilders.Definitions;
+using VRage.ModAPI;
 using VRage.Utils;
 
 namespace NaniteConstructionSystem.Entities.Detectors
@@ -35,6 +37,11 @@ namespace NaniteConstructionSystem.Entities.Detectors
         public float Power
         {
             get { return Sink.CurrentInputByType(gId);  }
+        }
+
+        public bool HasFilterUpgrade
+        {
+            get { return m_block.UpgradeValues["Filter"] > 0f;  }
         }
 
         internal MyResourceSinkInfo ResourceInfo;
@@ -90,6 +97,8 @@ namespace NaniteConstructionSystem.Entities.Detectors
             _power *= 1 + m_block.UpgradeValues["Scanning"];
             //_power -= m_block.UpgradeValues["PowerEfficiency"] * 1f;
             Sink.Update();
+
+            Logging.Instance.WriteLine($"Updated power {_power}");
         }
 
         public List<string> GetScanningFrequencies()
@@ -103,6 +112,25 @@ namespace NaniteConstructionSystem.Entities.Detectors
             frequencies.Add("75MHz-310MHz");
 
             return frequencies;
+        }
+
+        public List<MyTerminalControlListBoxItem> GetOreList()
+        {
+            List<MyTerminalControlListBoxItem> list = new List<MyTerminalControlListBoxItem>();
+            foreach (var item in MyDefinitionManager.Static.GetVoxelMaterialDefinitions().Select(x => x.MinedOre).Distinct())
+            {
+                MyStringId stringId = MyStringId.GetOrCompute(item);
+
+                // Filter upgrade
+                if (m_block.UpgradeValues["Scanning"] < 1f && (stringId.String == "Uranium" || stringId.String == "Platinum" || stringId.String == "Silver" || stringId.String == "Gold"))
+                    continue;
+                if (m_block.UpgradeValues["Scanning"] < 2f && (stringId.String == "Uranium" || stringId.String == "Platinum"))
+                    continue;
+
+                MyTerminalControlListBoxItem listItem = new MyTerminalControlListBoxItem(stringId, stringId, null);
+                list.Add(listItem);
+            }
+            return list;
         }
     }
 }

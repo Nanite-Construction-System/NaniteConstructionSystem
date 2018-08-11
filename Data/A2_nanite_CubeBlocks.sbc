@@ -419,7 +419,6 @@
         <Component Subtype="PowerCell" Count="25" />
         <Component Subtype="Superconductor" Count="50" />
         <Component Subtype="Motor" Count="5" />
-		
         <Component Subtype="SteelPlate" Count="40" />
       </Components>
       <CriticalComponent Subtype="Computer" Index="0" />
@@ -975,7 +974,7 @@
         <TypeId>UpgradeModule</TypeId>
         <SubtypeId>NaniteOreDetectorUpgradePowerEfficiency</SubtypeId>
       </Id>
-      <DisplayName>Nanite Ore Detector Filter Upgrade</DisplayName>
+      <DisplayName>Nanite Ore Detector Power efficiency Upgrade</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>	  
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
