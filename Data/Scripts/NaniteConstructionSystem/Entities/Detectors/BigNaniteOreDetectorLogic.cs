@@ -21,10 +21,12 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
+            Logging.Instance.WriteLine($"ADDING Big Ore Detector: {Entity.EntityId}");
+            m_detector = new BigNaniteOreDetector((IMyFunctionalBlock)Entity);
+
             base.Init(objectBuilder);
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_10TH_FRAME;
-            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
 
             (Entity as IMyOreDetector).AppendingCustomInfo += AppendingCustomInfo;
         }
@@ -42,9 +44,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
         public override void UpdateOnceBeforeFrame()
         {
             base.UpdateOnceBeforeFrame();
-
-            Logging.Instance.WriteLine($"ADDING Big Ore Detector: {Entity.EntityId}");
-            m_detector = new BigNaniteOreDetector((IMyFunctionalBlock)Entity);
+            m_detector.Init();
         }
 
         public override void UpdateBeforeSimulation10()
@@ -59,12 +59,6 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 (Entity as IMyOreDetector).ShowInToolbarConfig = !(Entity as IMyOreDetector).ShowInToolbarConfig;
                 (Entity as IMyOreDetector).ShowInToolbarConfig = !(Entity as IMyOreDetector).ShowInToolbarConfig;
             }
-        }
-
-        public override void UpdateBeforeSimulation100()
-        {
-            base.UpdateBeforeSimulation100();
-            Detector.Sink.Update();
         }
     }
 }
