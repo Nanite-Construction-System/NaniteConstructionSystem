@@ -27,18 +27,9 @@ namespace NaniteConstructionSystem.Entities.Detectors
             base.Init(objectBuilder);
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_10TH_FRAME;
+            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
 
-            (Entity as IMyOreDetector).AppendingCustomInfo += AppendingCustomInfo;
-        }
-
-        private void AppendingCustomInfo(IMyTerminalBlock block, StringBuilder sb)
-        {
-            sb.Append("Type: Nanite Ore Detector\n");
-            sb.Append($"Current Input: {Detector.Power} MW\n");
-            sb.Append($"Frequency:\n");
-            foreach (var freq in Detector.GetScanningFrequencies())
-                sb.Append($" - [{freq}]\n");
-            sb.Append($"Range: {Detector.Range}");
+            (Entity as IMyOreDetector).AppendingCustomInfo += m_detector.AppendingCustomInfo;
         }
 
         public override void UpdateOnceBeforeFrame()
@@ -53,12 +44,22 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
             if (MyAPIGateway.Gui?.GetCurrentScreen == MyTerminalPageEnum.ControlPanel)
             {
+                string oldCustomInfo = (Entity as IMyOreDetector).CustomInfo;
                 (Entity as IMyOreDetector).RefreshCustomInfo();
 
-                // Toggle to trigger UI update
-                (Entity as IMyOreDetector).ShowInToolbarConfig = !(Entity as IMyOreDetector).ShowInToolbarConfig;
-                (Entity as IMyOreDetector).ShowInToolbarConfig = !(Entity as IMyOreDetector).ShowInToolbarConfig;
+                if ((Entity as IMyOreDetector).CustomInfo != oldCustomInfo)
+                {
+                    // Toggle to trigger UI update
+                    (Entity as IMyOreDetector).ShowInToolbarConfig = !(Entity as IMyOreDetector).ShowInToolbarConfig;
+                    (Entity as IMyOreDetector).ShowInToolbarConfig = !(Entity as IMyOreDetector).ShowInToolbarConfig;
+                }
             }
+        }
+
+        public override void UpdateBeforeSimulation100()
+        {
+            base.UpdateBeforeSimulation100();
+            m_detector.Update100();
         }
     }
 }
