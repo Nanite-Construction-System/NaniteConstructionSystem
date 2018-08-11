@@ -1,5 +1,4 @@
-﻿using NaniteConstructionSystem.Extensions;
-using Sandbox.Definitions;
+﻿using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
@@ -12,8 +11,6 @@ using VRage.Game.Components;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRage.ModAPI;
 using VRage.Utils;
-using VRage.Voxels;
-using VRageMath;
 
 namespace NaniteConstructionSystem.Entities.Detectors
 {
@@ -22,10 +19,32 @@ namespace NaniteConstructionSystem.Entities.Detectors
         public const float RANGE_PER_UPGRADE = 50f;
         public const float POWER_PER_UPGRADE = 0.125f;
 
-        public float Range { get; set; }
+        public float Range {
+            get { return Settings.Settings.Range; }
+            set
+            {
+                Settings.Settings.Range = value;
+                Settings.Save();
+            }
+        }
+        public List<string> OreListSelected
+        {
+            get
+            {
+                if (Settings.Settings.OreList == null)
+                    Settings.Settings.OreList = new List<string>();
+                return Settings.Settings.OreList;
+            }
+            set
+            {
+                Settings.Settings.OreList = value;
+                Settings.Save();
+            }
+        }
 
         public IMyOreDetector m_block;
         public MyOreDetectorDefinition BlockDefinition => (m_block as MyCubeBlock).BlockDefinition as MyOreDetectorDefinition;
+        public MyModStorageComponentBase Storage { get; set; }
 
         internal MyResourceSinkInfo ResourceInfo;
         internal MyResourceSinkComponent Sink;
@@ -52,6 +71,8 @@ namespace NaniteConstructionSystem.Entities.Detectors
         protected int maxScanningLevel = 0;
         protected float minRange = 0f;
         protected float basePower = 0f;
+        private NaniteOreDetectorSettings Settings;
+
 
         public NaniteOreDetector(IMyFunctionalBlock entity)
         {
@@ -71,6 +92,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
         public void Init()
         {
+            StorageSetup();
             m_block.UpgradeValues.Add("Range", 0f);
             m_block.UpgradeValues.Add("Scanning", 0f);
             m_block.UpgradeValues.Add("Filter", 0f);
@@ -172,6 +194,14 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 list.Add(listItem);
             }
             return list;
+        }
+
+        private void StorageSetup()
+        {
+            if (Settings == null)
+                Settings = new NaniteOreDetectorSettings(m_block);
+
+            Settings.Load();
         }
 
 

@@ -28,6 +28,9 @@ namespace NaniteConstructionSystem
     {
         public static NaniteConstructionManager Instance;
 
+        // Unique storage identifer
+        public readonly Guid OreDetectorSettingsGuid = new Guid("7d46082d-747a-45af-8cd1-99a03e68cf97");
+
         private static Dictionary<long, NaniteConstructionBlock> m_naniteBlocks;
         public static Dictionary<long, NaniteConstructionBlock> NaniteBlocks
         {
@@ -1012,13 +1015,25 @@ namespace NaniteConstructionSystem
             oreList.Title = MyStringId.GetOrCompute("Valid Ores (deselect to ignore): ");
             oreList.Multiselect = true;
             oreList.VisibleRowsCount = 8;
-            oreList.ListContent = (x, y, z) =>
+            oreList.ListContent = (block, list, selected) =>
             {
-                y.AddList((x.GameLogic as BigNaniteOreDetectorLogic).Detector.GetOreList());
+                var possibleOreList = (block.GameLogic as BigNaniteOreDetectorLogic).Detector.GetOreList();
+                list.AddList(possibleOreList);
+                foreach (var item in (block.GameLogic as BigNaniteOreDetectorLogic).Detector.OreListSelected)
+                {
+                    var listItem = possibleOreList.FirstOrDefault(ore => ore.Text.ToString() == item);
+                    if (listItem != null)
+                    {
+                        selected.Add(listItem);
+                    }
+                }
             };
-            oreList.ItemSelected = (x, y) =>
+            oreList.ItemSelected = (block, selected) =>
             {
-
+                List<string> config = new List<string>();
+                foreach (var item in selected)
+                    config.Add(item.Text.ToString());
+                (block.GameLogic as BigNaniteOreDetectorLogic).Detector.OreListSelected = config;
             };
             oreList.Visible = (x) =>
             {

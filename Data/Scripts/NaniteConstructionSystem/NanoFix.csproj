@@ -119,6 +119,7 @@
     <Compile Include="Entities\Detectors\NaniteMining.cs" />
     <Compile Include="Entities\Detectors\NaniteMiningLogic.cs" />
     <Compile Include="Entities\Detectors\NaniteOreDetector.cs" />
+    <Compile Include="Entities\Detectors\NaniteOreDetectorSettings.cs" />
     <Compile Include="Entities\Effects\CenterOrbEffect.cs" />
     <Compile Include="Entities\Effects\LightningBolt\LightningBoltEffect.cs" />
     <Compile Include="Entities\Effects\LightningBolt\LightningBoltInstance.cs" />
