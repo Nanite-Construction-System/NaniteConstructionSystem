@@ -1267,9 +1267,9 @@
     </Definition>
 	
 	<!-- Migration: block only, no function -->
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+    <Definition xsi:type="MyObjectBuilder_OxygenFarmDefinition">
       <Id>
-        <TypeId>UpgradeModule</TypeId>
+        <TypeId>OxygenFarm</TypeId>
         <SubtypeId>LargeNaniteFactory</SubtypeId>
       </Id>
       <DisplayName>OLD Nanite Control Factory</DisplayName>
