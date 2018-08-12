@@ -1,14 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Sandbox.Definitions;
-using Sandbox.Game.Entities;
-using Sandbox.Game.EntityComponents;
-using Sandbox.ModAPI;
-using VRage.Game;
-using VRage.Game.Components;
-using VRage.Game.ObjectBuilders.Definitions;
-using VRage.ModAPI;
-using VRage.Utils;
+﻿using Sandbox.ModAPI;
 
 namespace NaniteConstructionSystem.Entities.Detectors
 {
@@ -18,7 +8,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
         {
             supportFilter = true;
             maxScanningLevel = 2;
-            minRange = 350f;
+            minRange = 50f;
             basePower = 0.5f;
         }
     }

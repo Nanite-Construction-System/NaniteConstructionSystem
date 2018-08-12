@@ -24,6 +24,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
             base.Init(objectBuilder);
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
+            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_FRAME;
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_10TH_FRAME;
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
 
@@ -34,6 +35,13 @@ namespace NaniteConstructionSystem.Entities.Detectors
         {
             base.UpdateOnceBeforeFrame();
             m_detector.Init();
+        }
+
+        public override void UpdateBeforeSimulation()
+        {
+            base.UpdateBeforeSimulation();
+
+            m_detector.DrawScanningSphere();
         }
 
         public override void UpdateBeforeSimulation10()

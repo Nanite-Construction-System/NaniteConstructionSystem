@@ -1008,6 +1008,20 @@ namespace NaniteConstructionSystem
             };
             m_customOreDetectorControls.Add(detectRangeSlider);
 
+
+            var showScanRadius = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, Ingame.IMyOreDetector>("ShowScanRange");
+            showScanRadius.Title = MyStringId.GetOrCompute("Display Scan range");
+            showScanRadius.Tooltip = MyStringId.GetOrCompute("When checked, it will show you the scan range this detector covers");
+            showScanRadius.Getter = (x) =>
+            {
+                return (x.GameLogic as BigNaniteOreDetectorLogic).Detector.ShowScanRadius;
+            };
+            showScanRadius.Setter = (x, y) =>
+            {
+                (x.GameLogic as BigNaniteOreDetectorLogic).Detector.ShowScanRadius = y;
+            };
+            m_customOreDetectorControls.Add(showScanRadius);
+
             var separate = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSeparator, Ingame.IMyOreDetector>("Separate");
             m_customOreDetectorControls.Add(separate);
 

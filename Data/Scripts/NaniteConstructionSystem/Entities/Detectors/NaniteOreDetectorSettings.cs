@@ -1,4 +1,5 @@
-﻿using ProtoBuf;
+﻿using NaniteConstructionSystem.Extensions;
+using ProtoBuf;
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
 using System;
@@ -8,11 +9,13 @@ namespace NaniteConstructionSystem.Entities.Detectors
 {
     class NaniteOreDetectorSettings
     {
-        internal ProtoNaniteOreDetectorSettings Settings = new ProtoNaniteOreDetectorSettings();
+        public ProtoNaniteOreDetectorSettings Settings = new ProtoNaniteOreDetectorSettings();
         internal readonly IMyFunctionalBlock Detector;
-        internal NaniteOreDetectorSettings(IMyFunctionalBlock detector)
+        internal float DefaultRange = 0f;
+        internal NaniteOreDetectorSettings(IMyFunctionalBlock detector, float defaultRange)
         {
             Detector = detector;
+            DefaultRange = defaultRange;
         }
 
         public void Save()
@@ -21,6 +24,13 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 Detector.Storage = new MyModStorageComponent();
 
             Detector.Storage[NaniteConstructionManager.Instance.OreDetectorSettingsGuid] = MyAPIGateway.Utilities.SerializeToXML(Settings);
+
+            if (Sync.IsClient)
+                MessageHub.SendMessageToServer(new MessageOreDetectorSettings()
+                {
+                    EntityId = Detector.EntityId,
+                    Settings = Settings
+                });
         }
 
         public bool Load()
@@ -50,6 +60,10 @@ namespace NaniteConstructionSystem.Entities.Detectors
                     success = true;
                 }
             }
+            else
+            {
+                Settings.Range = DefaultRange;
+            }
 
             return success;
         }
@@ -61,7 +75,10 @@ namespace NaniteConstructionSystem.Entities.Detectors
         [ProtoMember(1)]
         public float Range;
 
-        [ProtoMember(1)]
+        [ProtoMember(2)]
         public List<string> OreList;
+
+        [ProtoMember(3)]
+        public bool ShowScanRadius;
     }
 }

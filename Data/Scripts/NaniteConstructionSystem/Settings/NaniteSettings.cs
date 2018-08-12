@@ -135,6 +135,8 @@ namespace NaniteConstructionSystem.Settings
         public float FactoryComponentMultiplier { get; set; }
         [ProtoMember(63)]
         public float UpgradeComponentMultiplier { get; set; }
+        [ProtoMember(64)]
+        public float OreDetectorPowerMultiplicator { get; set; }
 
         public string Version { get; set; }
 
@@ -203,6 +205,7 @@ namespace NaniteConstructionSystem.Settings
             PowerDecreasePerUpgrade = 2f;
             FactoryComponentMultiplier = 1f;
             UpgradeComponentMultiplier = 1f;
+            OreDetectorPowerMultiplicator = 1f;
             Version = "1.0";
         }
 
