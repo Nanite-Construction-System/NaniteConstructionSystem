@@ -9,12 +9,12 @@
       <Category>BLOCK</Category>
       <MaxDistance>15</MaxDistance>
       <Volume>0.9</Volume>
-	  <Loopable>true</Loopable>
+      <Loopable>true</Loopable>
       <Waves>
         <Wave Type="D3">
           <Loop>Audio\nanitefactory_mono.xwm</Loop>
         </Wave>
-		<Wave Type="D2">
+        <Wave Type="D2">
           <Loop>Audio\nanitefactory_stereo.xwm</Loop>
         </Wave>
       </Waves>
@@ -27,12 +27,12 @@
       <Category>BLOCK</Category>
       <MaxDistance>15</MaxDistance>
       <Volume>0.6</Volume>
-	  <Loopable>true</Loopable>
+      <Loopable>true</Loopable>
       <Waves>
         <Wave Type="D3">
           <Loop>Audio\nanitefactory_mono.xwm</Loop>
         </Wave>
-		<Wave Type="D2">
+        <Wave Type="D2">
           <Loop>Audio\nanitefactory_stereo.xwm</Loop>
         </Wave>
       </Waves>
@@ -45,16 +45,16 @@
       <Category>BLOCK</Category>
       <MaxDistance>30</MaxDistance>
       <Volume>1.5</Volume>
-	  <Loopable>true</Loopable>
+      <Loopable>true</Loopable>
       <Waves>
         <Wave Type="D3">
           <Loop>Audio\beacon_mono.xwm</Loop>
         </Wave>
-		<Wave Type="D2">
+        <Wave Type="D2">
           <Loop>Audio\beacon_stereo.xwm</Loop>
         </Wave>
       </Waves>
-    </Sound>	
+    </Sound>
     <Sound>
       <Id>
         <TypeId>AudioDefinition</TypeId>
@@ -67,10 +67,10 @@
         <Wave Type="D3">
           <Start>Audio\thump_mono.xwm</Start>
         </Wave>
-		<Wave Type="D2">
+        <Wave Type="D2">
           <Start>Audio\thump.xwm</Start>
         </Wave>
       </Waves>
-    </Sound>	
+    </Sound>
   </Sounds>
 </Definitions>

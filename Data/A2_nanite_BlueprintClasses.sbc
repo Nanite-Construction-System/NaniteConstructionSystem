@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <BlueprintClassEntries>
-    <Entry Class="LargeBlocks" BlueprintSubtypeId="OxygenFarm/LargeNaniteFactory" />
-    <Entry Class="LargeBlocks" BlueprintSubtypeId="OxygenFarm/LargeNaniteBeaconDeconstruct" />
+    <Entry Class="LargeBlocks" BlueprintSubtypeId="OxygenFarm/LargeNaniteFactory"/>
+    <Entry Class="LargeBlocks" BlueprintSubtypeId="OxygenFarm/LargeNaniteBeaconDeconstruct"/>
   </BlueprintClassEntries>
 </Definitions>
