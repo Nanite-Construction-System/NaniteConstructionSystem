@@ -38,11 +38,9 @@
         <MountPoint Side="Back" StartX="0" StartY="0" EndX="3" EndY="1"/>
       </MountPoints>
       <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\NanoRepairModule_Cons1.mwm"/>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NanoRepairModule_Cons2.mwm"/>
-        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\NanoRepairModule_Cons3.mwm"/>
-        <Model BuildPercentUpperBound="0.83" File="Models\Cubes\Large\NanoRepairModule_Cons4.mwm"/>
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NanoRepairModule_Cons5.mwm"/>
+        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\NaniteControlFacility_Constr1.mwm"/>
+        <Model BuildPercentUpperBound="0.75" File="Models\Cubes\Large\NaniteControlFacility_Constr2.mwm"/>
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NaniteControlFacility_Constr3.mwm"/>
       </BuildProgressModels>
       <InventorySize>
         <X>1</X>
