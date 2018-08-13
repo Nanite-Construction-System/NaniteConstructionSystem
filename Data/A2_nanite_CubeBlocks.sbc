@@ -1174,7 +1174,7 @@
       <Icon>Textures\GUI\Icons\Cubes\NaniteFactory.dds</Icon>
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="3" y="3" z="3" />
+      <Size x="2" y="3" z="2" />
       <ModelOffset x="0" y="0" z="0" />
       <Model>Models\Cubes\NaniteMiningRig.mwm</Model>
       <Components>
