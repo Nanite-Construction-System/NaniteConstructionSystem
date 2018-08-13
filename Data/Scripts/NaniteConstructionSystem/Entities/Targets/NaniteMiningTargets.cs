@@ -13,6 +13,7 @@ using VRage.ObjectBuilders;
 using NaniteConstructionSystem.Particles;
 using NaniteConstructionSystem.Extensions;
 using NaniteConstructionSystem.Entities.Beacons;
+using NaniteConstructionSystem.Entities.Detectors;
 
 namespace NaniteConstructionSystem.Entities.Targets
 {

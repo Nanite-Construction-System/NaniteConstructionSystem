@@ -3,7 +3,7 @@ using VRage.Game.Components;
 using VRage.ObjectBuilders;
 using Sandbox.ModAPI;
 
-namespace NaniteConstructionSystem.Entities.Beacons
+namespace NaniteConstructionSystem.Entities.Detectors
 {
     [MyEntityComponentDescriptor(typeof(MyObjectBuilder_OreDetector), false, "NaniteUltrasonicHammer")]
     public class NaniteMiningHammer : MyGameLogicComponent

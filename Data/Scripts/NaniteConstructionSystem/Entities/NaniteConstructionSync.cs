@@ -607,7 +607,7 @@ namespace NaniteConstructionSystem.Entities
                 var settings = MyAPIGateway.Utilities.SerializeFromXML<VoxelRemovalData>(ASCIIEncoding.ASCII.GetString(data));
                 byte materialRemoved = 0;
                 float amountOfMaterial = 0f;
-                Beacons.NaniteMining.RemoveVoxelContent(settings.VoxelID, settings.Position, out materialRemoved, out amountOfMaterial);
+                Detectors.NaniteMining.RemoveVoxelContent(settings.VoxelID, settings.Position, out materialRemoved, out amountOfMaterial);
             }
             catch(Exception ex)
             {

@@ -10,6 +10,7 @@ using VRage;
 using VRage.Game.ModAPI;
 
 using NaniteConstructionSystem.Entities.Beacons;
+using NaniteConstructionSystem.Entities.Detectors;
 
 namespace NaniteConstructionSystem.Particles
 {

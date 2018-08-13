@@ -16,7 +16,7 @@ using NaniteConstructionSystem.Extensions;
 using NaniteConstructionSystem.Entities.Effects;
 using NaniteConstructionSystem.Settings;
 
-namespace NaniteConstructionSystem.Entities.Beacons
+namespace NaniteConstructionSystem.Entities.Detectors
 {
     public class NaniteMining
     {

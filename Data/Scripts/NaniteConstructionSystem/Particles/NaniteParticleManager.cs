@@ -8,6 +8,7 @@ using VRage.Game;
 
 using NaniteConstructionSystem.Entities;
 using NaniteConstructionSystem.Entities.Beacons;
+using NaniteConstructionSystem.Entities.Detectors;
 
 namespace NaniteConstructionSystem.Particles
 {

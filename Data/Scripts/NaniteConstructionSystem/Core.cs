@@ -13,13 +13,13 @@ using Sandbox.Definitions;
 using Sandbox.Common.ObjectBuilders;
 using Ingame = Sandbox.ModAPI.Ingame;
 using Sandbox.ModAPI.Interfaces.Terminal;
-using Sandbox.Game.Components;
 
 using NaniteConstructionSystem.Entities;
 using NaniteConstructionSystem.Extensions;
 using NaniteConstructionSystem.Entities.Beacons;
 using NaniteConstructionSystem.Particles;
 using NaniteConstructionSystem.Settings;
+using NaniteConstructionSystem.Entities.Detectors;
 
 namespace NaniteConstructionSystem
 {
@@ -27,6 +27,9 @@ namespace NaniteConstructionSystem
     public class NaniteConstructionManager : MySessionComponentBase
     {
         public static NaniteConstructionManager Instance;
+
+        // Unique storage identifer
+        public readonly Guid OreDetectorSettingsGuid = new Guid("7d46082d-747a-45af-8cd1-99a03e68cf97");
 
         private static Dictionary<long, NaniteConstructionBlock> m_naniteBlocks;
         public static Dictionary<long, NaniteConstructionBlock> NaniteBlocks
@@ -168,6 +171,8 @@ namespace NaniteConstructionSystem
         private List<IMyTerminalControl> m_customHammerControls = new List<IMyTerminalControl>();
         private List<IMyTerminalControl> m_customBeaconControls = new List<IMyTerminalControl>();
         private List<IMyTerminalAction> m_customBeaconActions = new List<IMyTerminalAction>();
+        private List<IMyTerminalControl> m_customOreDetectorControls = new List<IMyTerminalControl>();
+
 
         public NaniteConstructionManager()
         {
@@ -555,17 +560,17 @@ namespace NaniteConstructionSystem
             m_customAssemblerControl = allowFactoryCheck;
             //MyAPIGateway.TerminalControls.AddControl<Ingame.IMyAssembler>(allowFactoryCheck);
 
-            // --- Mining Hammer
-            var separate = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSeparator, Ingame.IMyOreDetector>("Separate");
-            m_customHammerControls.Add(separate);
+            //// --- Mining Hammer
+            //var separate = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSeparator, Ingame.IMyOreDetector>("Separate");
+            //m_customHammerControls.Add(separate);
 
-            var oreList = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlListbox, Ingame.IMyOreDetector>("OreList");
-            oreList.Title = MyStringId.GetOrCompute("Valid Ores (deselect to ignore): ");
-            oreList.Multiselect = true;
-            oreList.VisibleRowsCount = 8;
-            oreList.ListContent = OreListContent;
-            oreList.ItemSelected = OreListSelected;
-            m_customHammerControls.Add(oreList);
+            //var oreList = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlListbox, Ingame.IMyOreDetector>("OreList");
+            //oreList.Title = MyStringId.GetOrCompute("Valid Ores (deselect to ignore): ");
+            //oreList.Multiselect = true;
+            //oreList.VisibleRowsCount = 8;
+            //oreList.ListContent = OreListContent;
+            //oreList.ItemSelected = OreListSelected;
+            //m_customHammerControls.Add(oreList);
 
             // --- Area Beacons
             // -- Separator
@@ -981,6 +986,74 @@ namespace NaniteConstructionSystem
 
             m_customBeaconControls.Add(rotationZSlider);
             CreateSliderActions("RotationZ", rotationZSlider, 0, 359, true);
+
+            // Range slider
+            var detectRangeSlider = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyOreDetector>("Range");
+            detectRangeSlider.Title = MyStringId.GetOrCompute("Range");
+            detectRangeSlider.Tooltip = MyStringId.GetOrCompute("Maximum detection range");
+            detectRangeSlider.SetLimits(0, 350);
+            detectRangeSlider.Getter = (x) =>
+            {
+                return (x.GameLogic as BigNaniteOreDetectorLogic).Detector.Range;
+            };
+
+            detectRangeSlider.Setter = (x, y) =>
+            {
+                (x.GameLogic as BigNaniteOreDetectorLogic).Detector.Range = y;
+            };
+
+            detectRangeSlider.Writer = (x, y) =>
+            {
+                y.Append($"{Math.Round((x.GameLogic as BigNaniteOreDetectorLogic).Detector.Range)} m");
+            };
+            m_customOreDetectorControls.Add(detectRangeSlider);
+
+
+            var showScanRadius = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, Ingame.IMyOreDetector>("ShowScanRange");
+            showScanRadius.Title = MyStringId.GetOrCompute("Display Scan range");
+            showScanRadius.Tooltip = MyStringId.GetOrCompute("When checked, it will show you the scan range this detector covers");
+            showScanRadius.Getter = (x) =>
+            {
+                return (x.GameLogic as BigNaniteOreDetectorLogic).Detector.ShowScanRadius;
+            };
+            showScanRadius.Setter = (x, y) =>
+            {
+                (x.GameLogic as BigNaniteOreDetectorLogic).Detector.ShowScanRadius = y;
+            };
+            m_customOreDetectorControls.Add(showScanRadius);
+
+            var separate = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSeparator, Ingame.IMyOreDetector>("Separate");
+            m_customOreDetectorControls.Add(separate);
+
+            var oreList = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlListbox, Ingame.IMyOreDetector>("OreList");
+            oreList.Title = MyStringId.GetOrCompute("Valid Ores (deselect to ignore): ");
+            oreList.Multiselect = true;
+            oreList.VisibleRowsCount = 8;
+            oreList.ListContent = (block, list, selected) =>
+            {
+                var possibleOreList = (block.GameLogic as BigNaniteOreDetectorLogic).Detector.GetOreList();
+                list.AddList(possibleOreList);
+                foreach (var item in (block.GameLogic as BigNaniteOreDetectorLogic).Detector.OreListSelected)
+                {
+                    var listItem = possibleOreList.FirstOrDefault(ore => ore.Text.ToString() == item);
+                    if (listItem != null)
+                    {
+                        selected.Add(listItem);
+                    }
+                }
+            };
+            oreList.ItemSelected = (block, selected) =>
+            {
+                List<string> config = new List<string>();
+                foreach (var item in selected)
+                    config.Add(item.Text.ToString());
+                (block.GameLogic as BigNaniteOreDetectorLogic).Detector.OreListSelected = config;
+            };
+            oreList.Visible = (x) =>
+            {
+                return (x.GameLogic as BigNaniteOreDetectorLogic).Detector.HasFilterUpgrade;
+            };
+            m_customOreDetectorControls.Add(oreList);
         }
 
         private void CreateSliderActions(string sliderName, IMyTerminalControlSlider slider, int minValue, int maxValue, bool wrap = false)
@@ -1078,20 +1151,25 @@ namespace NaniteConstructionSystem
                 controls.AddRange(m_customBeaconControls);
                 return;
             }
-
-            if(block.BlockDefinition.TypeId == typeof(MyObjectBuilder_Assembler))
+            else if (block.BlockDefinition.TypeId == typeof(MyObjectBuilder_Assembler))
             {
                 controls.Add(m_customAssemblerControl);
                 return;
             }
-
-            if(block.BlockDefinition.SubtypeName == "NaniteUltrasonicHammer")
+            else if (block.BlockDefinition.SubtypeName == "NaniteUltrasonicHammer")
             {
                 controls.RemoveAt(controls.Count - 1);
                 controls.RemoveAt(controls.Count - 1);
                 foreach (var item in m_customHammerControls)
                     controls.Add(item);
 
+                return;
+            }
+            else if (block.BlockDefinition.SubtypeName == "BigNaniteOreDetector")
+            {
+                controls.RemoveRange(controls.Count - 2, 2);
+                (m_customOreDetectorControls[0] as IMyTerminalControlSlider).SetLimits(0, (block.GameLogic as BigNaniteOreDetectorLogic).Detector.MaxRange);
+                controls.AddRange(m_customOreDetectorControls);
                 return;
             }
 

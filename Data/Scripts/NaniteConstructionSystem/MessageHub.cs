@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VRage.Game;
 using VRage.Game.ModAPI;
+using VRage.ModAPI;
 
 namespace NaniteConstructionSystem
 {
@@ -59,6 +60,20 @@ namespace NaniteConstructionSystem
                 SendMessageToPlayer(player.SteamUserId, messageContainer);
         }
 
+        public static void SendMessageToAllOtherPlayers(ulong ownSteamId, MessageBase messageContainer)
+        {
+            //MyAPIGateway.Multiplayer.SendMessageToOthers(StandardClientId, System.Text.Encoding.Unicode.GetBytes(ConvertData(content))); <- does not work as expected ... so it doesn't work at all?
+            List<IMyPlayer> players = new List<IMyPlayer>();
+            MyAPIGateway.Players.GetPlayers(players, p => p != null && !MyAPIGateway.Multiplayer.IsServerPlayer(p.Client));
+            foreach (IMyPlayer player in players)
+            {
+                if (player.SteamUserId == ownSteamId)
+                    continue;
+
+                SendMessageToPlayer(player.SteamUserId, messageContainer);
+            }
+        }
+
         public static void SendMessageToPlayer(ulong steamId, MessageBase message)
         {
             message.Side = MessageSide.ClientSide;
@@ -96,6 +111,7 @@ namespace NaniteConstructionSystem
     [ProtoContract]
     [ProtoInclude(5001, typeof(MessageClientConnected))]
     [ProtoInclude(5002, typeof(MessageConfig))]
+    [ProtoInclude(5003, typeof(MessageOreDetectorSettings))]
     //[ProtoInclude(5003, typeof(MessageLargeControlFacilityStateChange))]
     public abstract class MessageBase
     {
@@ -222,6 +238,61 @@ namespace NaniteConstructionSystem
             Logging.Instance.WriteLine(string.Format("Sending config to new client: {0}", SenderSteamId));
             // Send new clients the configuration
             MessageHub.SendMessageToPlayer(SenderSteamId, new MessageConfig() { Settings = NaniteConstructionManager.Settings });
+        }
+    }
+
+    [ProtoContract]
+    public class MessageOreDetectorSettings : MessageBase
+    {
+        [ProtoMember(10)]
+        public long EntityId;
+
+        [ProtoMember(11)]
+        public Entities.Detectors.ProtoNaniteOreDetectorSettings Settings;
+
+        public override void ProcessClient()
+        {
+            IMyEntity ent;
+            if (!MyAPIGateway.Entities.TryGetEntityById(EntityId, out ent) || ent.Closed)
+                return;
+
+            var logic = ent.GameLogic.GetAs<Entities.Detectors.BigNaniteOreDetectorLogic>();
+            if (logic == null) return;
+
+            logic.Detector.Settings.Settings = Settings;
+        }
+
+        public override void ProcessServer()
+        {
+            IMyEntity ent;
+            if (!MyAPIGateway.Entities.TryGetEntityById(EntityId, out ent) || ent.Closed)
+                return;
+
+            var logic = ent.GameLogic.GetAs<Entities.Detectors.BigNaniteOreDetectorLogic>();
+            if (logic == null) return;
+
+            
+            if (Settings == null)
+            {
+                // Client request settings{
+                Logging.Instance.WriteLine(string.Format("Sending ore detector settings to client: {0}", SenderSteamId));
+                MessageHub.SendMessageToPlayer(SenderSteamId, new MessageOreDetectorSettings()
+                {
+                    EntityId = ent.EntityId,
+                    Settings = logic.Detector.Settings.Settings
+                });
+            }
+            else
+            {
+                // Client update Settings
+                logic.Detector.Settings.Settings = Settings;
+                Logging.Instance.WriteLine(string.Format("Sending ore detector settings to other client: {0}", SenderSteamId));
+                MessageHub.SendMessageToAllOtherPlayers(SenderSteamId, new MessageOreDetectorSettings()
+                {
+                    EntityId = ent.EntityId,
+                    Settings = logic.Detector.Settings.Settings
+                });
+            }
         }
     }
 
