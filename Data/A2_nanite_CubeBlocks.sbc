@@ -395,15 +395,15 @@
     <Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
       <Id>
         <TypeId>OreDetector</TypeId>
-        <SubtypeId>NaniteUltrasonicHammer</SubtypeId>
+        <SubtypeId>NaniteOreRig</SubtypeId>
       </Id>
-      <DisplayName>Nanite Ultrasonic Hammer Ore Locator - NUHOL</DisplayName>
+      <DisplayName>Nanite Ore Mining Rig - NMNR</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\NUHOL.dds</Icon>
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="4" z="1" />
+      <Size x="2" y="3" z="2" />
       <ModelOffset x="0" y="2" z="0" />
-      <Model>Models\Cubes\Large\NUHOL.mwm</Model>
+      <Model>Models\Cubes\NaniteMiningRig.mwm</Model>
       <Components>
         <Component Subtype="SteelPlate" Count="10" />
         <Component Subtype="SmallTube" Count="12" />
@@ -426,7 +426,7 @@
         <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NUHOL_Cons2.mwm" />
         <Model BuildPercentUpperBound="0.90" File="Models\Cubes\Large\NUHOL_Cons3.mwm" />
       </BuildProgressModels>
-      <BlockPairName>NaniteUltrasonicHammer</BlockPairName>
+      <BlockPairName>NaniteOreMiningRig</BlockPairName>
       <EdgeType>Light</EdgeType>
 	  <PrimarySound>NaniteBeacon</PrimarySound>
       <BuildTimeSeconds>45</BuildTimeSeconds>
