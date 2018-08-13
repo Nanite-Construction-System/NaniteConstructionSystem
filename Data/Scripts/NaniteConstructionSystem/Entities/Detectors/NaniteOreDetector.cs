@@ -125,7 +125,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
             {
                 ResourceTypeId = gId,
                 MaxRequiredInput = 0f,
-                RequiredInputFunc = () => _power
+                RequiredInputFunc = () => (m_block.Enabled && m_block.IsFunctional) ? _power : 0f
             };
             Sink.RemoveType(ref ResourceInfo.ResourceTypeId);
             Sink.Init(MyStringHash.GetOrCompute("Utility"), ResourceInfo);
@@ -173,11 +173,11 @@ namespace NaniteConstructionSystem.Entities.Detectors
             if (Sync.IsClient && NaniteConstructionManager.Settings == null)
                 return;
 
-            if (!ShowScanRadius)
+            if (!ShowScanRadius || !m_block.Enabled || !m_block.IsFunctional || !Sink.IsPoweredByType(gId))
                 return;
 
             var matrix = m_block.PositionComp.WorldMatrix;
-            Color color = Color.FromNonPremultiplied(new Vector4(0.1f, 0.1f, 0.1f, 0.7f));
+            Color color = Color.LightGoldenrodYellow;
             MySimpleObjectDraw.DrawTransparentSphere(ref matrix, Range, ref color, MySimpleObjectRasterizer.SolidAndWireframe, 20);
         }
 
@@ -206,7 +206,6 @@ namespace NaniteConstructionSystem.Entities.Detectors
         {
             if (!m_block.Enabled || !m_block.IsFunctional)
             {
-                _power = 0;
                 Sink.Update();
                 return;
             }
@@ -230,6 +229,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
             _power += m_block.UpgradeValues["Range"] * POWER_PER_UPGRADE;
             _power += m_block.UpgradeValues["Filter"] * 0.1f;
             _power *= 1 + m_block.UpgradeValues["Scanning"];
+            //_power *= m_block.UpgradeValues["PowerEfficiency"] / 10;
             //_power -= m_block.UpgradeValues["PowerEfficiency"] * 1f;
 
             if (NaniteConstructionManager.Settings != null)
