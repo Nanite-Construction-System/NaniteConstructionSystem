@@ -1,4 +1,4 @@
-﻿using NaniteConstructionSystem.Extensions;
+using NaniteConstructionSystem.Extensions;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.EntityComponents;
@@ -25,7 +25,10 @@ namespace NaniteConstructionSystem.Entities.Detectors
         public const int CELL_SIZE = 16;
         public const int VOXEL_CLAMP_BORDER_DISTANCE = 2;
         public const float RANGE_PER_UPGRADE = 50f;
-        public const float POWER_PER_UPGRADE = 0.125f;
+        public const float POWER_PER_RANGE_UPGRADE = 0.125f;
+        public const float POWER_PER_FILTER_UPGRADE = 0.1f;
+        public const float POWER_PER_SCANNING_UPGRADE = 1f;
+        public const float POWER_PER_POWEREFFICIENCY_UPGRADE = 0.1f;
 
         public const int QUERY_LOD = 1;
         public const int CELL_SIZE_IN_VOXELS_BITS = 3;
@@ -226,11 +229,10 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 Range = _maxRange;
 
             _power = basePower;
-            _power += m_block.UpgradeValues["Range"] * POWER_PER_UPGRADE;
-            _power += m_block.UpgradeValues["Filter"] * 0.1f;
-            _power *= 1 + m_block.UpgradeValues["Scanning"];
-            //_power *= m_block.UpgradeValues["PowerEfficiency"] / 10;
-            //_power -= m_block.UpgradeValues["PowerEfficiency"] * 1f;
+            _power += m_block.UpgradeValues["Range"] * POWER_PER_RANGE_UPGRADE;
+            _power += m_block.UpgradeValues["Filter"] * POWER_PER_FILTER_UPGRADE;
+            _power *= 1 + (m_block.UpgradeValues["Scanning"] * POWER_PER_SCANNING_UPGRADE);
+            _power *= 1 - (m_block.UpgradeValues["PowerEfficiency"] * POWER_PER_POWEREFFICIENCY_UPGRADE);
 
             if (NaniteConstructionManager.Settings != null)
                 _power *= NaniteConstructionManager.Settings.OreDetectorPowerMultiplicator;
