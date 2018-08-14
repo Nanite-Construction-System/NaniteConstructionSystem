@@ -1170,9 +1170,10 @@
       <Icon>Textures\GUI\Icons\Cubes\NaniteFactory.dds</Icon>
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="2" y="3" z="2"/>
+      <Size x="3" y="5" z="3"/>
       <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\NaniteMiningRig.mwm</Model>
+	  <Center x="0" y="2" z="0"/>
+      <Model>Models\Cubes\Large\NaniteMiningRig.mwm</Model>
       <Components>
         <Component Subtype="InteriorPlate" Count="300"/>
         <Component Subtype="Construction" Count="400"/>
@@ -1190,11 +1191,11 @@
       </Components>
       <CriticalComponent Subtype="Display" Index="0"/>
       <MountPoints>
-        <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="3" EndY="3"/>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="3" EndY="1"/>
-        <MountPoint Side="Right" StartX="0" StartY="0" EndX="3" EndY="1"/>
-        <MountPoint Side="Front" StartX="0" StartY="0" EndX="3" EndY="1"/>
-        <MountPoint Side="Back" StartX="0" StartY="0" EndX="3" EndY="1"/>
+		<MountPoint Side="Front" StartX="1.01" StartY="0.76" EndX="1.99" EndY="2.98" />
+		<MountPoint Side="Back" StartX="1.01" StartY="0.76" EndX="1.99" EndY="2.98" />
+		<MountPoint Side="Left" StartX="1.00" StartY="0.76" EndX="1.98" EndY="2.98" />
+		<MountPoint Side="Right" StartX="1.02" StartY="0.76" EndX="2.00" EndY="2.98" />
+		<MountPoint Side="Bottom" StartX="0.01" StartY="0.01" EndX="2.99" EndY="2.99" />
       </MountPoints>
       <BuildProgressModels>
         <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\NanoRepairModule_Cons1.mwm"/>
