@@ -1191,10 +1191,10 @@
       </Components>
       <CriticalComponent Subtype="Display" Index="0"/>
       <MountPoints>
-		<MountPoint Side="Front" StartX="1.01" StartY="0.76" EndX="1.99" EndY="2.98" />
-		<MountPoint Side="Back" StartX="1.01" StartY="0.76" EndX="1.99" EndY="2.98" />
-		<MountPoint Side="Left" StartX="1.00" StartY="0.76" EndX="1.98" EndY="2.98" />
-		<MountPoint Side="Right" StartX="1.02" StartY="0.76" EndX="2.00" EndY="2.98" />
+		<MountPoint Side="Front" StartX="1.01" StartY="0.02" EndX="1.99" EndY="1.78" />
+		<MountPoint Side="Back" StartX="1.01" StartY="0.01" EndX="1.99" EndY="1.77" />
+		<MountPoint Side="Left" StartX="1.00" StartY="0.01" EndX="1.98" EndY="1.78" />
+		<MountPoint Side="Right" StartX="1.02" StartY="0.01" EndX="2.00" EndY="1.77" />
 		<MountPoint Side="Bottom" StartX="0.01" StartY="0.01" EndX="2.99" EndY="2.99" />
       </MountPoints>
       <BuildProgressModels>
