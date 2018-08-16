@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NanoFix", "NanoFix.csproj", "{1C06A727-39E7-4FBA-A0C5-9BB33DDA1347}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NanitePlugin", "..\..\..\Plugin\NanitePlugin\NanitePlugin.csproj", "{2F14577F-F73E-40F4-B64E-88D2BF1FFBD3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,14 @@ Global
 		{1C06A727-39E7-4FBA-A0C5-9BB33DDA1347}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1C06A727-39E7-4FBA-A0C5-9BB33DDA1347}.Release|x64.ActiveCfg = Release|x64
 		{1C06A727-39E7-4FBA-A0C5-9BB33DDA1347}.Release|x64.Build.0 = Release|x64
+		{2F14577F-F73E-40F4-B64E-88D2BF1FFBD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F14577F-F73E-40F4-B64E-88D2BF1FFBD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F14577F-F73E-40F4-B64E-88D2BF1FFBD3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2F14577F-F73E-40F4-B64E-88D2BF1FFBD3}.Debug|x64.Build.0 = Debug|Any CPU
+		{2F14577F-F73E-40F4-B64E-88D2BF1FFBD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F14577F-F73E-40F4-B64E-88D2BF1FFBD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2F14577F-F73E-40F4-B64E-88D2BF1FFBD3}.Release|x64.ActiveCfg = Release|Any CPU
+		{2F14577F-F73E-40F4-B64E-88D2BF1FFBD3}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
