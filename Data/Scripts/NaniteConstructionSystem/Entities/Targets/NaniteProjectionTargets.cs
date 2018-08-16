@@ -723,6 +723,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             location.EntityId = 0; // MyEntityIdentifier.AllocateId();
             objectBuilder.EntityId = 0;
+            objectBuilder.BuiltBy = constructionBlock.OwnerId;
 
             objectBuilder.ConstructionInventory = null;
             projector.CubeGrid.BuildBlockRequest(block.GetColorMask().PackHSVToUint(), location, objectBuilder, constructionBlock.EntityId, false, constructionBlock.OwnerId);
