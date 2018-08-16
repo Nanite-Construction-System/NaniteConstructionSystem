@@ -1,4 +1,4 @@
-﻿using ProtoBuf;
+using ProtoBuf;
 using Sandbox.Common.ObjectBuilders;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
@@ -112,7 +112,7 @@ namespace NaniteConstructionSystem
     [ProtoInclude(5001, typeof(MessageClientConnected))]
     [ProtoInclude(5002, typeof(MessageConfig))]
     [ProtoInclude(5003, typeof(MessageOreDetectorSettings))]
-    //[ProtoInclude(5003, typeof(MessageLargeControlFacilityStateChange))]
+    [ProtoInclude(5004, typeof(MessageOreDetectorScanComplete))]
     public abstract class MessageBase
     {
         /// <summary>
@@ -296,26 +296,29 @@ namespace NaniteConstructionSystem
         }
     }
 
-    //[ProtoContract]
-    //public class MessageLargeControlFacilityStateChange : MessageBase
-    //{
-    //    [ProtoMember(10)]
-    //    public long EntityId;
+    [ProtoContract]
+    public class MessageOreDetectorScanComplete : MessageBase
+    {
+        [ProtoMember(10)]
+        public long EntityId;
 
-    //    [ProtoMember(11)]
-    //    public Entities.LargeControlFacilityLogic.ControlFacilityStates State;
+        [ProtoMember(11)]
+        public string OreListCache;
 
-    //    public override void ProcessClient()
-    //    {
-    //        foreach (var item in Session.Instance.LargeControlFacilityLogics)
-    //        {
-    //            if (item.Entity.EntityId == EntityId)
-    //                item.FactoryState = State;
-    //        }
-    //    }
+        public override void ProcessClient()
+        {
+            IMyEntity ent;
+            if (!MyAPIGateway.Entities.TryGetEntityById(EntityId, out ent) || ent.Closed)
+                return;
 
-    //    public override void ProcessServer()
-    //    {
-    //    }
-    //}
+            var logic = ent.GameLogic.GetAs<Entities.Detectors.BigNaniteOreDetectorLogic>();
+            if (logic == null) return;
+
+            logic.Detector.OreListCache = new StringBuilder(OreListCache);
+        }
+
+        public override void ProcessServer()
+        {
+        }
+    }
 }

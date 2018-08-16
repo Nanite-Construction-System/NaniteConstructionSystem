@@ -1,8 +1,8 @@
-﻿using Sandbox.ModAPI;
+using Sandbox.ModAPI;
 
 namespace NaniteConstructionSystem.Entities.Detectors
 {
-    class BigNaniteOreDetector : NaniteOreDetector
+    public class BigNaniteOreDetector : NaniteOreDetector
     {
         public BigNaniteOreDetector(IMyFunctionalBlock block) : base(block)
         {

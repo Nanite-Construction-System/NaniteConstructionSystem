@@ -1,4 +1,4 @@
-﻿using Sandbox.Common.ObjectBuilders;
+using Sandbox.Common.ObjectBuilders;
 using Sandbox.ModAPI;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
@@ -7,7 +7,7 @@ using VRage.ObjectBuilders;
 namespace NaniteConstructionSystem.Entities.Detectors
 {
     [MyEntityComponentDescriptor(typeof(MyObjectBuilder_OreDetector), false, "BigNaniteOreDetector")]
-    class BigNaniteOreDetectorLogic : MyGameLogicComponent
+    public class BigNaniteOreDetectorLogic : MyGameLogicComponent
     {
         public MyModStorageComponentBase Storage { get; set; }
 
