@@ -1,3 +1,4 @@
+using NaniteConstructionSystem.Extensions;
 using Sandbox.Common.ObjectBuilders;
 using Sandbox.ModAPI;
 using VRage.Game.Components;
@@ -34,7 +35,9 @@ namespace NaniteConstructionSystem.Entities.Detectors
         {
             base.UpdateOnceBeforeFrame();
             m_detector.Init();
-            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
+
+            if (Sync.IsServer)
+                NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
         }
 
         public override void UpdateBeforeSimulation()
