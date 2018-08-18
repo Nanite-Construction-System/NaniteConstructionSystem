@@ -180,7 +180,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
             // TODO remove debug only
             sb.Append($"Range: {Range}\n"); 
-            sb.Append($"Scan: {m_scanProgress * 100}%");
+            sb.Append($"Scan: {(m_scanProgress * 100).ToString("0.0")}%");
             sb.Append(m_oreListCache);
         }
 
@@ -294,13 +294,14 @@ namespace NaniteConstructionSystem.Entities.Detectors
             UpdateDeposits(ref sphere);
             m_inRangeCache.Clear();
 
-            var totalInitialTasks = m_depositGroupsByEntity.Sum((x) => x.Value.InitialTasks * 1000);
-            var scanProgress = 0f;
+            int totalInitialTasks = m_depositGroupsByEntity.Sum((x) => x.Value.InitialTasks);
+            int totalProcessedTasks = m_depositGroupsByEntity.Sum((x) => x.Value.ProcessedTasks);
+            float scanProgress = 0f;
             if (totalInitialTasks != 0)
             {
-                scanProgress = (m_depositGroupsByEntity.Sum((x) => x.Value.ProcessedTasks * 1000) / totalInitialTasks) / 1000;
+                scanProgress = (float)totalProcessedTasks / (float)totalInitialTasks;
             }
-            Logging.Instance.WriteLine($"scan: {scanProgress} {totalInitialTasks}");
+            Logging.Instance.WriteLine($"scan: {scanProgress} {totalInitialTasks} {totalProcessedTasks}");
             if (scanProgress != m_scanProgress)
             {
                 m_scanProgress = scanProgress;
