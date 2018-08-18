@@ -1031,7 +1031,7 @@ namespace NaniteConstructionSystem
             oreList.VisibleRowsCount = 8;
             oreList.ListContent = (block, list, selected) =>
             {
-                var possibleOreList = (block.GameLogic as BigNaniteOreDetectorLogic).Detector.GetOreList();
+                var possibleOreList = (block.GameLogic as BigNaniteOreDetectorLogic).Detector.GetTerminalOreList();
                 list.AddList(possibleOreList);
                 foreach (var item in (block.GameLogic as BigNaniteOreDetectorLogic).Detector.OreListSelected)
                 {

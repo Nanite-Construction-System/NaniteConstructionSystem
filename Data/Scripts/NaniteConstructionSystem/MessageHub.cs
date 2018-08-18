@@ -297,6 +297,32 @@ namespace NaniteConstructionSystem
     }
 
     [ProtoContract]
+    public class MessageOreDetectorScanProgress : MessageBase
+    {
+        [ProtoMember(10)]
+        public long EntityId;
+
+        [ProtoMember(11)]
+        public float Progress;
+
+        public override void ProcessClient()
+        {
+            IMyEntity ent;
+            if (!MyAPIGateway.Entities.TryGetEntityById(EntityId, out ent) || ent.Closed)
+                return;
+
+            var logic = ent.GameLogic.GetAs<Entities.Detectors.BigNaniteOreDetectorLogic>();
+            if (logic == null) return;
+
+            logic.Detector.m_scanProgress = Progress;
+        }
+
+        public override void ProcessServer()
+        {
+        }
+    }
+
+    [ProtoContract]
     public class MessageOreDetectorScanComplete : MessageBase
     {
         [ProtoMember(10)]
