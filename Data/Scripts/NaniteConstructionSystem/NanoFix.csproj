@@ -132,8 +132,8 @@
     <Compile Include="Entities\Beacons\NaniteBeaconDeconstructLogic.cs" />
     <Compile Include="Entities\Beacons\NaniteBeaconProjection.cs" />
     <Compile Include="Entities\Beacons\NaniteBeaconProjectionLogic.cs" />
-    <Compile Include="Entities\Detectors\BigNaniteOreDetector.cs" />
-    <Compile Include="Entities\Detectors\BigNaniteOreDetectorLogic.cs" />
+    <Compile Include="Entities\Detectors\LargeNaniteOreDetector.cs" />
+    <Compile Include="Entities\Detectors\LargeNaniteOreDetectorLogic.cs" />
     <Compile Include="Entities\Detectors\NaniteMining.cs" />
     <Compile Include="Entities\Detectors\NaniteMiningLogic.cs" />
     <Compile Include="Entities\Detectors\NaniteOreDetector.cs" />

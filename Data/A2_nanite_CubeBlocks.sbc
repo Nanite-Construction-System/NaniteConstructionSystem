@@ -1164,7 +1164,7 @@
     <Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
       <Id>
         <TypeId>OreDetector</TypeId>
-        <SubtypeId>BigNaniteOreDetector</SubtypeId>
+        <SubtypeId>LargeNaniteOreDetector</SubtypeId>
       </Id>
       <DisplayName>Large Nanite Ore Detector</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\NaniteMiningRig.dds</Icon>
@@ -1207,7 +1207,7 @@
         <Y>1</Y>
         <Z>1</Z>
       </InventorySize>
-      <BlockPairName>BigNaniteOreDetector</BlockPairName>
+      <BlockPairName>LargeNaniteOreDetector</BlockPairName>
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <BuildTimeSeconds>300</BuildTimeSeconds>
@@ -1355,7 +1355,7 @@
       </Position>
     </BlockPosition>
     <BlockPosition>
-      <Name>BigNaniteOreDetector</Name>
+      <Name>LargeNaniteOreDetector</Name>
       <Position>
         <X>4</X>
         <Y>22</Y>

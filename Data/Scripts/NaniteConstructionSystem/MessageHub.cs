@@ -257,7 +257,7 @@ namespace NaniteConstructionSystem
             if (!MyAPIGateway.Entities.TryGetEntityById(EntityId, out ent) || ent.Closed)
                 return;
 
-            var logic = ent.GameLogic.GetAs<Entities.Detectors.BigNaniteOreDetectorLogic>();
+            var logic = ent.GameLogic.GetAs<Entities.Detectors.LargeNaniteOreDetectorLogic>();
             if (logic == null) return;
 
             logic.Detector.Settings.Settings = Settings;
@@ -269,7 +269,7 @@ namespace NaniteConstructionSystem
             if (!MyAPIGateway.Entities.TryGetEntityById(EntityId, out ent) || ent.Closed)
                 return;
 
-            var logic = ent.GameLogic.GetAs<Entities.Detectors.BigNaniteOreDetectorLogic>();
+            var logic = ent.GameLogic.GetAs<Entities.Detectors.LargeNaniteOreDetectorLogic>();
             if (logic == null) return;
 
             
@@ -312,7 +312,7 @@ namespace NaniteConstructionSystem
             if (!MyAPIGateway.Entities.TryGetEntityById(EntityId, out ent) || ent.Closed)
                 return;
 
-            var logic = ent.GameLogic.GetAs<Entities.Detectors.BigNaniteOreDetectorLogic>();
+            var logic = ent.GameLogic.GetAs<Entities.Detectors.LargeNaniteOreDetectorLogic>();
             if (logic == null) return;
 
             logic.Detector.m_scanProgress = Progress;
@@ -338,7 +338,7 @@ namespace NaniteConstructionSystem
             if (!MyAPIGateway.Entities.TryGetEntityById(EntityId, out ent) || ent.Closed)
                 return;
 
-            var logic = ent.GameLogic.GetAs<Entities.Detectors.BigNaniteOreDetectorLogic>();
+            var logic = ent.GameLogic.GetAs<Entities.Detectors.LargeNaniteOreDetectorLogic>();
             if (logic == null) return;
 
             logic.Detector.OreListCache = new StringBuilder(OreListCache);

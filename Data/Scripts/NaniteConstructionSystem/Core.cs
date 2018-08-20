@@ -994,17 +994,17 @@ namespace NaniteConstructionSystem
             detectRangeSlider.SetLimits(0, 350);
             detectRangeSlider.Getter = (x) =>
             {
-                return (x.GameLogic as BigNaniteOreDetectorLogic).Detector.Range;
+                return (x.GameLogic as LargeNaniteOreDetectorLogic).Detector.Range;
             };
 
             detectRangeSlider.Setter = (x, y) =>
             {
-                (x.GameLogic as BigNaniteOreDetectorLogic).Detector.Range = y;
+                (x.GameLogic as LargeNaniteOreDetectorLogic).Detector.Range = y;
             };
 
             detectRangeSlider.Writer = (x, y) =>
             {
-                y.Append($"{Math.Round((x.GameLogic as BigNaniteOreDetectorLogic).Detector.Range)} m");
+                y.Append($"{Math.Round((x.GameLogic as LargeNaniteOreDetectorLogic).Detector.Range)} m");
             };
             m_customOreDetectorControls.Add(detectRangeSlider);
 
@@ -1014,11 +1014,11 @@ namespace NaniteConstructionSystem
             showScanRadius.Tooltip = MyStringId.GetOrCompute("When checked, it will show you the scan range this detector covers");
             showScanRadius.Getter = (x) =>
             {
-                return (x.GameLogic as BigNaniteOreDetectorLogic).Detector.ShowScanRadius;
+                return (x.GameLogic as LargeNaniteOreDetectorLogic).Detector.ShowScanRadius;
             };
             showScanRadius.Setter = (x, y) =>
             {
-                (x.GameLogic as BigNaniteOreDetectorLogic).Detector.ShowScanRadius = y;
+                (x.GameLogic as LargeNaniteOreDetectorLogic).Detector.ShowScanRadius = y;
             };
             m_customOreDetectorControls.Add(showScanRadius);
 
@@ -1031,9 +1031,9 @@ namespace NaniteConstructionSystem
             oreList.VisibleRowsCount = 8;
             oreList.ListContent = (block, list, selected) =>
             {
-                var possibleOreList = (block.GameLogic as BigNaniteOreDetectorLogic).Detector.GetTerminalOreList();
+                var possibleOreList = (block.GameLogic as LargeNaniteOreDetectorLogic).Detector.GetTerminalOreList();
                 list.AddList(possibleOreList);
-                foreach (var item in (block.GameLogic as BigNaniteOreDetectorLogic).Detector.OreListSelected)
+                foreach (var item in (block.GameLogic as LargeNaniteOreDetectorLogic).Detector.OreListSelected)
                 {
                     var listItem = possibleOreList.FirstOrDefault(ore => ore.Text.ToString() == item);
                     if (listItem != null)
@@ -1047,11 +1047,11 @@ namespace NaniteConstructionSystem
                 List<string> config = new List<string>();
                 foreach (var item in selected)
                     config.Add(item.Text.ToString());
-                (block.GameLogic as BigNaniteOreDetectorLogic).Detector.OreListSelected = config;
+                (block.GameLogic as LargeNaniteOreDetectorLogic).Detector.OreListSelected = config;
             };
             oreList.Visible = (x) =>
             {
-                return (x.GameLogic as BigNaniteOreDetectorLogic).Detector.HasFilterUpgrade;
+                return (x.GameLogic as LargeNaniteOreDetectorLogic).Detector.HasFilterUpgrade;
             };
             m_customOreDetectorControls.Add(oreList);
         }
@@ -1168,7 +1168,7 @@ namespace NaniteConstructionSystem
             else if (block.BlockDefinition.SubtypeName == "BigNaniteOreDetector")
             {
                 controls.RemoveRange(controls.Count - 2, 2);
-                (m_customOreDetectorControls[0] as IMyTerminalControlSlider).SetLimits(0, (block.GameLogic as BigNaniteOreDetectorLogic).Detector.MaxRange);
+                (m_customOreDetectorControls[0] as IMyTerminalControlSlider).SetLimits(0, (block.GameLogic as LargeNaniteOreDetectorLogic).Detector.MaxRange);
                 controls.AddRange(m_customOreDetectorControls);
                 return;
             }
