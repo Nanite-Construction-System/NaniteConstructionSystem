@@ -505,7 +505,7 @@ namespace NaniteConstructionSystem.Entities
         /// </summary>
         private void ScanForTargets()
         {
-            if (DateTime.Now - m_lastUpdate > TimeSpan.FromSeconds(5) && m_ready)
+            if (DateTime.Now - m_lastUpdate > TimeSpan.FromSeconds(5) && m_ready && ConstructionBlock.IsWorking && ConstructionBlock.IsFunctional)
             {
                 //Logging.Instance.WriteLine(string.Format("ScanForTargets"));
                 m_ready = false;
