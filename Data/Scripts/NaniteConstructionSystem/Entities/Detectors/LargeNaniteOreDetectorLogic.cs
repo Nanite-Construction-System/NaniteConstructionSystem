@@ -7,21 +7,21 @@ using VRage.ObjectBuilders;
 
 namespace NaniteConstructionSystem.Entities.Detectors
 {
-    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_OreDetector), false, "BigNaniteOreDetector")]
-    public class BigNaniteOreDetectorLogic : MyGameLogicComponent
+    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_OreDetector), false, "LargeNaniteOreDetector")]
+    public class LargeNaniteOreDetectorLogic : MyGameLogicComponent
     {
         public MyModStorageComponentBase Storage { get; set; }
 
-        private BigNaniteOreDetector m_detector = null;
-        public BigNaniteOreDetector Detector
+        private LargeNaniteOreDetector m_detector = null;
+        public LargeNaniteOreDetector Detector
         {
             get { return m_detector; }
         }
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
-            Logging.Instance.WriteLine($"ADDING Big Ore Detector: {Entity.EntityId}");
-            m_detector = new BigNaniteOreDetector((IMyFunctionalBlock)Entity);
+            Logging.Instance.WriteLine($"ADDING Large Ore Detector: {Entity.EntityId}");
+            m_detector = new LargeNaniteOreDetector((IMyFunctionalBlock)Entity);
 
             base.Init(objectBuilder);
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;

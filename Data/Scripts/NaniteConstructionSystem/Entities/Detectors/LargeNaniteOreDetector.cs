@@ -2,9 +2,9 @@ using Sandbox.ModAPI;
 
 namespace NaniteConstructionSystem.Entities.Detectors
 {
-    public class BigNaniteOreDetector : NaniteOreDetector
+    public class LargeNaniteOreDetector : NaniteOreDetector
     {
-        public BigNaniteOreDetector(IMyFunctionalBlock block) : base(block)
+        public LargeNaniteOreDetector(IMyFunctionalBlock block) : base(block)
         {
             supportFilter = true;
             maxScanningLevel = 2;
