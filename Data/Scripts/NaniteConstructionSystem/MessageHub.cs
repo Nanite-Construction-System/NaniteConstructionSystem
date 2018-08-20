@@ -112,7 +112,8 @@ namespace NaniteConstructionSystem
     [ProtoInclude(5001, typeof(MessageClientConnected))]
     [ProtoInclude(5002, typeof(MessageConfig))]
     [ProtoInclude(5003, typeof(MessageOreDetectorSettings))]
-    [ProtoInclude(5004, typeof(MessageOreDetectorScanComplete))]
+    [ProtoInclude(5004, typeof(MessageOreDetectorScanProgress))]
+    [ProtoInclude(5005, typeof(MessageOreDetectorScanComplete))]
     public abstract class MessageBase
     {
         /// <summary>
