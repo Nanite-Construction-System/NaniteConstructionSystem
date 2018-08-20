@@ -308,20 +308,20 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 });
             }
 
-            StringBuilder oreListCache = new StringBuilder();
-            foreach (var item in m_depositGroupsByEntity.SelectMany((x) => x.Value.Materials).GroupBy((x) => x.Material.MinedOre))
-            {
-                oreListCache.Append($"- {item.Key}: {item.Count()}\n");
-            }
-            if (oreListCache != m_oreListCache)
-            {
-                m_oreListCache = oreListCache;
-                MessageHub.SendMessageToAllPlayers(new MessageOreDetectorScanComplete()
-                {
-                    EntityId = m_block.EntityId,
-                    OreListCache = m_oreListCache.ToString()
-                });
-            }
+            //StringBuilder oreListCache = new StringBuilder();
+            //foreach (var item in m_depositGroupsByEntity.SelectMany((x) => x.Value.Materials).GroupBy((x) => x.Material.MinedOre))
+            //{
+            //    oreListCache.Append($"- {item.Key}: {item.Count()}\n");
+            //}
+            //if (oreListCache != m_oreListCache)
+            //{
+            //    m_oreListCache = oreListCache;
+            //    MessageHub.SendMessageToAllPlayers(new MessageOreDetectorScanComplete()
+            //    {
+            //        EntityId = m_block.EntityId,
+            //        OreListCache = m_oreListCache.ToString()
+            //    });
+            //}
         }
 
         private void UpdateDeposits(ref BoundingSphereD sphere)
@@ -438,62 +438,38 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 // RESET QUEUES
             }
 
-            //for (int x = minCorner.X; x <= maxCorner.X; x++)
+            //int num = Math.Max((maxCorner.X - minCorner.X) / 2, 1);
+            //int num2 = Math.Max((maxCorner.Y - minCorner.Y) / 2, 1);
+            //Vector3I min = default(Vector3I);
+            //min.Z = minCorner.Z;
+            //Vector3I max = default(Vector3I);
+            //max.Z = maxCorner.Z;
+            //for (int i = 0; i < 2; i++)
+            //{
+            //    for (int j = 0; j < 2; j++)
+            //    {
+            //        min.X = minCorner.X + i * num;
+            //        min.Y = minCorner.Y + j * num2;
+            //        max.X = min.X + num;
+            //        max.Y = min.Y + num2;
+            //        OreDepositWork.Start(min, max, m_voxelMap, Materials, QueueWorkerDone);
+            //        m_tasksRunning++;
+            //        m_initialTasks++;
+            //    }
+            //}
+
             MyAPIGateway.Parallel.For(minCorner.X, maxCorner.X, (x) =>
             {
-                //for (int y = minCorner.Y; y <= maxCorner.Y; y++)
                 MyAPIGateway.Parallel.For(minCorner.Y, maxCorner.Y, (y) =>
                 {
-                    //for (int z = minCorner.Z; z <= maxCorner.Z; z++)
                     MyAPIGateway.Parallel.For(minCorner.Z, maxCorner.Z, (z) =>
                     {
                         Vector3I pos = new Vector3I(x, y, z);
-                        //pos <<= 5;
-                        //pos -= m_voxelMap.StorageMin;
-
-
-                        //Vector3D worldPos;
-                        //MyVoxelCoordSystems.VoxelCoordToWorldPosition(m_voxelMap.PositionLeftBottomCorner, ref pos, out worldPos);
-
-
-
-                        ////Moving average of the average of the two values, then moving average if the difference from the average.
-                        //Vector3D position = worldPos;
-                        //var fov = MyAPIGateway.Session.Camera.FovWithZoom;
-                        //double aspectratio = MyAPIGateway.Session.Camera.ViewportSize.X / MyAPIGateway.Session.Camera.ViewportSize.Y;
-                        //var scale = 0.075 * Math.Tan(fov * 0.5);
-                        //position.X *= scale * aspectratio;
-                        //position.Y *= scale;
-
-                        //var cameraWorldMatrix = MyAPIGateway.Session.Camera.WorldMatrix;
-                        //position = Vector3D.Transform(new Vector3D(position.X, position.Y, -.1), cameraWorldMatrix);
-
-                        //var origin = position;
-                        //var left = cameraWorldMatrix.Left;
-                        //var up = cameraWorldMatrix.Up;
-                        //const double scaler = 0.08;
-                        //scale = scaler * scale;
-
-                        //Color color = Color.Yellow;
-
-                        //MyTransparentGeometry.AddBillboardOriented(MyStringId.GetOrCompute("ArrowLeftGreen"), color, origin, left, up, (float)scale, 3);
-
-
-                        //Color color = Color.Yellow;
-                        //var bb = new BoundingBoxD(pos, pos + 8);
-                        //MatrixD matrix = m_voxelMap.PositionComp.LocalMatrix;
-                        //MySimpleObjectDraw.DrawTransparentBox(ref matrix, ref bb, ref color, MySimpleObjectRasterizer.Solid, 1);
-
-
-                        //Color color = Color.Yellow;
-                        //var bb = new BoundingBoxD(worldPos, worldPos + 8);
-                        //MatrixD matrix = m_voxelMap.PositionComp.LocalMatrix;
-                        //MySimpleObjectDraw.DrawTransparentBox(ref matrix, ref bb, ref color, MySimpleObjectRasterizer.Solid, 1);
-
                         m_taskQueue.Enqueue(pos);
                     });
                 });
             });
+
             Logging.Instance.WriteLine($"UpdateDeposits setup queue {m_taskQueue.Count}");
             m_initialTasks = m_taskQueue.Count;
 
@@ -523,13 +499,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 if (!m_taskQueue.TryDequeue(out vector))
                     return;
 
-                MyAPIGateway.Parallel.StartBackground(new OreDepositWork
-                {
-                    VoxelMap = m_voxelMap,
-                    Vector = vector,
-                    Materials = Materials,
-                    Callback = QueueWorkerDone,
-                });
+                OreDepositWork.Start(vector, vector + 1, m_voxelMap, Materials, QueueWorkerDone);
 
                 using (m_lock.AcquireExclusiveUsing())
                     m_tasksRunning++;
@@ -560,23 +530,34 @@ namespace NaniteConstructionSystem.Entities.Detectors
         }
 
         public MyVoxelBase VoxelMap { get; set; }
-        public Vector3I Vector { get; set; }
+        public Vector3I Min { get; set; }
+        public Vector3I Max { get; set; }
         public MyConcurrentList<MaterialPositionData> Materials { get; set; }
         public Action Callback { get; set; }
 
+        public static void Start(Vector3I min, Vector3I max, MyVoxelBase voxelMap, MyConcurrentList<OreDepositWork.MaterialPositionData> materials, Action completionCallback)
+        {
+            MyAPIGateway.Parallel.StartBackground(new OreDepositWork
+            {
+                VoxelMap = voxelMap,
+                Min = min,
+                Max = max,
+                Materials = materials,
+                Callback = completionCallback,
+            });
+        }
+
         public void DoWork(WorkData workData = null)
         {
-            // LOD above is 5 we decrease it by 3 so our LOD now is 2
-            //var minCorner = Vector << 3;
-            //var maxCorner = (Vector + 1) << 3;
-            var minCorner = Vector;
-            var maxCorner = Vector + 1;
+            // LOD above is 5 we decrease it by 2 so our LOD now is 3
+            Min <<= 2;
+            Max <<= 2;
 
             MyStorageData cache = new MyStorageData(); // TODO: Outsource because of memory allocations
             cache.Resize(new Vector3I(8));
-            for (int x = minCorner.X; x <= maxCorner.X; x++)
-                for (int y = minCorner.Y; y <= maxCorner.Y; y++)
-                    for (int z = minCorner.Z; z <= maxCorner.Z; z++)
+            for (int x = Min.X; x <= Max.X; x++)
+                for (int y = Min.Y; y <= Max.Y; y++)
+                    for (int z = Min.Z; z <= Max.Z; z++)
                         ProcessCell(cache, VoxelMap.Storage, new Vector3I(x, y, z), 0);
 
             Callback();
@@ -586,10 +567,10 @@ namespace NaniteConstructionSystem.Entities.Detectors
         {
             Vector3I vector3I = cell << 3;
             Vector3I lodVoxelRangeMax = vector3I + 7;
-            storage.ReadRange(cache, MyStorageDataTypeFlags.Content, 2, vector3I, lodVoxelRangeMax);
+            storage.ReadRange(cache, MyStorageDataTypeFlags.Content, 0, vector3I, lodVoxelRangeMax);
             if (cache.ContainsVoxelsAboveIsoLevel())
             {
-                storage.ReadRange(cache, MyStorageDataTypeFlags.Material, 2, vector3I, lodVoxelRangeMax);
+                storage.ReadRange(cache, MyStorageDataTypeFlags.Material, 0, vector3I, lodVoxelRangeMax);
                 Vector3I p = default(Vector3I);
                 p.Z = 0;
                 while (p.Z < 8)
@@ -605,11 +586,11 @@ namespace NaniteConstructionSystem.Entities.Detectors
                             {
                                 byte b = cache.Material(linearIdx);
                                 MyVoxelMaterialDefinition voxelMaterialDefinition = MyDefinitionManager.Static.GetVoxelMaterialDefinition(b);
-                                Materials.Add(new MaterialPositionData
-                                {
-                                    Material = voxelMaterialDefinition,
-                                    VoxelPosition = p
-                                });
+                                //Materials.Add(new MaterialPositionData
+                                //{
+                                //    Material = voxelMaterialDefinition,
+                                //    VoxelPosition = p
+                                //});
                             }
                             p.X++;
                         }
