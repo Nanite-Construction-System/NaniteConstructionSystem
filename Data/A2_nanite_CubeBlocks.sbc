@@ -1167,7 +1167,7 @@
         <SubtypeId>BigNaniteOreDetector</SubtypeId>
       </Id>
       <DisplayName>Large Nanite Ore Detector</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteFactory.dds</Icon>
+      <Icon>Textures\GUI\Icons\Cubes\NaniteMiningRig.dds</Icon>
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="3" y="5" z="3"/>
