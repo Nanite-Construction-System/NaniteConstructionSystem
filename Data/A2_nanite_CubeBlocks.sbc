@@ -1166,14 +1166,14 @@
         <TypeId>OreDetector</TypeId>
         <SubtypeId>BigNaniteOreDetector</SubtypeId>
       </Id>
-      <DisplayName>Big Nanite Ore Detector</DisplayName>
+      <DisplayName>Large Nanite Ore Detector</DisplayName>
       <Icon>Textures\GUI\Icons\Cubes\NaniteFactory.dds</Icon>
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="3" y="5" z="3"/>
       <ModelOffset x="0" y="0" z="0"/>
 	  <Center x="0" y="2" z="0"/>
-      <Model>Models\Cubes\Large\NaniteMiningRig.mwm</Model>
+      <Model>Models\Cubes\Large\LargeNaniteOreDetector.mwm</Model>
       <Components>
         <Component Subtype="InteriorPlate" Count="300"/>
         <Component Subtype="Construction" Count="400"/>
@@ -1198,11 +1198,9 @@
 		<MountPoint Side="Bottom" StartX="0.01" StartY="0.01" EndX="2.99" EndY="2.99" />
       </MountPoints>
       <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\NanoRepairModule_Cons1.mwm"/>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NanoRepairModule_Cons2.mwm"/>
-        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\NanoRepairModule_Cons3.mwm"/>
-        <Model BuildPercentUpperBound="0.83" File="Models\Cubes\Large\NanoRepairModule_Cons4.mwm"/>
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NanoRepairModule_Cons5.mwm"/>
+        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr1.mwm"/>
+        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr2.mwm"/>
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr3.mwm"/>
       </BuildProgressModels>
       <InventorySize>
         <X>1</X>
