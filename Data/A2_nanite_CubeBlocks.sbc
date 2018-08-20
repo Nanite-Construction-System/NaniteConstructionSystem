@@ -813,6 +813,20 @@
         <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteConstruction_Constr2.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteOreDetectorUpgradeRange</BlockPairName>
+      <BlockVariants>
+        <BlockVariant>
+          <TypeId>UpgradeModule</TypeId>
+          <SubtypeId>NaniteOreDetectorUpgradeScanninge</SubtypeId>
+        </BlockVariant>
+        <BlockVariant>
+          <TypeId>UpgradeModule</TypeId>
+          <SubtypeId>NaniteOreDetectorUpgradeFilter</SubtypeId>
+        </BlockVariant>
+        <BlockVariant>
+          <TypeId>UpgradeModule</TypeId>
+          <SubtypeId>NaniteOreDetectorUpgradePowerEfficiency</SubtypeId>
+        </BlockVariant>
+      </BlockVariants>
       <EmissiveColorPreset>Default</EmissiveColorPreset>
       <MirroringX>Z</MirroringX>
       <MirroringZ>X</MirroringZ>
@@ -877,6 +891,7 @@
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
       <PCU>5</PCU>
+	  <GuiVisible>false</GuiVisible>
     </Definition>
     <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
       <Id>
@@ -926,6 +941,7 @@
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
       <PCU>10</PCU>
+	  <GuiVisible>false</GuiVisible>
     </Definition>
     <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
       <Id>
@@ -975,6 +991,7 @@
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
       <PCU>5</PCU>
+	  <GuiVisible>false</GuiVisible>
     </Definition>
 
     <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
@@ -1361,5 +1378,12 @@
         <Y>22</Y>
       </Position>
     </BlockPosition>
+    <BlockPosition>
+      <Name>NaniteOreDetectorUpgradeRange</Name>
+      <Position>
+        <X>5</X>
+        <Y>22</Y>
+      </Position>
+    </BlockPosition>NaniteOreDetectorUpgradeRange
   </BlockPositions>
 </Definitions>
