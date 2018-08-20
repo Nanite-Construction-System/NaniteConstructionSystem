@@ -213,7 +213,7 @@ namespace NaniteConstructionSystem.Entities
 
                 return required;
             });
-            
+
             ((IMyFunctionalBlock)m_constructionBlock).AppendingCustomInfo += AppendingCustomInfo;
         }
 
@@ -241,7 +241,7 @@ namespace NaniteConstructionSystem.Entities
             }
 
             // Server updates
-            if (Sync.IsServer)
+            if (Sync.IsServer && ConstructionBlock.IsWorking && ConstructionBlock.IsFunctional)
             {
                 ProcessTools();
 
@@ -498,7 +498,7 @@ namespace NaniteConstructionSystem.Entities
 
                 // Get the local bounding box of the player and transform by the matrix
                 var localBB = item.Controller.ControlledEntity.Entity.WorldAABB.TransformFast(MatrixD.Invert(matrix));
-                
+
                 // Local bounding box of the dangerous area
                 var boundingBox = new BoundingBoxD(new Vector3D(-2.1f, -2.1f, -2.1f), new Vector3(2.1f, 2.1f, 2.1f));
 
@@ -858,7 +858,7 @@ namespace NaniteConstructionSystem.Entities
         private void DrawEmissives()
         {
             m_updateCount++;
-            
+
             if (m_factoryState == FactoryStates.SpoolingUp)
             {
                 m_spoolPosition += (int)(1000f / 60f);
@@ -929,7 +929,7 @@ namespace NaniteConstructionSystem.Entities
         private void UpdateState()
         {
             //if(DateTime.Now - m_lastEmissiveUpdate > TimeSpan.FromMilliseconds(1000))
-            
+
             {
                 //m_lastEmissiveUpdate = DateTime.Now;
                 ProcessState();
@@ -1086,7 +1086,7 @@ namespace NaniteConstructionSystem.Entities
                             {
                                 playerTarget = item;
                                 break;
-                            }                            
+                            }
                         }
 
                         if(playerTarget != null)
@@ -1460,7 +1460,7 @@ namespace NaniteConstructionSystem.Entities
         {
             NaniteConstructionManager.ParticleManager.AddParticle(data.TargetId, new Vector3I(data.PositionX, data.PositionY, data.PositionZ), data.EffectId);
         }
-        
+
         public void SendRemoveParticleEffect(long entityId, Vector3I position)
         {
             ParticleData data = new ParticleData();
