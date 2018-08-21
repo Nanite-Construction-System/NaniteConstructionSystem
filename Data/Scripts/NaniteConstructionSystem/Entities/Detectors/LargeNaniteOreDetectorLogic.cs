@@ -44,6 +44,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
         {
             base.UpdateBeforeSimulation();
 
+            m_detector.DrawStatus();
             m_detector.DrawScanningSphere();
         }
 
@@ -51,7 +52,10 @@ namespace NaniteConstructionSystem.Entities.Detectors
         {
             base.UpdateBeforeSimulation10();
 
-            if (MyAPIGateway.Gui?.GetCurrentScreen == MyTerminalPageEnum.ControlPanel)
+            if (Sync.IsServer)
+                m_detector.UpdateStatus();
+
+            if (Sync.IsClient && MyAPIGateway.Gui?.GetCurrentScreen == MyTerminalPageEnum.ControlPanel)
             {
                 string oldCustomInfo = (Entity as IMyOreDetector).CustomInfo;
                 (Entity as IMyOreDetector).RefreshCustomInfo();

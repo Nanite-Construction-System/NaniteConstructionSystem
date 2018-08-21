@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
+using static NaniteConstructionSystem.Entities.Detectors.NaniteOreDetector;
 
 namespace NaniteConstructionSystem
 {
@@ -112,8 +113,9 @@ namespace NaniteConstructionSystem
     [ProtoInclude(5001, typeof(MessageClientConnected))]
     [ProtoInclude(5002, typeof(MessageConfig))]
     [ProtoInclude(5003, typeof(MessageOreDetectorSettings))]
-    [ProtoInclude(5004, typeof(MessageOreDetectorScanProgress))]
-    [ProtoInclude(5005, typeof(MessageOreDetectorScanComplete))]
+    [ProtoInclude(5004, typeof(MessageOreDetectorStateChange))]
+    [ProtoInclude(5005, typeof(MessageOreDetectorScanProgress))]
+    [ProtoInclude(5006, typeof(MessageOreDetectorScanComplete))]
     public abstract class MessageBase
     {
         /// <summary>
@@ -294,6 +296,32 @@ namespace NaniteConstructionSystem
                     Settings = logic.Detector.Settings.Settings
                 });
             }
+        }
+    }
+
+    [ProtoContract]
+    public class MessageOreDetectorStateChange : MessageBase
+    {
+        [ProtoMember(10)]
+        public long EntityId;
+
+        [ProtoMember(11)]
+        public DetectorStates State;
+
+        public override void ProcessClient()
+        {
+            IMyEntity ent;
+            if (!MyAPIGateway.Entities.TryGetEntityById(EntityId, out ent) || ent.Closed)
+                return;
+
+            var logic = ent.GameLogic.GetAs<Entities.Detectors.LargeNaniteOreDetectorLogic>();
+            if (logic == null) return;
+
+            logic.Detector.m_detectorState = State;
+        }
+
+        public override void ProcessServer()
+        {
         }
     }
 

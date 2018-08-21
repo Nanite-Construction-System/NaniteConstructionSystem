@@ -147,6 +147,7 @@
     <Compile Include="Entities\Effects\NaniteAreaBeaconEffect.cs" />
     <Compile Include="Entities\Effects\NaniteBeaconEffect.cs" />
     <Compile Include="Entities\Effects\NaniteBlockEffectBase.cs" />
+    <Compile Include="Entities\Effects\OreDetectorEffect.cs" />
     <Compile Include="Entities\NaniteConstructionBlock.cs" />
     <Compile Include="Entities\NaniteConstructionInventory.cs" />
     <Compile Include="Entities\NaniteConstructionLogic.cs" />

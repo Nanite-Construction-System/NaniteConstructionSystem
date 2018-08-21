@@ -1,3 +1,4 @@
+using NaniteConstructionSystem.Entities.Effects;
 using NaniteConstructionSystem.Extensions;
 using ParallelTasks;
 using Sandbox.Definitions;
@@ -26,6 +27,13 @@ namespace NaniteConstructionSystem.Entities.Detectors
         public const float POWER_PER_FILTER_UPGRADE = 0.1f;
         public const float POWER_PER_SCANNING_UPGRADE = 1f;
         public const float POWER_PER_POWEREFFICIENCY_UPGRADE = 0.1f;
+        public enum DetectorStates
+        {
+            Disabled,
+            Enabled,
+            Scanning,
+            ScanComplete
+        }
 
         public float Range
         {
@@ -118,10 +126,13 @@ namespace NaniteConstructionSystem.Entities.Detectors
         protected float basePower = 0f;
         internal NaniteOreDetectorSettings Settings;
         internal float m_scanProgress;
+        private DetectorStates m_lastDetectorState;
+        internal DetectorStates m_detectorState;
 
         private static readonly List<MyVoxelBase> m_inRangeCache = new List<MyVoxelBase>();
         private static readonly List<MyVoxelBase> m_notInRangeCache = new List<MyVoxelBase>();
         private readonly Dictionary<MyVoxelBase, OreDeposit> m_depositGroupsByEntity = new Dictionary<MyVoxelBase, OreDeposit>();
+        private readonly List<OreDetectorEffect> m_effects = new List<OreDetectorEffect>();
 
         public NaniteOreDetector(IMyFunctionalBlock entity)
         {
@@ -132,6 +143,8 @@ namespace NaniteConstructionSystem.Entities.Detectors
             m_scanEnd = DateTime.MinValue;
             m_lock = new FastResourceLock();
             m_oreListCache = new StringBuilder();
+            m_detectorState = DetectorStates.Disabled;
+            m_lastDetectorState = DetectorStates.Disabled;
 
             m_block.Components.TryGet(out Sink);
             ResourceInfo = new MyResourceSinkInfo()
@@ -143,6 +156,8 @@ namespace NaniteConstructionSystem.Entities.Detectors
             Sink.RemoveType(ref ResourceInfo.ResourceTypeId);
             Sink.Init(MyStringHash.GetOrCompute("Utility"), ResourceInfo);
             Sink.AddType(ref ResourceInfo);
+
+            m_effects.Add(new OreDetectorEffect((MyCubeBlock)m_block));
         }
 
         public void Init()
@@ -181,6 +196,43 @@ namespace NaniteConstructionSystem.Entities.Detectors
             sb.Append(m_oreListCache);
         }
 
+        public void UpdateStatus()
+        {
+            if (!m_block.Enabled || !m_block.IsFunctional || !Sink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId))
+            {
+                m_detectorState = DetectorStates.Disabled;
+            }
+            else if (m_depositGroupsByEntity.Count == 0)
+            {
+                m_detectorState = DetectorStates.Enabled;
+            }
+
+            if (m_detectorState != m_lastDetectorState)
+            {
+                m_lastDetectorState = m_detectorState;
+                MessageHub.SendMessageToAllPlayers(new MessageOreDetectorStateChange()
+                {
+                    EntityId = m_block.EntityId,
+                    State = m_lastDetectorState,
+                });
+            }
+        }
+
+        public void DrawStatus()
+        {
+            foreach (var item in m_effects)
+            {
+                if (m_detectorState == DetectorStates.Enabled)
+                    item.ActiveUpdate();
+                else if (m_detectorState == DetectorStates.Scanning)
+                    item.ScanningUpdate();
+                else if (m_detectorState == DetectorStates.ScanComplete)
+                    item.ScanCompleteUpdate();
+                else
+                    item.InactiveUpdate();
+            }
+        }
+
         public void DrawScanningSphere()
         {
             if (Sync.IsDedicated)
@@ -201,6 +253,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
         private void EnabledChanged(IMyTerminalBlock obj)
         {
             UpdatePower();
+            UpdateStatus();
         }
 
         private void UpdatePower()
@@ -330,6 +383,30 @@ namespace NaniteConstructionSystem.Entities.Detectors
             foreach (OreDeposit value in m_depositGroupsByEntity.Values)
             {
                 value.UpdateDeposits(ref sphere, m_block.EntityId, this);
+            }
+
+            var initialTasks = m_depositGroupsByEntity.Sum((x) => x.Value.InitialTasks);
+            if (initialTasks != 0)
+            {
+                var processedTasks = m_depositGroupsByEntity.Sum((x) => x.Value.ProcessedTasks);
+                if (processedTasks == initialTasks)
+                {
+                    m_detectorState = DetectorStates.ScanComplete;
+                }
+                else
+                {
+                    m_detectorState = DetectorStates.Scanning;
+                }
+
+                if (m_detectorState != m_lastDetectorState)
+                {
+                    m_lastDetectorState = m_detectorState;
+                    MessageHub.SendMessageToAllPlayers(new MessageOreDetectorStateChange()
+                    {
+                        EntityId = m_block.EntityId,
+                        State = m_lastDetectorState,
+                    });
+                }
             }
         }
 
