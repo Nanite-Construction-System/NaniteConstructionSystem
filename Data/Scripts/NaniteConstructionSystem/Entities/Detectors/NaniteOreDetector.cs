@@ -535,6 +535,19 @@ namespace NaniteConstructionSystem.Entities.Detectors
         public MyConcurrentList<MaterialPositionData> Materials { get; set; }
         public Action Callback { get; set; }
 
+        private static MyStorageData m_cache;
+        private static MyStorageData Cache
+        {
+            get
+            {
+                if (m_cache == null)
+                {
+                    m_cache = new MyStorageData();
+                }
+                return m_cache;
+            }
+        }
+
         public static void Start(Vector3I min, Vector3I max, MyVoxelBase voxelMap, MyConcurrentList<OreDepositWork.MaterialPositionData> materials, Action completionCallback)
         {
             MyAPIGateway.Parallel.StartBackground(new OreDepositWork
@@ -553,12 +566,21 @@ namespace NaniteConstructionSystem.Entities.Detectors
             Min <<= 2;
             Max <<= 2;
 
-            MyStorageData cache = new MyStorageData(); // TODO: Outsource because of memory allocations
+            MyStorageData cache = Cache;
             cache.Resize(new Vector3I(8));
             for (int x = Min.X; x <= Max.X; x++)
+            {
                 for (int y = Min.Y; y <= Max.Y; y++)
+                {
                     for (int z = Min.Z; z <= Max.Z; z++)
+                    {
                         ProcessCell(cache, VoxelMap.Storage, new Vector3I(x, y, z), 0);
+                        MyAPIGateway.Parallel.Sleep(2);
+                    }
+                    MyAPIGateway.Parallel.Sleep(5);
+                }
+                MyAPIGateway.Parallel.Sleep(10);
+            }
 
             Callback();
         }
@@ -567,10 +589,11 @@ namespace NaniteConstructionSystem.Entities.Detectors
         {
             Vector3I vector3I = cell << 3;
             Vector3I lodVoxelRangeMax = vector3I + 7;
-            storage.ReadRange(cache, MyStorageDataTypeFlags.Content, 0, vector3I, lodVoxelRangeMax);
+            var flag = MyVoxelRequestFlags.AdviseCache;
+            storage.ReadRange(cache, MyStorageDataTypeFlags.Content, 0, vector3I, lodVoxelRangeMax, ref flag);
             if (cache.ContainsVoxelsAboveIsoLevel())
             {
-                storage.ReadRange(cache, MyStorageDataTypeFlags.Material, 0, vector3I, lodVoxelRangeMax);
+                storage.ReadRange(cache, MyStorageDataTypeFlags.Material, 0, vector3I, lodVoxelRangeMax, ref flag);
                 Vector3I p = default(Vector3I);
                 p.Z = 0;
                 while (p.Z < 8)
