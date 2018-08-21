@@ -816,7 +816,7 @@
       <BlockVariants>
         <BlockVariant>
           <TypeId>UpgradeModule</TypeId>
-          <SubtypeId>NaniteOreDetectorUpgradeScanninge</SubtypeId>
+          <SubtypeId>NaniteOreDetectorUpgradeScanning</SubtypeId>
         </BlockVariant>
         <BlockVariant>
           <TypeId>UpgradeModule</TypeId>
