@@ -381,7 +381,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
         private int m_initialTasks;
         private int m_processedTasks;
         private MyConcurrentQueue<Vector3I> m_taskQueue;
-        public readonly MyConcurrentList<OreDepositWork.MaterialPositionData> Materials = new MyConcurrentList<OreDepositWork.MaterialPositionData>();
+        public readonly OreDepositMaterials Materials = new OreDepositMaterials();
         public int InitialTasks { get { return m_initialTasks; } }
         public int ProcessedTasks { get { return m_processedTasks; } }
 
@@ -532,10 +532,10 @@ namespace NaniteConstructionSystem.Entities.Detectors
         public MyVoxelBase VoxelMap { get; set; }
         public Vector3I Min { get; set; }
         public Vector3I Max { get; set; }
-        public MyConcurrentList<MaterialPositionData> Materials { get; set; }
+        public OreDepositMaterials Materials { get; set; }
         public Action Callback { get; set; }
 
-        public static void Start(Vector3I min, Vector3I max, MyVoxelBase voxelMap, MyConcurrentList<OreDepositWork.MaterialPositionData> materials, Action completionCallback)
+        public static void Start(Vector3I min, Vector3I max, MyVoxelBase voxelMap, OreDepositMaterials materials, Action completionCallback)
         {
             MyAPIGateway.Parallel.StartBackground(new OreDepositWork
             {
@@ -585,12 +585,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
                             if (cache.Content(linearIdx) > 127)
                             {
                                 byte b = cache.Material(linearIdx);
-                                MyVoxelMaterialDefinition voxelMaterialDefinition = MyDefinitionManager.Static.GetVoxelMaterialDefinition(b);
-                                //Materials.Add(new MaterialPositionData
-                                //{
-                                //    Material = voxelMaterialDefinition,
-                                //    VoxelPosition = p
-                                //});
+                                Materials.AddMaterial(b, p);
                             }
                             p.X++;
                         }
@@ -627,6 +622,45 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 //    m_emptyCells.Add(cell);
                 //}
                 //Array.Clear(materialData, 0, materialData.Length);
+            }
+        }
+    }
+
+    public class OreDepositMaterials
+    {
+        private readonly Dictionary<byte, List<Vector3I>> m_materials;
+
+        private readonly FastResourceLock m_lock = new FastResourceLock();
+
+        public OreDepositMaterials()
+        {
+            m_materials = new Dictionary<byte, List<Vector3I>>();
+        }
+
+        public void AddMaterial(byte material, Vector3I pos)
+        {
+            using (m_lock.AcquireExclusiveUsing())
+            {
+                List<Vector3I> list;
+                m_materials.TryGetValue(material, out list);
+                if (list == null)
+                {
+                    list = new List<Vector3I>(1000);
+                    m_materials.Add(material, list);
+                }
+
+                if (list.Count >= 1000)
+                    return;
+
+                list.Add(pos);
+            }
+        }
+
+        public void Clear()
+        {
+            using (m_lock.AcquireExclusiveUsing())
+            {
+                m_materials.Clear();
             }
         }
     }
