@@ -1165,7 +1165,7 @@ namespace NaniteConstructionSystem
 
                 return;
             }
-            else if (block.BlockDefinition.SubtypeName == "BigNaniteOreDetector")
+            else if (block.BlockDefinition.SubtypeName == "LargeNaniteOreDetector")
             {
                 controls.RemoveRange(controls.Count - 2, 2);
                 (m_customOreDetectorControls[0] as IMyTerminalControlSlider).SetLimits(0, (block.GameLogic as LargeNaniteOreDetectorLogic).Detector.MaxRange);
