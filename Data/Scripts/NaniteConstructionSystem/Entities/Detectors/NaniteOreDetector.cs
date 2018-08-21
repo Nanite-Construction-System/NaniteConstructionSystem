@@ -308,20 +308,20 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 });
             }
 
-            //StringBuilder oreListCache = new StringBuilder();
-            //foreach (var item in m_depositGroupsByEntity.SelectMany((x) => x.Value.Materials).GroupBy((x) => x.Material.MinedOre))
-            //{
-            //    oreListCache.Append($"- {item.Key}: {item.Count()}\n");
-            //}
-            //if (oreListCache != m_oreListCache)
-            //{
-            //    m_oreListCache = oreListCache;
-            //    MessageHub.SendMessageToAllPlayers(new MessageOreDetectorScanComplete()
-            //    {
-            //        EntityId = m_block.EntityId,
-            //        OreListCache = m_oreListCache.ToString()
-            //    });
-            //}
+            StringBuilder oreListCache = new StringBuilder();
+            foreach (var item in m_depositGroupsByEntity.SelectMany((x) => x.Value.Materials.GetMaterialList()).GroupBy((x) => x.Material.MinedOre))
+            {
+                oreListCache.Append($"- {item.Key}: {item.Sum((x) => x.Count)}\n");
+            }
+            if (oreListCache != m_oreListCache)
+            {
+                m_oreListCache = oreListCache;
+                MessageHub.SendMessageToAllPlayers(new MessageOreDetectorScanComplete()
+                {
+                    EntityId = m_block.EntityId,
+                    OreListCache = m_oreListCache.ToString()
+                });
+            }
         }
 
         private void UpdateDeposits(ref BoundingSphereD sphere)
@@ -379,16 +379,18 @@ namespace NaniteConstructionSystem.Entities.Detectors
         private FastResourceLock m_lock = new FastResourceLock();
         private int m_tasksRunning;
         private int m_initialTasks;
-        private int m_processedTasks;
-        private MyConcurrentQueue<Vector3I> m_taskQueue;
-        public readonly MyConcurrentList<OreDepositWork.MaterialPositionData> Materials = new MyConcurrentList<OreDepositWork.MaterialPositionData>();
         public int InitialTasks { get { return m_initialTasks; } }
+        private int m_processedTasks;
         public int ProcessedTasks { get { return m_processedTasks; } }
+        private MyConcurrentQueue<Vector3I> m_taskQueue;
+
+        public readonly OreDepositMaterials Materials;
 
         public OreDeposit(MyVoxelBase voxelMap)
         {
             m_voxelMap = voxelMap;
             m_taskQueue = new MyConcurrentQueue<Vector3I>();
+            Materials = new OreDepositMaterials();
         }
 
         public void UpdateDeposits(ref BoundingSphereD sphere, long detectorId, NaniteOreDetector detectorComponent)
@@ -523,16 +525,10 @@ namespace NaniteConstructionSystem.Entities.Detectors
             MaximumThreads = 2
         };
 
-        public struct MaterialPositionData
-        {
-            public MyVoxelMaterialDefinition Material;
-            public Vector3I VoxelPosition;
-        }
-
         public MyVoxelBase VoxelMap { get; set; }
         public Vector3I Min { get; set; }
         public Vector3I Max { get; set; }
-        public MyConcurrentList<MaterialPositionData> Materials { get; set; }
+        public OreDepositMaterials Materials { get; set; }
         public Action Callback { get; set; }
 
         private static MyStorageData m_cache;
@@ -548,7 +544,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
             }
         }
 
-        public static void Start(Vector3I min, Vector3I max, MyVoxelBase voxelMap, MyConcurrentList<OreDepositWork.MaterialPositionData> materials, Action completionCallback)
+        public static void Start(Vector3I min, Vector3I max, MyVoxelBase voxelMap, OreDepositMaterials materials, Action completionCallback)
         {
             MyAPIGateway.Parallel.StartBackground(new OreDepositWork
             {
@@ -575,10 +571,16 @@ namespace NaniteConstructionSystem.Entities.Detectors
                     for (int z = Min.Z; z <= Max.Z; z++)
                     {
                         ProcessCell(cache, VoxelMap.Storage, new Vector3I(x, y, z), 0);
+
+                        // Throttile thread because of performance issues
                         MyAPIGateway.Parallel.Sleep(2);
                     }
+
+                    // Throttile thread because of performance issues
                     MyAPIGateway.Parallel.Sleep(5);
                 }
+
+                // Throttile thread because of performance issues
                 MyAPIGateway.Parallel.Sleep(10);
             }
 
@@ -589,6 +591,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
         {
             Vector3I vector3I = cell << 3;
             Vector3I lodVoxelRangeMax = vector3I + 7;
+            // Advice cache because of performance issues
             var flag = MyVoxelRequestFlags.AdviseCache;
             storage.ReadRange(cache, MyStorageDataTypeFlags.Content, 0, vector3I, lodVoxelRangeMax, ref flag);
             if (cache.ContainsVoxelsAboveIsoLevel())
@@ -608,12 +611,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
                             if (cache.Content(linearIdx) > 127)
                             {
                                 byte b = cache.Material(linearIdx);
-                                MyVoxelMaterialDefinition voxelMaterialDefinition = MyDefinitionManager.Static.GetVoxelMaterialDefinition(b);
-                                //Materials.Add(new MaterialPositionData
-                                //{
-                                //    Material = voxelMaterialDefinition,
-                                //    VoxelPosition = p
-                                //});
+                                Materials.AddMaterial(b, p);
                             }
                             p.X++;
                         }
@@ -621,36 +619,80 @@ namespace NaniteConstructionSystem.Entities.Detectors
                     }
                     p.Z++;
                 }
-                //MyEntityOreDeposit myEntityOreDeposit = null;
-                //for (int i = 0; i < materialData.Length; i++)
-                //{
-                //    if (materialData[i].Count != 0)
-                //    {
-                //        MyVoxelMaterialDefinition voxelMaterialDefinition = MyDefinitionManager.Static.GetVoxelMaterialDefinition((byte)i);
-                //        if (voxelMaterialDefinition != null && voxelMaterialDefinition.IsRare)
-                //        {
-                //            if (myEntityOreDeposit == null)
-                //            {
-                //                myEntityOreDeposit = new MyEntityOreDeposit(VoxelMap, cell, detectorId);
-                //            }
-                //            myEntityOreDeposit.Materials.Add(new MyEntityOreDeposit.Data
-                //            {
-                //                Material = voxelMaterialDefinition,
-                //                AverageLocalPosition = Vector3D.Transform(materialData[i].Sum / (float)materialData[i].Count - VoxelMap.SizeInMetresHalf, Quaternion.CreateFromRotationMatrix(VoxelMap.WorldMatrix))
-                //            });
-                //        }
-                //    }
-                //}
-                //if (myEntityOreDeposit != null)
-                //{
-                //    m_result.Add(myEntityOreDeposit);
-                //}
-                //else
-                //{
-                //    m_emptyCells.Add(cell);
-                //}
-                //Array.Clear(materialData, 0, materialData.Length);
             }
+        }
+    }
+
+    public class OreDepositMaterials
+    {
+        public struct MaterialPositionData
+        {
+            public List<Vector3I> VoxelPosition;
+            public int Count;
+        }
+
+        private readonly MaterialPositionData[] m_materials;
+        private readonly FastResourceLock m_lock = new FastResourceLock();
+
+        public OreDepositMaterials()
+        {
+            m_materials = new MaterialPositionData[256];
+            for (int i = 0; i < 256; i++)
+                m_materials[i].VoxelPosition = new List<Vector3I>(1000);
+        }
+
+        public void AddMaterial(byte material, Vector3I pos)
+        {
+            using (m_lock.AcquireExclusiveUsing())
+            {
+               var count = m_materials[material].Count++;
+                if (count <= 1000)
+                    m_materials[material].VoxelPosition.Add(pos);
+            }
+        }
+
+        public void Clear()
+        {
+            using (m_lock.AcquireExclusiveUsing())
+            {
+                for (int i = 0; i < 256; i++)
+                {
+                    m_materials[i].Count = 0;
+                    m_materials[i].VoxelPosition.Clear();
+                }
+            }
+        }
+
+        public struct MaterialList
+        {
+            public MyVoxelMaterialDefinition Material;
+            public int Count;
+        }
+
+        public List<MaterialList> GetMaterialList()
+        {
+            List<MaterialList> list = new List<MaterialList>();
+
+            using (m_lock.AcquireSharedUsing())
+            {
+                for (int i = 0; i < 256; i++)
+                {
+                    if (m_materials[i].Count == 0)
+                        continue;
+
+                    var voxelDefinition = MyDefinitionManager.Static.GetVoxelMaterialDefinition((byte)i);
+                    if (voxelDefinition == null)
+                        continue;
+
+                    list.Add(new MaterialList()
+                    {
+                        Count = m_materials[i].Count,
+                        Material = voxelDefinition,
+                    });
+                }
+            }
+
+            return list;
         }
     }
     #endregion
