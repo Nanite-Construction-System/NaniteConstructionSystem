@@ -284,6 +284,12 @@ namespace NaniteConstructionSystem
                     EntityId = ent.EntityId,
                     Settings = logic.Detector.Settings.Settings
                 });
+                // Send state update as well
+                MessageHub.SendMessageToPlayer(SenderSteamId, new MessageOreDetectorStateChange()
+                {
+                    EntityId = ent.EntityId,
+                    State = logic.Detector.m_detectorState
+                });
             }
             else
             {

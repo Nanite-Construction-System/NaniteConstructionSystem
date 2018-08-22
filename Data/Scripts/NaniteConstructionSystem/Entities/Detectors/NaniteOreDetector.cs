@@ -336,6 +336,13 @@ namespace NaniteConstructionSystem.Entities.Detectors
         #region Voxel/Ore detection
         public void CheckScan()
         {
+            if (!m_block.Enabled || !m_block.IsFunctional || !Sink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId))
+            {
+                m_depositGroupsByEntity.Clear();
+                m_inRangeCache.Clear();
+                return;
+            }
+
             Vector3D position = m_block.GetPosition();
             BoundingSphereD sphere = new BoundingSphereD(position, Range);
             MyGamePruningStructure.GetAllVoxelMapsInSphere(ref sphere, m_inRangeCache);
