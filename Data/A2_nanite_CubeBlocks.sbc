@@ -791,7 +791,7 @@
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1"/>
       <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteConstruction.mwm</Model>
+      <Model>Models\Cubes\Large\NaniteOreDetectRange.mwm</Model>
       <Components>
         <Component Subtype="InteriorPlate" Count="120"/>
         <Component Subtype="Construction" Count="40"/>
@@ -904,7 +904,7 @@
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1"/>
       <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteConstruction.mwm</Model>
+      <Model>Models\Cubes\Large\NaniteOreDetectFilter.mwm</Model>
       <Components>
         <Component Subtype="InteriorPlate" Count="120"/>
         <Component Subtype="Construction" Count="40"/>
