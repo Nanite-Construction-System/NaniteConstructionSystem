@@ -10,12 +10,21 @@ using VRageMath;
 
 namespace NaniteConstructionSystem.Entities.Effects
 {
-    
     class OreDetectorEffect
     {
         const string EMISSIVE_CORE = "Core_Emissive";
         const string EMISSIVE_COOLER = "Cooler_Emissive";
         const string EMISSIVE_PILLAR = "Pillar_Emissive";
+        const string EMISSIVE_COIL_PREFIX = "Coil_Emissive";
+        const int MAX_COILS = 8;
+        enum EffectState
+        {
+            Unkown,
+            Active,
+            Inactive,
+            Scanning,
+            ScanComplete
+        }
 
         private MyCubeBlock m_block;
 
@@ -32,34 +41,58 @@ namespace NaniteConstructionSystem.Entities.Effects
 
         const float COOLER_MAX_COUNT = 4000f;
         private short m_coolerStatusCount;
+        private EffectState m_state = EffectState.Unkown;
 
         public void ActiveUpdate()
         {
-            m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Green, 1f);
-            m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Black, 1f);
             DrawCooler(false);
+
+            if (m_state != EffectState.Active)
+            {
+                m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Green, 1f);
+                m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Black, 1f);
+                m_updateCount = 0;
+                DrawCoil(false);
+                m_state = EffectState.Active;
+            }
         }
 
         public void InactiveUpdate()
         {
-            m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Red, 1f);
-            m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Black, 1f);
             DrawCooler(false);
+
+            if (m_state != EffectState.Inactive)
+            {
+                m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Red, 1f);
+                m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Black, 1f);
+                m_updateCount = 0;
+                DrawCoil(false);
+                m_state = EffectState.Inactive;
+            }
         }
 
         public void ScanningUpdate()
         {
-            m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Green, 1f);
+            if (m_state != EffectState.Scanning)
+                m_state = EffectState.Scanning;
+
             m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Blue, MathExtensions.TrianglePulse(m_updateCount, 0.8f, 150));
             DrawCooler(true);
+            DrawCoil(true);
             m_updateCount++;
         }
 
         public void ScanCompleteUpdate()
         {
-            m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Green, 1f);
-            m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Aquamarine, 1f);
             DrawCooler(false);
+
+            if (m_state != EffectState.ScanComplete)
+            {
+                m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Aquamarine, 1f);
+                m_updateCount = 0;
+                DrawCoil(false);
+                m_state = EffectState.ScanComplete;
+            }
         }
 
         private void DrawCooler(bool inUse)
@@ -69,6 +102,13 @@ namespace NaniteConstructionSystem.Entities.Effects
                 m_coolerStatusCount++;
             else if (!inUse && m_coolerStatusCount > 0)
                 m_coolerStatusCount--;
+            else if (m_state == EffectState.Unkown)
+            {
+                m_block.SetEmissiveParts(EMISSIVE_COOLER, Color.Black, 1f);
+                return;
+            }
+            else
+                return;
 
             Color heatColor = Color.DarkRed;
             float emissivity = 0.2f;
@@ -90,9 +130,32 @@ namespace NaniteConstructionSystem.Entities.Effects
                 heatColor.B = 0;
             }
 
-            //Color heatColor = Color.DarkBlue;
-
             m_block.SetEmissiveParts(EMISSIVE_COOLER, heatColor, emissivity);
+        }
+
+        private void DrawCoil(bool active)
+        {
+            if (!active)
+            {
+                for (int i = 0; i < MAX_COILS; i++)
+                    m_block.SetEmissiveParts($"{EMISSIVE_COIL_PREFIX}{i}", Color.Black, 1f);
+                return;
+            }
+
+            int updateCount = m_updateCount >> 1;
+
+            int iteration = (updateCount + 1) % MAX_COILS;
+            int frontIteration = (updateCount + 2) % MAX_COILS;
+            int rearIteration = updateCount % MAX_COILS;
+            for (int i = 0; i < MAX_COILS; i++)
+            {
+                if (i == frontIteration || i == rearIteration)
+                    m_block.SetEmissiveParts($"{EMISSIVE_COIL_PREFIX}{i}", Color.DarkBlue, 0.125f);
+                else if (i == iteration)
+                    m_block.SetEmissiveParts($"{EMISSIVE_COIL_PREFIX}{i}", Color.Blue, 0.5f);
+                else
+                    m_block.SetEmissiveParts($"{EMISSIVE_COIL_PREFIX}{i}", Color.Black, 1f);
+            }
         }
     }
 }
