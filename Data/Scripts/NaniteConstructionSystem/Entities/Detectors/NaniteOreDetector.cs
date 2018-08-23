@@ -544,22 +544,34 @@ namespace NaniteConstructionSystem.Entities.Detectors
             //    }
             //}
 
-            MyAPIGateway.Parallel.For(minCorner.X, maxCorner.X, (x) =>
+            MyAPIGateway.Parallel.StartBackground(() =>
             {
-                MyAPIGateway.Parallel.For(minCorner.Y, maxCorner.Y, (y) =>
+                Vector3I cell = default(Vector3I);
+                cell.Z = minCorner.Z;
+                while (cell.Z <= maxCorner.Z)
                 {
-                    MyAPIGateway.Parallel.For(minCorner.Z, maxCorner.Z, (z) =>
+                    cell.Y = minCorner.Y;
+                    while (cell.Y <= maxCorner.Y)
                     {
-                        Vector3I pos = new Vector3I(x, y, z);
-                        m_taskQueue.Enqueue(pos);
-                    });
-                });
+                        cell.X = minCorner.X;
+                        while (cell.X <= maxCorner.X)
+                        {
+                            // Ensure to exit of something changed
+                            if (minCorner != m_lastDetectionMin || maxCorner != m_lastDetectionMax)
+                                return;
+
+                            m_taskQueue.Enqueue(cell);
+                            cell.X++;
+                            MyAPIGateway.Parallel.Sleep(1);
+                        }
+                        cell.Y++;
+                    }
+                    cell.Z++;
+                }
+
+                Logging.Instance.WriteLine($"UpdateDeposits setup queue {m_taskQueue.Count}");
+                m_initialTasks = m_taskQueue.Count;
             });
-
-            Logging.Instance.WriteLine($"UpdateDeposits setup queue {m_taskQueue.Count}");
-            m_initialTasks = m_taskQueue.Count;
-
-            SpawnQueueWorker();
         }
 
         private void CheckQueue()
