@@ -386,7 +386,6 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
         private void UpdateDeposits(ref BoundingSphereD sphere)
         {
-            Logging.Instance.WriteLine("UpdateDeposits");
             foreach (OreDeposit value in m_depositGroupsByEntity.Values)
             {
                 value.UpdateDeposits(ref sphere, m_block.EntityId, this);
@@ -423,7 +422,6 @@ namespace NaniteConstructionSystem.Entities.Detectors
             {
                 if (!m_depositGroupsByEntity.ContainsKey(item.GetTopMostParent() as MyVoxelBase))
                 {
-                    Logging.Instance.WriteLine("AddVoxelMapsInRange");
                     m_depositGroupsByEntity.Add(item, new OreDeposit(item));
                 }
             }
@@ -436,7 +434,6 @@ namespace NaniteConstructionSystem.Entities.Detectors
             {
                 if (!m_inRangeCache.Contains(key.GetTopMostParent() as MyVoxelBase))
                 {
-                    Logging.Instance.WriteLine("RemoveVoxelMapsOutOfRange");
                     m_notInRangeCache.Add(key);
                 }
             }
