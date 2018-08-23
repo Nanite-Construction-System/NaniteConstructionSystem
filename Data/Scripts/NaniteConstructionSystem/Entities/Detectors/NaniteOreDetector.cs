@@ -544,34 +544,26 @@ namespace NaniteConstructionSystem.Entities.Detectors
             //    }
             //}
 
-            MyAPIGateway.Parallel.StartBackground(() =>
+            Vector3I cell = default(Vector3I);
+            cell.Z = minCorner.Z;
+            while (cell.Z <= maxCorner.Z)
             {
-                Vector3I cell = default(Vector3I);
-                cell.Z = minCorner.Z;
-                while (cell.Z <= maxCorner.Z)
+                cell.Y = minCorner.Y;
+                while (cell.Y <= maxCorner.Y)
                 {
-                    cell.Y = minCorner.Y;
-                    while (cell.Y <= maxCorner.Y)
+                    cell.X = minCorner.X;
+                    while (cell.X <= maxCorner.X)
                     {
-                        cell.X = minCorner.X;
-                        while (cell.X <= maxCorner.X)
-                        {
-                            // Ensure to exit of something changed
-                            if (minCorner != m_lastDetectionMin || maxCorner != m_lastDetectionMax)
-                                return;
-
-                            m_taskQueue.Enqueue(cell);
-                            cell.X++;
-                            MyAPIGateway.Parallel.Sleep(1);
-                        }
-                        cell.Y++;
+                        m_taskQueue.Enqueue(cell);
+                        cell.X++;
                     }
-                    cell.Z++;
+                    cell.Y++;
                 }
+                cell.Z++;
+            }
 
-                Logging.Instance.WriteLine($"UpdateDeposits setup queue {m_taskQueue.Count}");
-                m_initialTasks = m_taskQueue.Count;
-            });
+            Logging.Instance.WriteLine($"UpdateDeposits setup queue {m_taskQueue.Count}");
+            m_initialTasks = m_taskQueue.Count;
         }
 
         private void CheckQueue()
@@ -708,6 +700,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
                             {
                                 byte b = cache.Material(linearIdx);
                                 Materials.AddMaterial(b, p);
+                                MyAPIGateway.Parallel.Sleep(1);
                             }
                             p.X++;
                         }
