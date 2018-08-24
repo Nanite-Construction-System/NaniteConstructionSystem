@@ -25,7 +25,6 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
             base.Init(objectBuilder);
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
-            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_FRAME;
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_10TH_FRAME;
 
             (Entity as IMyOreDetector).AppendingCustomInfo += m_detector.AppendingCustomInfo;
@@ -38,6 +37,9 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
             if (Sync.IsServer)
                 NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
+
+            if (Sync.IsClient)
+                NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_FRAME;
         }
 
         public override void UpdateBeforeSimulation()

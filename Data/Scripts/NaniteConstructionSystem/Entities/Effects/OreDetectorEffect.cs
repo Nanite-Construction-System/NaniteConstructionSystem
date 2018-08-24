@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VRage.Game.Entity;
+using VRage.ModAPI;
 using VRageMath;
 
 namespace NaniteConstructionSystem.Entities.Effects
@@ -17,6 +19,7 @@ namespace NaniteConstructionSystem.Entities.Effects
         const string EMISSIVE_PILLAR = "Pillar_Emissive";
         const string EMISSIVE_COIL_PREFIX = "Coil_Emissive";
         const int MAX_COILS = 8;
+
         enum EffectState
         {
             Unkown,
@@ -40,35 +43,41 @@ namespace NaniteConstructionSystem.Entities.Effects
         }
 
         const float COOLER_MAX_COUNT = 4000f;
-        private short m_coolerStatusCount;
+        private long m_coolerStatusCount;
+        const float CORE_MAX_COUNT = 20f;
+        private short m_coreSpeedIterator;
         private EffectState m_state = EffectState.Unkown;
 
         public void ActiveUpdate()
         {
             DrawCooler(false);
+            SpinCore(false);
 
             if (m_state != EffectState.Active)
             {
                 m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Green, 1f);
                 m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Black, 1f);
-                m_updateCount = 0;
                 DrawCoil(false);
                 m_state = EffectState.Active;
             }
+
+            m_updateCount++;
         }
 
         public void InactiveUpdate()
         {
             DrawCooler(false);
+            SpinCore(false);
 
             if (m_state != EffectState.Inactive)
             {
                 m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Red, 1f);
                 m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Black, 1f);
-                m_updateCount = 0;
                 DrawCoil(false);
                 m_state = EffectState.Inactive;
             }
+
+            m_updateCount++;
         }
 
         public void ScanningUpdate()
@@ -77,22 +86,27 @@ namespace NaniteConstructionSystem.Entities.Effects
                 m_state = EffectState.Scanning;
 
             m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Blue, MathExtensions.TrianglePulse(m_updateCount, 0.8f, 150));
+
             DrawCooler(true);
+            SpinCore(true);
             DrawCoil(true);
+
             m_updateCount++;
         }
 
         public void ScanCompleteUpdate()
         {
             DrawCooler(false);
+            SpinCore(false);
 
             if (m_state != EffectState.ScanComplete)
             {
                 m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Aquamarine, 1f);
-                m_updateCount = 0;
                 DrawCoil(false);
                 m_state = EffectState.ScanComplete;
             }
+
+            m_updateCount++;
         }
 
         private void DrawCooler(bool inUse)
@@ -155,6 +169,32 @@ namespace NaniteConstructionSystem.Entities.Effects
                     m_block.SetEmissiveParts($"{EMISSIVE_COIL_PREFIX}{i}", Color.Blue, 0.5f);
                 else
                     m_block.SetEmissiveParts($"{EMISSIVE_COIL_PREFIX}{i}", Color.Black, 1f);
+            }
+        }
+
+        private void SpinCore(bool active)
+        {
+            // inactive and spinned down
+            if (!active && m_coreSpeedIterator == 0)
+            {
+                m_updateCount = 0;
+                return;
+            }
+
+            MyEntitySubpart subpart;
+            if (m_block.TryGetSubpart("NaniteCore", out subpart))
+            {
+                // spin up until full speed
+                if (active && m_coreSpeedIterator < CORE_MAX_COUNT && m_updateCount % 30 == 0)
+                    m_coreSpeedIterator++;
+                // spin down until stopped
+                else if (!active && m_coreSpeedIterator > 0 && m_updateCount % 30 == 0)
+                    m_coreSpeedIterator--;
+
+                //if (m_updateCount % 60 == 0)
+                //    MyAPIGateway.Utilities.ShowMessage("test", $"{m_coreSpeedIterator * 0.01f}");
+
+                subpart.PositionComp.LocalMatrix = subpart.PositionComp.LocalMatrix * Matrix.CreateRotationY(m_coreSpeedIterator * 0.01f);
             }
         }
     }
