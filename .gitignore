@@ -8,9 +8,14 @@
 # model source
 *.fbx
 *.blockdef.xml
+*.xml
 *.hkt
 *.hkt.fbx
 *.hkt.mwm
+*.txt
+*.hkt.filter.log
+*.hkt.convert.log
+*.mwm.log
 
 # temp
 *.tmp	
