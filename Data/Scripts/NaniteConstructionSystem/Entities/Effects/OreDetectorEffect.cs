@@ -53,7 +53,7 @@ namespace NaniteConstructionSystem.Entities.Effects
             DrawCooler(false);
             SpinCore(false);
 
-            if (m_state != EffectState.Active || m_updateCount < 1000)
+            if (m_state != EffectState.Active)
             {
                 m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Green, 1f);
                 m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Black, 1f);
@@ -69,7 +69,7 @@ namespace NaniteConstructionSystem.Entities.Effects
             DrawCooler(false);
             SpinCore(false);
 
-            if (m_state != EffectState.Inactive || m_updateCount < 1000)
+            if (m_state != EffectState.Inactive)
             {
                 m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Red, 1f);
                 m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Black, 1f);
@@ -99,7 +99,7 @@ namespace NaniteConstructionSystem.Entities.Effects
             DrawCooler(false);
             SpinCore(false);
 
-            if (m_state != EffectState.ScanComplete || m_updateCount < 1000)
+            if (m_state != EffectState.ScanComplete)
             {
                 m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Aquamarine, 1f);
                 DrawCoil(false);
