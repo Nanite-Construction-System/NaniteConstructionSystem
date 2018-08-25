@@ -57,6 +57,7 @@
       <Public>true</Public>
       <PrimarySound>NaniteModule</PrimarySound>
       <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <PCU>2500</PCU>
     </Definition>
 
@@ -97,6 +98,7 @@
       <BuildTimeSeconds>20</BuildTimeSeconds>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <GuiVisible>false</GuiVisible>
       <PCU>25</PCU>
     </Definition>
@@ -136,6 +138,7 @@
       <BuildTimeSeconds>20</BuildTimeSeconds>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <GuiVisible>false</GuiVisible>
       <PCU>25</PCU>
     </Definition>
@@ -185,6 +188,7 @@
           <SubtypeId>LargeNaniteBeaconProjection</SubtypeId>
         </BlockVariant>
       </BlockVariants>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <PCU>25</PCU>
     </Definition>
     <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
@@ -233,6 +237,7 @@
           <SubtypeId>SmallNaniteBeaconProjection</SubtypeId>
         </BlockVariant>
       </BlockVariants>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <PCU>25</PCU>
     </Definition>
     <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
@@ -271,6 +276,7 @@
       <BuildTimeSeconds>20</BuildTimeSeconds>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <GuiVisible>false</GuiVisible>
       <PCU>25</PCU>
     </Definition>
@@ -310,6 +316,7 @@
       <BuildTimeSeconds>20</BuildTimeSeconds>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <GuiVisible>false</GuiVisible>
       <PCU>25</PCU>
     </Definition>
@@ -351,6 +358,7 @@
       <DamagedSound>ParticleElectrical</DamagedSound>
       <ResourceSinkGroup>Utility</ResourceSinkGroup>
       <RequiredPowerInput>0.0002</RequiredPowerInput>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <PCU>25</PCU>
     </Definition>
 
@@ -432,6 +440,7 @@
           <SubtypeId>NaniteSpeedUpgrade</SubtypeId>
         </BlockVariant>
       </BlockVariants>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <PCU>5</PCU>
     </Definition>
     <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
@@ -480,6 +489,7 @@
       <PrimarySound>BlockModuleEfficiency</PrimarySound>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <GuiVisible>false</GuiVisible>
       <PCU>5</PCU>
     </Definition>
@@ -529,6 +539,7 @@
       <PrimarySound>BlockModuleEfficiency</PrimarySound>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <GuiVisible>false</GuiVisible>
       <PCU>5</PCU>
     </Definition>
@@ -578,6 +589,7 @@
       <PrimarySound>BlockModuleEfficiency</PrimarySound>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <GuiVisible>false</GuiVisible>
       <PCU>5</PCU>
     </Definition>
@@ -627,6 +639,7 @@
       <PrimarySound>BlockModuleEfficiency</PrimarySound>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <GuiVisible>false</GuiVisible>
       <PCU>5</PCU>
     </Definition>
@@ -676,6 +689,7 @@
       <PrimarySound>BlockModuleEfficiency</PrimarySound>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <GuiVisible>false</GuiVisible>
       <PCU>5</PCU>
     </Definition>
@@ -725,6 +739,7 @@
       <PrimarySound>BlockModuleEfficiency</PrimarySound>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <GuiVisible>false</GuiVisible>
       <PCU>5</PCU>
     </Definition>
@@ -775,6 +790,7 @@
       <EmissiveColorPreset>Default</EmissiveColorPreset>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <GuiVisible>false</GuiVisible>
       <PCU>5</PCU>
     </Definition>
@@ -841,6 +857,7 @@
       <PrimarySound>BlockModuleEfficiency</PrimarySound>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <PCU>25</PCU>
     </Definition>
     <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
@@ -890,6 +907,7 @@
       <PrimarySound>BlockModuleEfficiency</PrimarySound>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <PCU>5</PCU>
 	  <GuiVisible>false</GuiVisible>
     </Definition>
@@ -940,6 +958,7 @@
       <PrimarySound>BlockModuleEfficiency</PrimarySound>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <PCU>10</PCU>
 	  <GuiVisible>false</GuiVisible>
     </Definition>
@@ -990,6 +1009,7 @@
       <PrimarySound>BlockModuleEfficiency</PrimarySound>
       <DamageEffectId>214</DamageEffectId>
       <DamagedSound>ParticleElectrical</DamagedSound>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <PCU>5</PCU>
 	  <GuiVisible>false</GuiVisible>
     </Definition>
@@ -1235,6 +1255,7 @@
       <MaximumRange>3000</MaximumRange>
       <PrimarySound>NaniteModule</PrimarySound>
       <ResourceSinkGroup>Utility</ResourceSinkGroup>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <PCU>2500</PCU>
     </Definition>
 
@@ -1296,6 +1317,7 @@
       <Public>false</Public>
       <PrimarySound>NaniteModule</PrimarySound>
       <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
       <PCU>1</PCU>
     </Definition>
     <Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
