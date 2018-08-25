@@ -17,14 +17,5 @@
 *.hkt.convert.log
 *.mwm.log
 
-#vs stuff
-*.sln
-*.csprog
-bin
-obj
-Properties
-
 # temp
-*.tmp	
-
-
+*.tmp
