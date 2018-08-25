@@ -29,7 +29,7 @@ namespace NaniteConstructionSystem
         public static NaniteConstructionManager Instance;
 
         // Unique storage identifer
-        public readonly Guid OreDetectorSettingsGuid = new Guid("7d46082d-747a-45af-8cd1-99a03e68cf97");
+        public readonly Guid OreDetectorSettingsGuid = new Guid("7D46082D-747A-45AF-8CD1-99A03E68CF97");
 
         private static Dictionary<long, NaniteConstructionBlock> m_naniteBlocks;
         public static Dictionary<long, NaniteConstructionBlock> NaniteBlocks
@@ -363,7 +363,7 @@ namespace NaniteConstructionSystem
                 };
                 m_customControls.Add(repairCheck);
             }
-            
+
 
             // --- Projection Checkbox
             if (Settings.ProjectionEnabled)

@@ -76,5 +76,10 @@ namespace NaniteConstructionSystem.Entities.Detectors
             base.UpdateBeforeSimulation100();
             m_detector.CheckScan();
         }
+
+        public override bool IsSerialized()
+        {
+            return false;
+        }
     }
 }
