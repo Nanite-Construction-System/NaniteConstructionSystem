@@ -53,13 +53,14 @@ namespace NaniteConstructionSystem.Entities.Effects
             DrawCooler(false);
             SpinCore(false);
 
-            if (m_state != EffectState.Active)
-            {
-                m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Green, 1f);
-                m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Black, 1f);
-                DrawCoil(false);
-                m_state = EffectState.Active;
-            }
+            //if (m_state != EffectState.Active)
+            //{
+            m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Green, 1f);
+            m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Black, 1f);
+            m_block.SetEmissiveParts(EMISSIVE_COOLER, Color.Black, 1f);
+            DrawCoil(false);
+            //    m_state = EffectState.Active;
+            //}
 
             m_updateCount++;
         }
@@ -69,23 +70,24 @@ namespace NaniteConstructionSystem.Entities.Effects
             DrawCooler(false);
             SpinCore(false);
 
-            if (m_state != EffectState.Inactive)
-            {
-                m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Red, 1f);
-                m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Black, 1f);
-                DrawCoil(false);
-                m_state = EffectState.Inactive;
-            }
+            //if (m_state != EffectState.Inactive)
+            //{
+            m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Red, 1f);
+            m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Black, 1f);
+            m_block.SetEmissiveParts(EMISSIVE_COOLER, Color.Black, 1f);
+            DrawCoil(false);
+            //    m_state = EffectState.Inactive;
+            //}
 
             m_updateCount++;
         }
 
         public void ScanningUpdate()
         {
-            if (m_state != EffectState.Scanning)
-                m_state = EffectState.Scanning;
+            //if (m_state != EffectState.Scanning) {
+            //    m_state = EffectState.Scanning;
 
-            m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Blue, MathExtensions.TrianglePulse(m_updateCount, 0.8f, 150));
+            m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Red, 1f);
 
             DrawCooler(true);
             SpinCore(true);
@@ -99,12 +101,12 @@ namespace NaniteConstructionSystem.Entities.Effects
             DrawCooler(false);
             SpinCore(false);
 
-            if (m_state != EffectState.ScanComplete)
-            {
-                m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Aquamarine, 1f);
-                DrawCoil(false);
-                m_state = EffectState.ScanComplete;
-            }
+            //if (m_state != EffectState.ScanComplete)
+            //{
+            m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Black, 1f);
+            DrawCoil(false);
+            //    m_state = EffectState.ScanComplete;
+            //}
 
             m_updateCount++;
         }
@@ -116,11 +118,11 @@ namespace NaniteConstructionSystem.Entities.Effects
                 m_coolerStatusCount++;
             else if (!inUse && m_coolerStatusCount > 0)
                 m_coolerStatusCount--;
-            else if (m_state == EffectState.Unkown)
-            {
-                m_block.SetEmissiveParts(EMISSIVE_COOLER, Color.Black, 1f);
-                return;
-            }
+            //else if (m_state == EffectState.Unkown)
+            //{
+            //    m_block.SetEmissiveParts(EMISSIVE_COOLER, Color.Black, 1f);
+            //    return;
+            //}
             else
                 return;
 
@@ -195,6 +197,7 @@ namespace NaniteConstructionSystem.Entities.Effects
                 //    MyAPIGateway.Utilities.ShowMessage("test", $"{m_coreSpeedIterator * 0.01f}");
 
                 subpart.PositionComp.LocalMatrix = subpart.PositionComp.LocalMatrix * Matrix.CreateRotationY(m_coreSpeedIterator * 0.01f);
+                subpart.SetEmissiveParts(EMISSIVE_CORE, Color.Red, m_coreSpeedIterator * 0.01f);
             }
         }
     }
