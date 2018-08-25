@@ -20,14 +20,14 @@ namespace NaniteConstructionSystem.Entities.Effects
         const string EMISSIVE_COIL_PREFIX = "Coil_Emissive";
         const int MAX_COILS = 8;
 
-        enum EffectState
-        {
-            Unkown,
-            Active,
-            Inactive,
-            Scanning,
-            ScanComplete
-        }
+        //enum EffectState
+        //{
+        //    Unkown,
+        //    Active,
+        //    Inactive,
+        //    Scanning,
+        //    ScanComplete
+        //}
 
         private MyCubeBlock m_block;
 
@@ -46,7 +46,7 @@ namespace NaniteConstructionSystem.Entities.Effects
         private long m_coolerStatusCount;
         const float CORE_MAX_COUNT = 20f;
         private short m_coreSpeedIterator;
-        private EffectState m_state = EffectState.Unkown;
+        //private EffectState m_state = EffectState.Unkown;
 
         public void ActiveUpdate()
         {
