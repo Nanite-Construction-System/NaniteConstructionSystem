@@ -34,7 +34,7 @@ namespace NaniteConstructionSystem
             if (MyAPIGateway.Session.Player != null)
                 message.SenderSteamId = MyAPIGateway.Session.Player.SteamUserId;
             var byteData = MyAPIGateway.Utilities.SerializeToBinary<MessageBase>(message);
-            NaniteConstructionSystem.Logging.Instance.WriteLine(string.Format("SendMessageToServer {0} {1} {2}, {3}b", message.SenderSteamId, message.Side, message.GetType().Name, byteData.Length));
+            Logging.Instance.WriteLine(string.Format("SendMessageToServer {0} {1} {2}, {3}b", message.SenderSteamId, message.Side, message.GetType().Name, byteData.Length));
             MyAPIGateway.Multiplayer.SendMessageToServer(MessageId, byteData);
         }
 
@@ -80,7 +80,7 @@ namespace NaniteConstructionSystem
             message.Side = MessageSide.ClientSide;
             var byteData = MyAPIGateway.Utilities.SerializeToBinary(message);
 
-            NaniteConstructionSystem.Logging.Instance.WriteLine(string.Format("SendMessageToPlayer {0} {1} {2}, {3}b", steamId, message.Side, message.GetType().Name, byteData.Length));
+            Logging.Instance.WriteLine(string.Format("SendMessageToPlayer {0} {1} {2}, {3}b", steamId, message.Side, message.GetType().Name, byteData.Length));
 
             MyAPIGateway.Multiplayer.SendMessageTo(MessageId, byteData, steamId);
         }
@@ -91,10 +91,10 @@ namespace NaniteConstructionSystem
             {
                 var message = MyAPIGateway.Utilities.SerializeFromBinary<MessageBase>(data);
 
-                NaniteConstructionSystem.Logging.Instance.WriteLine("HandleMessage()");
+                Logging.Instance.WriteLine("HandleMessage()");
                 if (message != null)
                 {
-                    NaniteConstructionSystem.Logging.Instance.WriteLine(string.Format("HandleMessage() {0} {1} {2}, {3}b", message.SenderSteamId, message.Side, message.GetType().Name, data.Length));
+                    Logging.Instance.WriteLine(string.Format("HandleMessage() {0} {1} {2}, {3}b", message.SenderSteamId, message.Side, message.GetType().Name, data.Length));
                     message.InvokeProcessing();
                 }
                 return;
@@ -102,7 +102,7 @@ namespace NaniteConstructionSystem
             catch (Exception e)
             {
                 // Don't warn the user of an exception, this can happen if two mods with the same message id receive an unknown message
-                NaniteConstructionSystem.Logging.Instance.WriteLine(string.Format("Processing message exception. Exception: {0}", e.ToString()));
+                Logging.Instance.WriteLine(string.Format("Processing message exception. Exception: {0}", e.ToString()));
                 //Logger.Instance.LogException(e);
             }
 

@@ -8,26 +8,19 @@ using System.Text;
 using System.Threading.Tasks;
 using VRage.Game.Entity;
 using VRage.ModAPI;
+using VRage.Utils;
 using VRageMath;
 
 namespace NaniteConstructionSystem.Entities.Effects
 {
     class OreDetectorEffect
     {
-        const string EMISSIVE_CORE = "Core_Emissive";
+        const string SUBPART_SHPERE = "Sphere";
         const string EMISSIVE_COOLER = "Cooler_Emissive";
+        const string EMISSIVE_SUB_SPHERE = "Sphere_Emissive";
         const string EMISSIVE_PILLAR = "Pillar_Emissive";
         const string EMISSIVE_COIL_PREFIX = "Coil_Emissive";
         const int MAX_COILS = 8;
-
-        enum EffectState
-        {
-            Unkown,
-            Active,
-            Inactive,
-            Scanning,
-            ScanComplete
-        }
 
         private MyCubeBlock m_block;
 
@@ -46,46 +39,32 @@ namespace NaniteConstructionSystem.Entities.Effects
         private long m_coolerStatusCount;
         const float CORE_MAX_COUNT = 20f;
         private short m_coreSpeedIterator;
-        private EffectState m_state = EffectState.Unkown;
 
         public void ActiveUpdate()
         {
+            m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Green, 1f);
+
+            DrawCoil(false);
             DrawCooler(false);
             SpinCore(false);
-
-            if (m_state != EffectState.Active)
-            {
-                m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Green, 1f);
-                m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Black, 1f);
-                DrawCoil(false);
-                m_state = EffectState.Active;
-            }
 
             m_updateCount++;
         }
 
         public void InactiveUpdate()
         {
+            m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Red, 1f);
+
+            DrawCoil(false);
             DrawCooler(false);
             SpinCore(false);
-
-            if (m_state != EffectState.Inactive)
-            {
-                m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Red, 1f);
-                m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Black, 1f);
-                DrawCoil(false);
-                m_state = EffectState.Inactive;
-            }
 
             m_updateCount++;
         }
 
         public void ScanningUpdate()
         {
-            if (m_state != EffectState.Scanning)
-                m_state = EffectState.Scanning;
-
-            m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Blue, MathExtensions.TrianglePulse(m_updateCount, 0.8f, 150));
+            m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Green, 1f);
 
             DrawCooler(true);
             SpinCore(true);
@@ -96,15 +75,11 @@ namespace NaniteConstructionSystem.Entities.Effects
 
         public void ScanCompleteUpdate()
         {
+            m_block.SetEmissiveParts(EMISSIVE_PILLAR, Color.Green, 1f);
+
             DrawCooler(false);
             SpinCore(false);
-
-            if (m_state != EffectState.ScanComplete)
-            {
-                m_block.SetEmissiveParts(EMISSIVE_CORE, Color.Aquamarine, 1f);
-                DrawCoil(false);
-                m_state = EffectState.ScanComplete;
-            }
+            DrawCoil(false);
 
             m_updateCount++;
         }
@@ -116,13 +91,11 @@ namespace NaniteConstructionSystem.Entities.Effects
                 m_coolerStatusCount++;
             else if (!inUse && m_coolerStatusCount > 0)
                 m_coolerStatusCount--;
-            else if (m_state == EffectState.Unkown)
+            else
             {
                 m_block.SetEmissiveParts(EMISSIVE_COOLER, Color.Black, 1f);
                 return;
             }
-            else
-                return;
 
             Color heatColor = Color.DarkRed;
             float emissivity = 0.2f;
@@ -152,49 +125,47 @@ namespace NaniteConstructionSystem.Entities.Effects
             if (!active)
             {
                 for (int i = 0; i < MAX_COILS; i++)
-                    m_block.SetEmissiveParts($"{EMISSIVE_COIL_PREFIX}{i}", Color.Black, 1f);
+                    m_block.SetEmissiveParts($"{EMISSIVE_COIL_PREFIX}{i}", Color.DarkRed, 0f);
                 return;
             }
 
             int updateCount = m_updateCount >> 1;
 
             int iteration = (updateCount + 1) % MAX_COILS;
-            int frontIteration = (updateCount + 2) % MAX_COILS;
             int rearIteration = updateCount % MAX_COILS;
             for (int i = 0; i < MAX_COILS; i++)
             {
-                if (i == frontIteration || i == rearIteration)
-                    m_block.SetEmissiveParts($"{EMISSIVE_COIL_PREFIX}{i}", Color.DarkBlue, 0.125f);
-                else if (i == iteration)
-                    m_block.SetEmissiveParts($"{EMISSIVE_COIL_PREFIX}{i}", Color.Blue, 0.5f);
+                if (i == iteration)
+                    m_block.SetEmissiveParts($"{EMISSIVE_COIL_PREFIX}{i}", Color.DarkRed, 0.2f);
+                else if (i == rearIteration)
+                    m_block.SetEmissiveParts($"{EMISSIVE_COIL_PREFIX}{i}", Color.DarkRed, 0.05f);
                 else
-                    m_block.SetEmissiveParts($"{EMISSIVE_COIL_PREFIX}{i}", Color.Black, 1f);
+                    m_block.SetEmissiveParts($"{EMISSIVE_COIL_PREFIX}{i}", Color.DarkRed, 0f);
             }
         }
 
         private void SpinCore(bool active)
         {
-            // inactive and spinned down
-            if (!active && m_coreSpeedIterator == 0)
-            {
-                m_updateCount = 0;
-                return;
-            }
-
             MyEntitySubpart subpart;
-            if (m_block.TryGetSubpart("NaniteCore", out subpart))
+            if (m_block.TryGetSubpart(SUBPART_SHPERE, out subpart))
             {
+                // inactive and spinned down
+                if (!active && m_coreSpeedIterator == 0)
+                {
+                    subpart.SetEmissiveParts(EMISSIVE_SUB_SPHERE, Color.Red, 0f);
+                    m_updateCount = 0;
+                    return;
+                }
+
                 // spin up until full speed
-                if (active && m_coreSpeedIterator < CORE_MAX_COUNT && m_updateCount % 30 == 0)
+                else if (active && m_coreSpeedIterator < CORE_MAX_COUNT && m_updateCount % 30 == 0)
                     m_coreSpeedIterator++;
                 // spin down until stopped
                 else if (!active && m_coreSpeedIterator > 0 && m_updateCount % 30 == 0)
                     m_coreSpeedIterator--;
 
-                //if (m_updateCount % 60 == 0)
-                //    MyAPIGateway.Utilities.ShowMessage("test", $"{m_coreSpeedIterator * 0.01f}");
-
                 subpart.PositionComp.LocalMatrix = subpart.PositionComp.LocalMatrix * Matrix.CreateRotationY(m_coreSpeedIterator * 0.01f);
+                subpart.SetEmissiveParts(EMISSIVE_SUB_SPHERE, Color.Red, m_coreSpeedIterator * 0.01f);
             }
         }
     }
