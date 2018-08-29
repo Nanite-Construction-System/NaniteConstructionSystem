@@ -165,6 +165,18 @@ namespace NaniteConstructionSystem
             }
         }
 
+        private static Dictionary<long, NaniteOreDetector> m_oreDetectors;
+        public static Dictionary<long, NaniteOreDetector> OreDetectors
+        {
+            get
+            {
+                if (m_oreDetectors == null)
+                    m_oreDetectors = new Dictionary<long, NaniteOreDetector>();
+
+                return m_oreDetectors;
+            }
+        }
+
         private TerminalSettings m_terminalSettingsManager = new TerminalSettings();
         private List<IMyTerminalControl> m_customControls = new List<IMyTerminalControl>();
         private IMyTerminalControl m_customAssemblerControl;

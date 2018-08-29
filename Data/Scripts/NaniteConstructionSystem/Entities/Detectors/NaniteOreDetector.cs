@@ -99,7 +99,13 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
         internal MyResourceSinkInfo ResourceInfo;
         internal MyResourceSinkComponent Sink;
+
         private IMyOreDetector m_block;
+        public IMyOreDetector Block
+        {
+            get { return m_block; }
+        }
+
         private bool m_busy;
         private DateTime m_lastUpdate;
         private readonly List<MyVoxelBase> m_oreInRangeCache = new List<MyVoxelBase>();
@@ -132,6 +138,10 @@ namespace NaniteConstructionSystem.Entities.Detectors
         private static readonly List<MyVoxelBase> m_inRangeCache = new List<MyVoxelBase>();
         private static readonly List<MyVoxelBase> m_notInRangeCache = new List<MyVoxelBase>();
         private readonly Dictionary<MyVoxelBase, OreDeposit> m_depositGroupsByEntity = new Dictionary<MyVoxelBase, OreDeposit>();
+        public Dictionary<MyVoxelBase, OreDeposit> DepositGroup
+        {
+            get { return m_depositGroupsByEntity; }
+        }
         private readonly List<OreDetectorEffect> m_effects = new List<OreDetectorEffect>();
 
         public NaniteOreDetector(IMyFunctionalBlock entity)
@@ -158,6 +168,8 @@ namespace NaniteConstructionSystem.Entities.Detectors
             Sink.AddType(ref ResourceInfo);
 
             m_effects.Add(new OreDetectorEffect((MyCubeBlock)m_block));
+
+            NaniteConstructionManager.OreDetectors.Add(entity.EntityId, this);
         }
 
         public void Init()
@@ -179,6 +191,13 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 {
                     EntityId = m_block.EntityId
                 });
+        }
+
+        public virtual void Close()
+        {
+            m_effects.Clear();
+
+            NaniteConstructionManager.OreDetectors.Remove(m_block.EntityId);
         }
 
         public void AppendingCustomInfo(IMyTerminalBlock block, StringBuilder sb)
@@ -471,7 +490,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
         {
             m_voxelMap = voxelMap;
             m_taskQueue = new MyConcurrentQueue<Vector3I>();
-            Materials = new OreDepositMaterials();
+            Materials = new OreDepositMaterials(voxelMap);
         }
 
         public void UpdateDeposits(ref BoundingSphereD sphere, long detectorId, NaniteOreDetector detectorComponent)
@@ -696,7 +715,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
                             if (cache.Content(linearIdx) > 127)
                             {
                                 byte b = cache.Material(linearIdx);
-                                Materials.AddMaterial(b, p);
+                                Materials.AddMaterial(b, vector3I + p);
                                 MyAPIGateway.Parallel.Sleep(1);
                             }
                             p.X++;
@@ -714,17 +733,25 @@ namespace NaniteConstructionSystem.Entities.Detectors
         public struct MaterialPositionData
         {
             public List<Vector3I> VoxelPosition;
+            public List<Vector3D> WorldPosition;
             public int Count;
         }
 
         private readonly MaterialPositionData[] m_materials;
+
         private readonly FastResourceLock m_lock = new FastResourceLock();
 
-        public OreDepositMaterials()
+        private readonly MyVoxelBase m_voxelMap;
+
+        public OreDepositMaterials(MyVoxelBase voxelMap)
         {
             m_materials = new MaterialPositionData[256];
+            m_voxelMap = voxelMap;
             for (int i = 0; i < 256; i++)
+            {
                 m_materials[i].VoxelPosition = new List<Vector3I>(1000);
+                m_materials[i].WorldPosition = new List<Vector3D>(1000);
+            }
         }
 
         public void AddMaterial(byte material, Vector3I pos)
@@ -733,7 +760,13 @@ namespace NaniteConstructionSystem.Entities.Detectors
             {
                var count = m_materials[material].Count++;
                 if (count <= 1000)
+                {
                     m_materials[material].VoxelPosition.Add(pos);
+
+                    Vector3D worldPositon;
+                    MyVoxelCoordSystems.VoxelCoordToWorldPosition(m_voxelMap.PositionLeftBottomCorner, ref pos, out worldPositon);
+                    m_materials[material].WorldPosition.Add(worldPositon);
+                }
             }
         }
 
@@ -747,6 +780,46 @@ namespace NaniteConstructionSystem.Entities.Detectors
                     m_materials[i].VoxelPosition.Clear();
                 }
             }
+        }
+
+        public struct MiningMaterial
+        {
+            public long EntityId;
+            public List<Vector3I> VoxelPosition;
+            public List<Vector3D> WorldPosition;
+            public int Count;
+            public byte Material;
+            public MyVoxelMaterialDefinition Definition;
+        }
+
+        public List<MiningMaterial> MiningMaterials()
+        {
+            List<MiningMaterial> materials = new List<MiningMaterial>();
+
+            using (m_lock.AcquireSharedUsing())
+            {
+                for (int i = 0; i < 256; i++)
+                {
+                    if (m_materials[i].Count == 0)
+                        continue;
+
+                    var voxelDefinition = MyDefinitionManager.Static.GetVoxelMaterialDefinition((byte)i);
+                    if (voxelDefinition == null)
+                        continue;
+
+                    materials.Add(new MiningMaterial()
+                    {
+                        EntityId = m_voxelMap.EntityId,
+                        VoxelPosition = m_materials[i].VoxelPosition,
+                        WorldPosition = m_materials[i].WorldPosition,
+                        Count = m_materials[i].Count,
+                        Material = (byte)i,
+                        Definition = voxelDefinition,
+                    });
+                }
+            }
+
+            return materials;
         }
 
         public struct MaterialList

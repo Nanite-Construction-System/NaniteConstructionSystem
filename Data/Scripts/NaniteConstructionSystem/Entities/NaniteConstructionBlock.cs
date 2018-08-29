@@ -1053,7 +1053,7 @@ namespace NaniteConstructionSystem.Entities
             data.TargetId = target.VoxelId;
             data.TargetType = TargetTypes.Voxel;
             data.PositionD = target.Position;
-            data.SubTargetId = target.MiningHammer.MiningBlock.EntityId;
+            //data.SubTargetId = target.MiningHammer.MiningBlock.EntityId;
             SendToPlayerInSyncRange(8951, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
@@ -1102,14 +1102,14 @@ namespace NaniteConstructionSystem.Entities
                     var target = GetTarget<NaniteMiningTargets>().TargetList.FirstOrDefault(x => ((NaniteMiningItem)x).Position == new Vector3D(data.PositionD.X, data.PositionD.Y, data.PositionD.Z));
                     if (target == null)
                     {
-                        var miningHammer = NaniteConstructionManager.MiningList.FirstOrDefault(x => x.MiningBlock.EntityId == data.SubTargetId);
-                        if (miningHammer == null)
-                            return;
+                        //var miningHammer = NaniteConstructionManager.MiningList.FirstOrDefault(x => x.MiningBlock.EntityId == data.SubTargetId);
+                        //if (miningHammer == null)
+                        //    return;
 
                         NaniteMiningItem item = new NaniteMiningItem();
                         item.VoxelId = data.TargetId;
                         item.Position = new Vector3D(data.PositionD.X, data.PositionD.Y, data.PositionD.Z);
-                        item.MiningHammer = miningHammer;
+                        //item.MiningHammer = miningHammer;
                         GetTarget<NaniteMiningTargets>().TargetList.Add(item);
                     }
 
