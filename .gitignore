@@ -11,6 +11,7 @@
 *.hkt
 *.hkt.fbx
 *.hkt.mwm
+*.xml
 
 # temp
 *.tmp	
