@@ -59,6 +59,7 @@
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="3" y="3" z="3" />
+	  <Center x="0" y="1" z="0" />
       <ModelOffset x="0" y="0" z="0" />
       <Model>Models\Cubes\Large\NaniteControlFacility.mwm</Model>
       <Components>
@@ -85,11 +86,9 @@
         <MountPoint Side="Back" StartX="0" StartY="0" EndX="3" EndY="1" />
       </MountPoints>	  
 	  <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\NanoRepairModule_Cons1.mwm" />
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NanoRepairModule_Cons2.mwm" />
-        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\NanoRepairModule_Cons3.mwm" />
-        <Model BuildPercentUpperBound="0.83" File="Models\Cubes\Large\NanoRepairModule_Cons4.mwm" />
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NanoRepairModule_Cons5.mwm" />
+        <Model BuildPercentUpperBound="0.25" File="Models\Cubes\Large\NaniteControlFacility_Constr1.mwm" />
+        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\NaniteControlFacility_Constr2.mwm" />
+        <Model BuildPercentUpperBound="0.75" File="Models\Cubes\Large\NaniteControlFacility_Constr3.mwm" />
       </BuildProgressModels> 
 	  <InventorySize>
         <X>1</X>
@@ -529,7 +528,7 @@
         <SubtypeId>NaniteConstructUpgrade</SubtypeId>
       </Id>
       <DisplayName>Nanite Constructor Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteUpgradeIcon.dds</Icon>	  
+      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>	  
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1" />
@@ -612,7 +611,7 @@
         <SubtypeId>NaniteDeconstructUpgrade</SubtypeId>
       </Id>
       <DisplayName>Nanite Deconstructor Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteUpgradeIcon.dds</Icon>
+      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1" />
@@ -661,7 +660,7 @@
         <SubtypeId>NaniteProjectionUpgrade</SubtypeId>
       </Id>
       <DisplayName>Nanite Projection Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteUpgradeIcon.dds</Icon>
+      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1" />
@@ -710,7 +709,7 @@
         <SubtypeId>NaniteCleanupUpgrade</SubtypeId>
       </Id>
       <DisplayName>Nanite Cleanup Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteUpgradeIcon.dds</Icon>
+      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1" />
@@ -759,7 +758,7 @@
         <SubtypeId>NaniteMiningUpgrade</SubtypeId>
       </Id>
       <DisplayName>Nanite Mining Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteUpgradeIcon.dds</Icon>
+      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1" />
@@ -808,7 +807,7 @@
         <SubtypeId>NaniteMedicalUpgrade</SubtypeId>
       </Id>
       <DisplayName>Nanite Medical Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteUpgradeIcon.dds</Icon>
+      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1" />
@@ -857,7 +856,7 @@
         <SubtypeId>NaniteSpeedUpgrade</SubtypeId>
       </Id>
       <DisplayName>Nanite Speed Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteUpgradeIcon.dds</Icon>
+      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1" />
@@ -906,7 +905,7 @@
         <SubtypeId>NanitePowerUpgrade</SubtypeId>
       </Id>
       <DisplayName>Nanite Power Reduction Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteUpgradeIcon.dds</Icon>	  
+      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>	  
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1" />
