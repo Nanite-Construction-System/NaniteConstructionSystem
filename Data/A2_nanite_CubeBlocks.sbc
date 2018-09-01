@@ -1262,9 +1262,9 @@
     </Definition>
 
     <!-- Migration: block only, no function -->
-    <Definition xsi:type="MyObjectBuilder_OxygenFarmDefinition">
+    <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
       <Id>
-        <TypeId>OxygenFarm</TypeId>
+        <TypeId>ShipWelder</TypeId>
         <SubtypeId>LargeNaniteFactory</SubtypeId>
       </Id>
       <DisplayName>OLD Nanite Control Factory</DisplayName>
@@ -1320,6 +1320,7 @@
       <PrimarySound>NaniteModule</PrimarySound>
       <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>
       <EmissiveColorPreset>Default</EmissiveColorPreset>
+      <SensorRadius>2.26</SensorRadius>
       <PCU>1</PCU>
     </Definition>
     <Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
