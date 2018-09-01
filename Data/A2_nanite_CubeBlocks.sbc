@@ -509,9 +509,8 @@
 		<MountPoint Side="Back" StartX="0" StartY="1" EndX="1" EndY="2" />
       </MountPoints>
       <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NUHOL_Cons1.mwm" />
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NUHOL_Cons2.mwm" />
-        <Model BuildPercentUpperBound="0.90" File="Models\Cubes\Large\NUHOL_Cons3.mwm" />
+        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NUHOL_Constr1.mwm" />
+        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NUHOL_Constr2.mwm" />
       </BuildProgressModels>
       <BlockPairName>NaniteUltrasonicHammer</BlockPairName>
       <EdgeType>Light</EdgeType>
