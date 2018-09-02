@@ -12,6 +12,7 @@
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="3" y="3" z="3"/>
+	  <Center x="1" y="0" z="1" />
       <ModelOffset x="0" y="0" z="0"/>
       <Model>Models\Cubes\Large\NaniteControlFacility.mwm</Model>
       <Components>
