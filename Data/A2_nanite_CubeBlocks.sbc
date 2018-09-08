@@ -395,8 +395,7 @@
         <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
       </MountPoints>
       <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteConstruction_Constr2.mwm"/>
+        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>UpgradeConstruct</BlockPairName>
       <EmissiveColorPreset>Default</EmissiveColorPreset>
@@ -475,8 +474,7 @@
         <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
       </MountPoints>
       <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteConstruction_Constr2.mwm"/>
+        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>UpgradeDeconstruct</BlockPairName>
       <MirroringX>Z</MirroringX>
@@ -525,8 +523,7 @@
         <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
       </MountPoints>
       <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteConstruction_Constr2.mwm"/>
+        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>UpgradeProjection</BlockPairName>
       <MirroringX>Z</MirroringX>
@@ -575,8 +572,7 @@
         <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
       </MountPoints>
       <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteConstruction_Constr2.mwm"/>
+        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>UpgradeCleanup</BlockPairName>
       <MirroringX>Z</MirroringX>
@@ -625,8 +621,7 @@
         <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
       </MountPoints>
       <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteConstruction_Constr2.mwm"/>
+        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>MiningNanites</BlockPairName>
       <MirroringX>Z</MirroringX>
@@ -675,8 +670,7 @@
         <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
       </MountPoints>
       <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteConstruction_Constr2.mwm"/>
+        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>MedicalNanites</BlockPairName>
       <MirroringX>Z</MirroringX>
@@ -725,8 +719,7 @@
         <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
       </MountPoints>
       <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteConstruction_Constr2.mwm"/>
+        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>UpgradeSpeed</BlockPairName>
       <MirroringX>Z</MirroringX>
@@ -775,8 +768,7 @@
         <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
       </MountPoints>
       <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteConstruction_Constr2.mwm"/>
+        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>UpgradePower</BlockPairName>
       <MirroringX>Z</MirroringX>
@@ -828,8 +820,7 @@
         <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
       </MountPoints>
       <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteConstruction_Constr2.mwm"/>
+        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteOreDetectorUpgradeRange</BlockPairName>
       <BlockVariants>
@@ -892,8 +883,7 @@
         <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
       </MountPoints>
       <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteConstruction_Constr2.mwm"/>
+        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteOreDetectorUpgradeScanning</BlockPairName>
       <EmissiveColorPreset>Default</EmissiveColorPreset>
@@ -943,8 +933,7 @@
         <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
       </MountPoints>
       <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteConstruction_Constr2.mwm"/>
+        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteOreDetectorUpgradeFilter</BlockPairName>
       <EmissiveColorPreset>Default</EmissiveColorPreset>
@@ -994,8 +983,7 @@
         <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
       </MountPoints>
       <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteConstruction_Constr2.mwm"/>
+        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteOreDetectorUpgradePowerEfficiency</BlockPairName>
       <EmissiveColorPreset>Default</EmissiveColorPreset>
