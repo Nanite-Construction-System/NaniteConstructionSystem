@@ -394,7 +394,8 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             var def = MyDefinitionManager.Static.GetVoxelMaterialDefinition(target.VoxelMaterial);
             var builder = MyObjectBuilderSerializer.CreateNewObject<MyObjectBuilder_Ore>(def.MinedOre);
-            if (!GridHelper.FindFreeCargo((MyCubeBlock)m_constructionBlock.ConstructionBlock, builder, (int)amount, false))
+            var inventory = ((MyCubeBlock)m_constructionBlock.ConstructionBlock).GetInventory();
+            if (inventory.MaxVolume - inventory.CurrentVolume < (MyFixedPoint)amount)
             {
                 Logging.Instance.WriteLine(string.Format("Can not find free cargo space!"));
                 return false;
