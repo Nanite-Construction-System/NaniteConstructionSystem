@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using VRageMath;
 using VRage.Game.ModAPI;
 using VRage.Game;
@@ -56,7 +56,6 @@ namespace NaniteConstructionSystem.Extensions
             List<IMyCubeGrid> gridList = new List<IMyCubeGrid>();
             gridList.Add(grid);
 
-            //int pos = 0;
             try
             {
                 List<Ingame.IMyTerminalBlock> terminalBlocks = new List<Ingame.IMyTerminalBlock>();
@@ -113,125 +112,23 @@ namespace NaniteConstructionSystem.Extensions
             return gridList;
         }
 
-        public static bool FindFreeCargo(MyCubeBlock target, MyCubeBlock startBlock, bool ignoreOtherFactories = false)
+        public static void TryMoveToFreeCargo(MyCubeBlock target, List<IMyInventory> connectedInventory, bool ignoreOtherFactories = false)
         {
-            var list = Conveyor.GetConveyorListFromEntity(startBlock);
-            if (list == null)
-                return false;
-
-            List<MyInventory> inventoryList = new List<MyInventory>();
-            foreach (var item in list)
-            {
-                IMyEntity entity;
-                if (MyAPIGateway.Entities.TryGetEntityById(item, out entity))
-                {
-                    if (!(entity is IMyCubeBlock))
-                        continue;
-
-                    if (target == (MyCubeBlock)entity)
-                        continue;
-
-                    if (entity is Ingame.IMyRefinery || entity is Ingame.IMyAssembler)
-                        continue;
-
-                    if (ignoreOtherFactories && ((IMyCubeBlock)entity).BlockDefinition.SubtypeName == "LargeNaniteFactory")
-                        continue;
-
-                    MyCubeBlock block = (MyCubeBlock)entity;
-                    if (!block.HasInventory)
-                        continue;
-
-                    inventoryList.Add(block.GetInventory());
-                }
-            }
-
             MyInventory sourceInventory = target.GetInventory();
-            MyInventory targetInventory = null;
-            foreach (var item in inventoryList.OrderByDescending(x => (float)x.MaxVolume - (float)x.CurrentVolume))
+            foreach (IMyInventory inv in connectedInventory.OrderByDescending(x => (float)x.MaxVolume - (float)x.CurrentVolume))
             {
-                targetInventory = item;
-
+                MyInventory targetInventory = inv as MyInventory;
                 foreach (var subItem in sourceInventory.GetItems().ToList())
                 {
-                    if (targetInventory.ItemsCanBeAdded(subItem.Amount, subItem))
-                    {
-                        targetInventory.TransferItemsFrom(sourceInventory, subItem, subItem.Amount);
-                    }
+                    //Logging.Instance.WriteLine("TryMoveToFreeCargoParallel: Attempting to move items into inventory.");
+                    if (targetInventory.ItemsCanBeAdded(subItem.Amount, subItem)) targetInventory.TransferItemsFrom(sourceInventory, subItem, subItem.Amount);
                     else
                     {
                         int amountFits = (int)targetInventory.ComputeAmountThatFits(new MyDefinitionId(subItem.Content.TypeId, subItem.Content.SubtypeId));
-                        if (amountFits > 0f)
-                        {
-                            targetInventory.TransferItemsFrom(sourceInventory, subItem, amountFits);
-                        }
+                        if(amountFits > 0f) targetInventory.TransferItemsFrom(sourceInventory, subItem, amountFits);
                     }
                 }
             }
-
-            if (sourceInventory.GetItems().Count < 1)
-                return true;
-
-            return false;
-        }
-
-        public static bool FindFreeCargo(MyCubeBlock startBlock, MyObjectBuilder_Base item, int count, bool order = true)
-        {
-            var list = Conveyor.GetConveyorListFromEntity(startBlock);
-            if (list == null)
-            {
-                Logging.Instance.WriteLine(string.Format("Conveyor list is null!"));
-                return false;
-            }
-
-            if (!list.Contains(startBlock.EntityId))
-                list.Add(startBlock.EntityId);
-
-            List<MyInventory> inventoryList = new List<MyInventory>();
-            foreach (var inventoryItem in list)
-            {
-                IMyEntity entity;
-                if (MyAPIGateway.Entities.TryGetEntityById(inventoryItem, out entity))
-                {
-                    if (!(entity is IMyCubeBlock))
-                        continue;
-
-                    if (entity is Ingame.IMyRefinery || entity is Ingame.IMyAssembler)
-                        continue;
-
-                    MyCubeBlock block = (MyCubeBlock)entity;
-                    if (!block.HasInventory)
-                        continue;
-
-                    if (block.EntityId == startBlock.EntityId)
-                        inventoryList.Insert(0, block.GetInventory());
-                    else
-                        inventoryList.Add(block.GetInventory());
-                }
-            }
-
-            MyInventory targetInventory = null;
-
-            List<MyInventory> modifiedList;
-            if (order)
-                modifiedList = inventoryList.OrderByDescending(x => (float)x.MaxVolume - (float)x.CurrentVolume).ToList();
-            else
-                modifiedList = inventoryList;
-
-            foreach (var inventoryItem in modifiedList)
-            {
-                targetInventory = inventoryItem;
-                if(targetInventory.CanItemsBeAdded(count, item.GetId()))
-                {
-                    var ownerName = targetInventory.Owner as IMyTerminalBlock;
-                    if(ownerName != null)
-                        Logging.Instance.WriteLine(string.Format("TRANSFER Adding {0} {1} to {2}", count, item.GetId().SubtypeName, ownerName.CustomName));
-
-                    targetInventory.AddItems(count, item);
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }
