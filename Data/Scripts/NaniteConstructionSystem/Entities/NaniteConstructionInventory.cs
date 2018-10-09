@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
@@ -25,6 +25,8 @@ namespace NaniteConstructionSystem.Entities
 {
     public class NaniteConstructionInventory
     {
+        public List<IMyInventory> connectedInventory = new List<IMyInventory>();
+
         private Dictionary<string, int> m_componentsRequired;
         public Dictionary<string, int> ComponentsRequired
         {
@@ -39,96 +41,54 @@ namespace NaniteConstructionSystem.Entities
             m_componentsRequired = new Dictionary<string, int>();
         }
 
-        internal void RebuildConveyorList()
-        {
-            if (DateTime.Now - Conveyor.LastRebuild > TimeSpan.FromSeconds(30))
-            {
-                HashSet<IMyEntity> entities = new HashSet<IMyEntity>();
-                MyAPIGateway.Entities.GetEntities(entities, x => x.Physics != null && !x.Closed);
-                Conveyor.RebuildConveyorList(entities);
-            }
-        }
-
-        internal void TakeRequiredComponents(MyEntity inventoryOwner)
+        internal void TakeRequiredComponents()
         {
             if (MyAPIGateway.Session.CreativeMode)
                 return;
-
-            if (!inventoryOwner.HasInventory)
-                return;
-
-            // Ignore reactors
-            if (inventoryOwner is Sandbox.ModAPI.Ingame.IMyReactor)
-                return;
-
-            if (inventoryOwner is IMyCubeBlock && ((IMyCubeBlock)inventoryOwner).BlockDefinition.SubtypeName.Contains("Nanite"))
-                return;
-
-            int inventoryIndex = inventoryOwner.InventoryCount - 1;
-            //if (inventoryOwner is Sandbox.ModAPI.Ingame.IMyAssembler)
-            //    inventoryIndex = 1;
-
-            IMyInventory constructionInventory = GetConstructionInventory();
-            IMyInventory inventory = (IMyInventory)inventoryOwner.GetInventoryBase(inventoryIndex);
-            if (constructionInventory == null || inventory == null)
-                return;
-
-            if (((Sandbox.Game.MyInventory)inventory).GetItemsCount() < 1)
-                return;
-
-            //if (!constructionInventory.IsConnectedTo(inventory))
-            //    return;
-
-            IMyTerminalBlock terminalOwner = inventoryOwner as IMyTerminalBlock;
-            MyRelationsBetweenPlayerAndBlock relation = ((IMyTerminalBlock)m_constructionBlock).GetUserRelationToOwner(terminalOwner.OwnerId);
-            if (relation == MyRelationsBetweenPlayerAndBlock.Enemies)
+            
+            MyAPIGateway.Parallel.StartBackground(() =>
             {
-                return;
-            }
-
-            foreach (var inventoryItem in inventory.GetItems().ToList())
-            {
-                foreach (var componentNeeded in ComponentsRequired.ToList())
+                foreach(IMyInventory inventory in connectedInventory)
                 {
-                    if (inventoryItem.Content.TypeId != typeof(MyObjectBuilder_Component))
+                    IMyInventory constructionInventory = GetConstructionInventory();
+                    if (constructionInventory == null || inventory == null || inventory.GetItems().Count < 1) 
                         continue;
 
-                    if (componentNeeded.Value <= 0)
-                        continue;
-
-                    if ((int)inventoryItem.Amount <= 0f)
-                        continue;
-
-                    if (inventoryItem.Content.SubtypeName == componentNeeded.Key)
+                    foreach (var inventoryItem in inventory.GetItems().ToList())
                     {
-                        if (inventoryItem.Amount >= componentNeeded.Value)
+                        foreach (var componentNeeded in ComponentsRequired.ToList())
                         {
-                            var validAmount = GetMaxComponentAmount(componentNeeded.Key, (float)constructionInventory.MaxVolume - (float)constructionInventory.CurrentVolume);
-                            var amount = Math.Min(componentNeeded.Value, validAmount);
-                            if (!constructionInventory.CanItemsBeAdded((int)amount, new SerializableDefinitionId(typeof(MyObjectBuilder_Component), componentNeeded.Key)))
+                            if (inventoryItem.Content.TypeId != typeof(MyObjectBuilder_Component) || componentNeeded.Value <= 0 
+                              || (int)inventoryItem.Amount <= 0f || inventoryItem.Content.SubtypeName != componentNeeded.Key) 
                                 continue;
 
-                            inventory.RemoveItemsOfType((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
-                            constructionInventory.AddItems((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
-                            ComponentsRequired[componentNeeded.Key] -= (int)amount;
-                        }
-                        else
-                        {
-                            var validAmount = GetMaxComponentAmount(componentNeeded.Key, (float)constructionInventory.MaxVolume - (float)constructionInventory.CurrentVolume);
-                            var amount = Math.Min((float)inventoryItem.Amount, validAmount);
+                            var validAmount = GetMaxComponentAmount(componentNeeded.Key, (float)constructionInventory.MaxVolume - (float)constructionInventory.CurrentVolume); 
 
-                            if (!constructionInventory.CanItemsBeAdded((int)amount, new SerializableDefinitionId(typeof(MyObjectBuilder_Component), componentNeeded.Key)))
+                            float amount;
+
+                            if (inventoryItem.Amount >= componentNeeded.Value) 
+                                amount = Math.Min(componentNeeded.Value, validAmount);
+                            else amount = Math.Min((float)inventoryItem.Amount, validAmount);
+                            if (!constructionInventory.CanItemsBeAdded((int)amount, new SerializableDefinitionId(typeof(MyObjectBuilder_Component), componentNeeded.Key))) 
                                 continue;
 
-                            inventory.RemoveItemsOfType((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
-                            constructionInventory.AddItems((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
-                            ComponentsRequired[componentNeeded.Key] -= (int)amount;
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                            {
+                                try
+                                {
+                                    inventory.RemoveItemsOfType((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
+                                    constructionInventory.AddItems((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
+                                    ComponentsRequired[componentNeeded.Key] -= (int)amount;
+                                }
+                                catch (Exception ex)
+                                {
+                                    VRage.Utils.MyLog.Default.WriteLineAndConsole($"Nanite Control Factory: Error while moving inventory to Factory Block!\n {ex.StackTrace}");
+                                }
+                            });
                         }
-
-                        continue;
                     }
                 }
-            }
+            });
         }
 
         private float GetMaxComponentAmount(string componentName, float remainingVolume)
