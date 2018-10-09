@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Sandbox.ModAPI;
@@ -294,63 +294,8 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 return true;
             }
-
-            return FindFreeCargo(target, (MyCubeBlock)m_constructionBlock.ConstructionBlock, transfer);
-        }
-
-        private bool FindFreeCargo(IMyEntity target, MyCubeBlock startBlock, bool transfer)
-        {
-            var list = Conveyor.GetConveyorListFromEntity(m_constructionBlock.ConstructionBlock);
-            if (list == null)
-                return false;
-
-            List<MyInventory> inventoryList = new List<MyInventory>();
-            foreach(var item in list)
-            {
-                IMyEntity entity;
-                if (MyAPIGateway.Entities.TryGetEntityById(item, out entity))
-                {
-                    if (!(entity is IMyCubeBlock))
-                        continue;
-
-                    if (entity is Ingame.IMyRefinery || entity is Ingame.IMyAssembler)
-                        continue;
-
-                    MyCubeBlock block = (MyCubeBlock)entity;
-                    if (!block.HasInventory)
-                        continue;
-
-                    inventoryList.Add(block.GetInventory());
-                }
-            }
-
-            MyFloatingObject floating = (MyFloatingObject)target;
-            float amount = 0f;
-            MyInventory targetInventory = null;
-            foreach (var item in inventoryList.OrderByDescending(x => (float)x.MaxVolume - (float)x.CurrentVolume))
-            {
-                amount = GetNaniteInventoryAmountThatFits(target, (MyCubeBlock)item.Owner);
-                if ((int)amount == 0)
-                    continue;
-
-                targetInventory = item;
-                break;
-            }
-
-            if ((int)amount == 0)
-                return false;
-
-            var def = MyDefinitionManager.Static.GetPhysicalItemDefinition(new VRage.Game.MyDefinitionId(floating.Item.Content.TypeId, floating.Item.Content.SubtypeId));
-            if ((int)amount > 1 && (amount / def.Volume) > m_carryVolume)
-                amount = m_carryVolume / def.Volume;
-
-            if ((int)amount < 1)
-                amount = 1f;
-
-            if (transfer)
-                targetInventory.PickupItem(floating, (int)amount);
-
-            return true;
+            
+            return false;
         }
 
         private float GetNaniteInventoryAmountThatFits(IMyEntity target, MyCubeBlock block)
