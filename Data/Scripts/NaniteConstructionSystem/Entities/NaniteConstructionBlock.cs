@@ -48,6 +48,8 @@ namespace NaniteConstructionSystem.Entities
             get { return m_constructionBlock; }
         }
 
+        private MyCubeBlock m_constructionCubeBlock;
+
         private List<NaniteTargetBlocksBase> m_targets;
         public List<NaniteTargetBlocksBase> Targets
         {
@@ -116,15 +118,15 @@ namespace NaniteConstructionSystem.Entities
             m_constructionBlock.CustomNameChanged += CustomNameChanged;
             m_defCache = new Dictionary<MyDefinitionId, MyBlueprintDefinitionBase>();
 
-            MyCubeBlock block = (MyCubeBlock)entity;
-            block.UpgradeValues.Add("ConstructionNanites", 0f);
-            block.UpgradeValues.Add("DeconstructionNanites", 0f);
-            block.UpgradeValues.Add("ProjectionNanites", 0f);
-            block.UpgradeValues.Add("CleanupNanites", 0f);
-            block.UpgradeValues.Add("MiningNanites", 0f);
-            block.UpgradeValues.Add("MedicalNanites", 0f);
-            block.UpgradeValues.Add("SpeedNanites", 0f);
-            block.UpgradeValues.Add("PowerNanites", 0f);
+            m_constructionCubeBlock = (MyCubeBlock)entity;
+            m_constructionCubeBlock.UpgradeValues.Add("ConstructionNanites", 0f);
+            m_constructionCubeBlock.UpgradeValues.Add("DeconstructionNanites", 0f);
+            m_constructionCubeBlock.UpgradeValues.Add("ProjectionNanites", 0f);
+            m_constructionCubeBlock.UpgradeValues.Add("CleanupNanites", 0f);
+            m_constructionCubeBlock.UpgradeValues.Add("MiningNanites", 0f);
+            m_constructionCubeBlock.UpgradeValues.Add("MedicalNanites", 0f);
+            m_constructionCubeBlock.UpgradeValues.Add("SpeedNanites", 0f);
+            m_constructionCubeBlock.UpgradeValues.Add("PowerNanites", 0f);
         }
 
         private void CustomNameChanged(IMyTerminalBlock block)
@@ -215,6 +217,8 @@ namespace NaniteConstructionSystem.Entities
             });
 
             ((IMyFunctionalBlock)m_constructionBlock).AppendingCustomInfo += AppendingCustomInfo;
+
+            BuildConnectedInventory();
         }
 
         /// <summary>
@@ -230,6 +234,8 @@ namespace NaniteConstructionSystem.Entities
 
             if (m_updateCount % 1800 == 0)
             {
+                BuildConnectedInventory();
+
                 string upgrades = "";
                 MyCubeBlock block = (MyCubeBlock)m_constructionBlock;
                 foreach(var item in block.UpgradeValues)
@@ -314,52 +320,75 @@ namespace NaniteConstructionSystem.Entities
             if (m_updateCount % 120 != 0)
                 return;
 
-            if (m_constructionBlock.Closed)
-                return;
-
             var inventory = ((MyCubeBlock)m_constructionBlock).GetInventory();
-            if(inventory.VolumeFillFactor > 0.75f && (GetTarget<NaniteDeconstructionTargets>().TargetList.Count > 0 || GetTarget<NaniteFloatingTargets>().TargetList.Count > 0 || GetTarget<NaniteMiningTargets>().TargetList.Count > 0))
+            if(inventory.VolumeFillFactor > 0.75f && (GetTarget<NaniteDeconstructionTargets>().TargetList.Count > 0 
+              || GetTarget<NaniteFloatingTargets>().TargetList.Count > 0 || GetTarget<NaniteMiningTargets>().TargetList.Count > 0))
             {
-                GridHelper.FindFreeCargo((MyCubeBlock)m_constructionBlock, (MyCubeBlock)m_constructionBlock);
+                GridHelper.TryMoveToFreeCargo((MyCubeBlock)m_constructionBlock, InventoryManager.connectedInventory, true);
                 Logging.Instance.WriteLine(string.Format("PUSHING Factory inventory over 75% full: {0}", m_constructionBlock.EntityId));
             }
         }
 
+        /// <summary>
+        /// in a parallel thread, gets all connected inventories. Replaces outdated Conveyor.cs helper scripts
+        /// TO DO: This is currently set to rebuild every minute (and once on init), will change to only rebuild when a grid's layout or block integrity changes
+        /// TO DO: Include connected subgrids
+        /// </summary>
+        public void BuildConnectedInventory()
+        {
+            InventoryManager.connectedInventory.Clear();
+            MyAPIGateway.Parallel.StartBackground(() =>
+            {
+                try
+                {
+                    foreach(IMySlimBlock SlimBlock in m_constructionCubeBlock.CubeGrid.GetBlocks())
+                    {
+                        IMyEntity entity = SlimBlock.FatBlock as IMyEntity;
+                        if(entity == null || entity.EntityId == ConstructionBlock.EntityId || entity is Sandbox.ModAPI.Ingame.IMyReactor 
+                          || !entity.HasInventory || SlimBlock.FatBlock.BlockDefinition.SubtypeName.Contains("Nanite")) 
+                            continue;
+
+                        //Add assemblers for assembler queue processing
+                        IMyProductionBlock prodblock = entity as IMyProductionBlock;
+                        IMyInventory prodblockinv = null;
+                        IMyInventory inv; 
+                        if(prodblock != null) prodblockinv = prodblock.OutputInventory;
+                        if(prodblockinv != null) inv = prodblockinv; 
+                        else inv = entity.GetInventory();
+
+                        if(inv == null || !inv.IsConnectedTo(m_constructionCubeBlock.GetInventory())) 
+                            continue;
+
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                        {
+                            InventoryManager.connectedInventory.Add(inv);
+                        });
+                    }
+                }
+                catch(Exception ex)
+                {
+                    Logging.Instance.WriteLine(string.Format("BuildConnectedInventory() Error: {0}", ex.ToString()));
+                }
+            });
+        }
+
         private void ProcessAssemblerQueue()
         {
-            if (!NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.EntityId))
-                return;
-
-            if (!NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].UseAssemblers)
-                return;
-
-            if (InventoryManager.ComponentsRequired.Count < 1)
+            if (!NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.EntityId) 
+              || !NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].UseAssemblers 
+              || InventoryManager.ComponentsRequired.Count < 1) 
                 return;
 
             List<IMyProductionBlock> assemblerList = new List<IMyProductionBlock>();
-            var conveyorList = Conveyor.GetConveyorListFromEntity(m_constructionBlock);
-            if (conveyorList == null)
-                return;
-
-            var list = conveyorList.ToList();
-            foreach(var item in list)
+            foreach(var inv in InventoryManager.connectedInventory)
             {
-                IMyEntity entity;
-                if (!MyAPIGateway.Entities.TryGetEntityById(item, out entity))
-                    continue;
-
-                Ingame.IMyAssembler assembler = entity as Ingame.IMyAssembler;
-                if (assembler == null)
-                    continue;
-
-                if (assembler.Mode == Ingame.MyAssemblerMode.Disassembly)
-                    continue;
-
+                IMyEntity entity = inv.Owner as IMyEntity;
+                if(entity == null) continue;
+                IMyAssembler assembler = entity as IMyAssembler;
+                if (assembler == null || assembler.Mode == Sandbox.ModAPI.Ingame.MyAssemblerMode.Disassembly) continue;
                 assemblerList.Add((IMyProductionBlock)assembler);
             }
-
-            if (assemblerList.Count < 1)
-                return;
+            if (assemblerList.Count < 1) return;
 
             Dictionary<string, int> missing = new Dictionary<string, int>();
             Dictionary<string, int> available = new Dictionary<string, int>();
@@ -370,16 +399,12 @@ namespace NaniteConstructionSystem.Entities
             foreach(var item in missing)
             {
                 var def = MyDefinitionManager.Static.TryGetBlueprintDefinitionByResultId(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key));
-                if (def == null)
-                    continue;
+                if (def == null) continue;
 
                 // If this is some sort of weird modded definition, then we need to find the vanilla definition (ug)
                 if(def.Results != null && def.Results[0].Amount > 1)
                 {
-                    if (m_defCache.ContainsKey(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key)))
-                    {
-                        def = m_defCache[new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key)];
-                    }
+                    if (m_defCache.ContainsKey(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key))) def = m_defCache[new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key)]; 
                     else
                     {
                         foreach (var defTest in MyDefinitionManager.Static.GetBlueprintDefinitions())
@@ -387,7 +412,10 @@ namespace NaniteConstructionSystem.Entities
                             if (defTest.Results != null && defTest.Results[0].Amount == 1 && defTest.Results[0].Id == new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key))
                             {
                                 def = defTest;
-                                m_defCache.Add(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key), def);
+                                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                                {
+                                    m_defCache.Add(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key), def);
+                                });
                                 break;
                             }
                         }
@@ -407,31 +435,23 @@ namespace NaniteConstructionSystem.Entities
                     }
                 }
 
-                if (found)
-                    continue;
+                if (found) continue;
 
                 int blueprintCount = assemblerList.Sum(x => x.GetQueue().Sum(y => y.Blueprint == def ? (int)y.Amount : 0));
                 int availableCount = 0;
-                if (available.ContainsKey(item.Key))
-                    availableCount = available[item.Key];
+                if (available.ContainsKey(item.Key)) availableCount = available[item.Key];
 
-                if (blueprintCount >= item.Value - availableCount)
-                {
-                    continue;
-                }
+                if (blueprintCount >= item.Value - availableCount) continue;
 
                 var assemblers = assemblerList.Where(x => NaniteConstructionManager.AssemblerSettings.ContainsKey(x.EntityId) && NaniteConstructionManager.AssemblerSettings[x.EntityId].AllowFactoryUsage);
                 foreach (var target in assemblers)
                 {
-                    //if (!NaniteConstructionManager.AssemblerSettings.ContainsKey(target.EntityId))
-                    //    continue;
-
-                    //if (!NaniteConstructionManager.AssemblerSettings[target.EntityId].AllowFactoryUsage)
-                    //    continue;
-
                     int amount = (int)Math.Max(((float)(item.Value - blueprintCount) / (float)assemblers.Count()), 1f);
                     Logging.Instance.WriteLine(string.Format("ASSEMBLER Queuing {0} {1} for factory {2} ({3})", amount, def.Id, m_constructionBlock.CustomName, blueprintCount));
-                    target.InsertQueueItem(0, def, amount);
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                    {
+                        target.InsertQueueItem(0, def, amount);
+                    });
                 }
             }
         }
@@ -528,9 +548,8 @@ namespace NaniteConstructionSystem.Entities
 
                     try
                     {
-                        // Rebuild our conveyor cache
-                        InventoryManager.RebuildConveyorList();
                         ProcessTargetsParallel();
+                        ProcessAssemblerQueue();
 
                         // Process possible blocks
                         MyAPIGateway.Utilities.InvokeOnGameThread(() =>
@@ -538,8 +557,7 @@ namespace NaniteConstructionSystem.Entities
                             try
                             {
                                 ProcessTargets();
-                                ProcessRequiredComponents();
-                                ProcessAssemblerQueue();
+                                InventoryManager.TakeRequiredComponents();
                             }
                             catch (Exception ex)
                             {
@@ -689,44 +707,6 @@ namespace NaniteConstructionSystem.Entities
         private void DrawParticles()
         {
             ParticleManager.Update();
-        }
-
-        /// <summary>
-        /// Process any required components by the factory
-        /// </summary>
-        internal void ProcessRequiredComponents()
-        {
-            try
-            {
-                if (InventoryManager.ComponentsRequired.Count < 1)
-                    return;
-
-                var list = Conveyor.GetConveyorListFromEntity(ConstructionBlock);
-                if (list != null)
-                {
-                    foreach (var entityId in list)
-                    {
-                        if (InventoryManager.ComponentsRequired.Count < 1)
-                            return;
-
-                        if (entityId == ConstructionBlock.EntityId)
-                            continue;
-
-                        IMyEntity entity = null;
-                        if (!MyAPIGateway.Entities.TryGetEntityById(entityId, out entity))
-                            continue;
-
-                        if (((MyEntity)entity).HasInventory && ((MyEntity)entity).GetInventory(((MyEntity)entity).InventoryCount - 1).GetItemsCount() > 0)
-                        {
-                            InventoryManager.TakeRequiredComponents((MyEntity)entity);
-                        }
-                    }
-                }
-            }
-            catch(Exception ex)
-            {
-                Logging.Instance.WriteLine(string.Format("ProcessRequiredComponents() Error: {0}", ex.ToString()));
-            }
         }
 
         /// <summary>
