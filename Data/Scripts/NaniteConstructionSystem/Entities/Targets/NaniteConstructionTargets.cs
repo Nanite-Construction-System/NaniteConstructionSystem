@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Sandbox.Game.Entities;
@@ -87,95 +87,88 @@ namespace NaniteConstructionSystem.Entities.Targets
             return result;
         }
 
-        public override void FindTargets(ref Dictionary<string, int> available)
+        public override void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList)
         {
-            if (!IsEnabled())
+            InvalidTargetReason("");
+
+            if (!IsEnabled()) 
                 return;
 
-            ComponentsRequired.Clear();
             if (m_targetList.Count >= GetMaximumTargets())
             {
-                if (PotentialTargetList.Count > 0)
-                    m_lastInvalidTargetReason = "Maximum targets reached.  Add more upgrades!";
-
+                if (PotentialTargetList.Count > 0) 
+                    InvalidTargetReason("Maximum targets reached. Add more upgrades!");
                 return;
             }
 
-            NaniteConstructionInventory inventoryManager = m_constructionBlock.InventoryManager;
-            Vector3D sourcePosition = m_constructionBlock.ConstructionBlock.GetPosition();
-
             Dictionary<string, int> missing = new Dictionary<string, int>();
-            using (Lock.AcquireExclusiveUsing())
+            string LastInvalidTargetReason = "";
+            
+            lock (m_potentialTargetList)
             {
-                var potentialList = m_potentialTargetList.OrderByDescending(x => GetMissingComponentCount(inventoryManager, (IMySlimBlock)x)).ToList();
-                for (int r = potentialList.Count - 1; r >= 0; r--)
+                List<IMySlimBlock> removalList = new List<IMySlimBlock>();
+                int targetListCount = m_targetList.Count;
+
+                foreach (IMySlimBlock item in m_potentialTargetList)
                 {
                     if (m_constructionBlock.IsUserDefinedLimitReached())
                     {
-                        m_lastInvalidTargetReason = "User defined maximum nanite limit reached";
+                        InvalidTargetReason("User defined maximum nanite limit reached");
                         return;
                     }
 
-                    var item = (IMySlimBlock)potentialList[r];
-                    if (TargetList.Contains(item))
+                    if (item == null || TargetList.Contains(item)) 
                         continue;
 
                     missing.Clear();
                     item.GetMissingComponents(missing);
+                    if (missing == null) 
+                        continue;
                     bool foundMissingComponents = true;
 
-                    if (MyAPIGateway.Session.CreativeMode)
-                        foundMissingComponents = true;
-                    else if (missing.Count > 0)
-                    {
-                        foundMissingComponents = inventoryManager.CheckComponentsAvailable(ref missing, ref available);
-                    }
+                    if (missing.Count > 0) 
+                        foundMissingComponents = m_constructionBlock.InventoryManager.CheckComponentsAvailable(ref missing, ref available);
 
                     if (foundMissingComponents && NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
                     {
-                        // Check to see if another block targetting this for construction
-                        var blockList = NaniteConstructionManager.GetConstructionBlocks((IMyCubeGrid)m_constructionBlock.ConstructionBlock.CubeGrid);
                         bool found = false;
                         foreach (var block in blockList)
                         {
                             if (block.Targets.First(y => y is NaniteConstructionTargets).TargetList.Contains(item as IMySlimBlock))
                             {
                                 found = true;
+                                LastInvalidTargetReason = "Another factory has this block as a target";
                                 break;
                             }
                         }
 
                         if (found)
-                        {
-                            m_lastInvalidTargetReason = "Another factory has this block as a target";
                             continue;
-                        }
 
-                        m_potentialTargetList.RemoveAt(r);
-                        m_targetList.Add(item);
+                        removalList.Add(item);
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {
+                            if (item != null)
+                                m_targetList.Add(item);
+                        });
                         var def = item.BlockDefinition as MyCubeBlockDefinition;
-                        Logging.Instance.WriteLine(string.Format("ADDING Construction/Repair Target: conid={0} subtype={1} entityID={2} position={3}", m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, item.FatBlock != null ? item.FatBlock.EntityId : 0, item.Position));
-                        if (m_targetList.Count >= GetMaximumTargets())
+                        Logging.Instance.WriteLine(string.Format("ADDING Construction/Repair Target: conid={0} subtype={1} entityID={2} position={3}", 
+                          m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, item.FatBlock != null ? item.FatBlock.EntityId : 0, item.Position));
+                        if (++targetListCount >= GetMaximumTargets()) 
                             break;
                     }
                     else if (!foundMissingComponents)
-                    {
-                        foreach (var component in missing)
-                        {
-                            if (!ComponentsRequired.ContainsKey(component.Key))
-                                ComponentsRequired.Add(component.Key, component.Value);
-                            else
-                                ComponentsRequired[component.Key] += component.Value;
-                        }
+                        LastInvalidTargetReason = "Missing components";
 
-                        m_lastInvalidTargetReason = "Missing components";
-                    }
                     else if (!NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
-                    {
-                        m_lastInvalidTargetReason = "Insufficient power for another target.";
-                    }
+                        LastInvalidTargetReason = "Insufficient power for another target.";
                 }
+                foreach (var item in removalList)
+                    if (m_potentialTargetList.Contains(item)) 
+                        m_potentialTargetList.Remove(item);
             }
+            if (LastInvalidTargetReason != "")
+                InvalidTargetReason(LastInvalidTargetReason);
         }
 
         private int GetMissingComponentCount(NaniteConstructionInventory inventoryManager, IMySlimBlock block)
