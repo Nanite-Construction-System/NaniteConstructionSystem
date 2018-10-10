@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using VRage.Game;
 using VRageMath;
 using VRage.ModAPI;
@@ -108,6 +108,9 @@ namespace NaniteConstructionSystem.Particles
 
         public void Unload()
         {
+            if (m_particle == null)
+                return;
+
             m_particle.Stop();
             m_particle = null;
         }
@@ -115,7 +118,7 @@ namespace NaniteConstructionSystem.Particles
         public void UpdateMatrix()
         {
             IMyEntity entity;
-            if (!MyAPIGateway.Entities.TryGetEntityById(m_targetGridId, out entity))
+            if (m_particle == null || m_targetGridId == null || m_targetPosition == null || !MyAPIGateway.Entities.TryGetEntityById(m_targetGridId, out entity))
                 return;
 
             var grid = entity as IMyCubeGrid;
