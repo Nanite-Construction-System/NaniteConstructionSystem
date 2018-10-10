@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using VRage;
 using VRage.Game.ModAPI;
 
@@ -53,7 +53,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         public abstract float GetMinTravelTime();
         public abstract float GetSpeed();
         public abstract bool IsEnabled();
-        public abstract void FindTargets(ref Dictionary<string, int> available);
+        public abstract void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList);
         public abstract void ParallelUpdate(List<IMyCubeGrid> gridList, List<IMySlimBlock> gridBlocks);
         public abstract void Update();
         public abstract void CancelTarget(object obj);
@@ -65,6 +65,14 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             using(Lock.AcquireExclusiveUsing())
                 PotentialTargetList.Remove(target);
+        }
+
+        internal void InvalidTargetReason(string reason)
+        {
+            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+            {
+                m_lastInvalidTargetReason = reason;
+            });
         }
     }
 }
