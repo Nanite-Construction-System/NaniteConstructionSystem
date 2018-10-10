@@ -284,84 +284,78 @@ namespace NaniteConstructionSystem.Entities.Targets
         }
 
 
-        public override void FindTargets(ref Dictionary<string, int> available)
+        public override void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList)
         {
-            m_lastInvalidTargetReason = "";
+            InvalidTargetReason("");
 
-            if (!IsEnabled())
+            if (!IsEnabled()) 
                 return;
 
             if (TargetList.Count >= GetMaximumTargets())
             {
-                if (PotentialTargetList.Count > 0)
-                    m_lastInvalidTargetReason = "Maximum targets reached.  Add more upgrades!";
-
+                if (PotentialTargetList.Count > 0) 
+                    InvalidTargetReason("Maximum targets reached. Add more upgrades!");
                 return;
             }
 
-            using (Lock.AcquireExclusiveUsing())
+            int TargetListCount = TargetList.Count;
+            string LastInvalidTargetReason = "";
+
+            lock (PotentialTargetList)
             {
                 foreach(IMySlimBlock item in PotentialTargetList.ToList())
                 {
                     if (m_constructionBlock.IsUserDefinedLimitReached())
                     {
-                        m_lastInvalidTargetReason = "User defined maximum nanite limit reached";
+                        InvalidTargetReason("User defined maximum nanite limit reached");
                         return;
                     }
 
-                    if (TargetList.Contains(item))
+                    if (TargetList.Contains(item)) 
                         continue;
 
                     if (!NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
                     {
-                        m_lastInvalidTargetReason = "Insufficient power for another target.";
+                        LastInvalidTargetReason = "Insufficient power for another target.";
                         break;
                     }
 
                     if (item.CubeGrid.Closed || item.IsDestroyed || item.IsFullyDismounted || (item.FatBlock != null && item.FatBlock.Closed))
                     {
-                        m_lastInvalidTargetReason = "Potential target is destroyed";
+                        LastInvalidTargetReason = "Potential target is destroyed";
                         continue;
                     }
 
-                    var blockList = NaniteConstructionManager.GetConstructionBlocks((IMyCubeGrid)m_constructionBlock.ConstructionBlock.CubeGrid);
                     bool found = false;
-                    foreach(var block in blockList)
+                    foreach (var block in blockList)
                     {
-                        if(block.Targets.First(x => x is NaniteDeconstructionTargets).TargetList.Contains(item as IMySlimBlock))
+                        if (block.Targets.First(x => x is NaniteDeconstructionTargets).TargetList.Contains(item as IMySlimBlock))
                         {
                             found = true;
+                            LastInvalidTargetReason = "Another factory has this block as a target";
                             break;
                         }
                     }
 
                     if (found)
-                    {
-                        m_lastInvalidTargetReason = "Another factory has this block as a target";
                         continue;
-                    }
-
-                    /*
-                    var blocks = NaniteConstructionManager.NaniteBlocks.Select(x => x.Value).Where(y => y.ConstructionBlock.CubeGrid == m_constructionBlock.ConstructionBlock.CubeGrid && y.ConstructionBlock != m_constructionBlock.ConstructionBlock);
-                    Logging.Instance.WriteLine(string.Format("Count: {0}", blocks.Count()));
-                    var found = blocks.FirstOrDefault(x => x.Targets.First(y => y is NaniteDeconstructionTargets).TargetList.Contains(item)) != null;
-                    if (found)
+                    
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                     {
-                        Logging.Instance.WriteLine("Found");
-                        continue;
-                    }
-                    */
-
-                    PotentialTargetList.Remove(item);
-                    TargetList.Add(item);
+                        if (item != null)
+                            TargetList.Add(item);
+                    });
 
                     var def = item.BlockDefinition as MyCubeBlockDefinition;
-                    Logging.Instance.WriteLine(string.Format("ADDING Deconstruction Target: conid={0} subtypeid={1} entityID={2} position={3}", m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, item.FatBlock != null ? item.FatBlock.EntityId : 0, item.Position));
+                    Logging.Instance.WriteLine(string.Format("ADDING Deconstruction Target: conid={0} subtypeid={1} entityID={2} position={3}", 
+                      m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, item.FatBlock != null ? item.FatBlock.EntityId : 0, item.Position));
 
-                    if (TargetList.Count >= GetMaximumTargets())
+                    if (++TargetListCount >= GetMaximumTargets()) 
                         break;
                 }
-            }            
+            }
+            if (LastInvalidTargetReason != "")
+                InvalidTargetReason(LastInvalidTargetReason);  
         }
 
         public override void Update()
