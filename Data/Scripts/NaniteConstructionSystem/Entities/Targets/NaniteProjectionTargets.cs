@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Sandbox.Game.Entities;
@@ -88,17 +88,21 @@ namespace NaniteConstructionSystem.Entities.Targets
             return result;
         }
 
-        public override void FindTargets(ref Dictionary<string, int> available)
+        public override void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList)
         {
-            ComponentsRequired.Clear();
+            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+            {
+                m_lastInvalidTargetReason = "";
+                ComponentsRequired.Clear();
+            });
 
-            if (!IsEnabled())
+            if (!IsEnabled()) 
                 return;
 
             if (TargetList.Count >= GetMaximumTargets())
             {
                 if(PotentialTargetList.Count > 0)
-                    m_lastInvalidTargetReason = "Maximum targets reached.  Add more upgrades!";
+                    InvalidTargetReason("Maximum targets reached.  Add more upgrades!");
 
                 return;
             }
@@ -106,18 +110,21 @@ namespace NaniteConstructionSystem.Entities.Targets
             NaniteConstructionInventory inventoryManager = m_constructionBlock.InventoryManager;
             Vector3D sourcePosition = m_constructionBlock.ConstructionBlock.GetPosition();
             Dictionary<string, int> missing = new Dictionary<string, int>();
+            string LastInvalidTargetReason = "";
 
-            using (m_lock.AcquireExclusiveUsing())
+            lock (m_potentialTargetList)
             {
+                int TargetListCount = TargetList.Count;
+                
                 foreach (var item in PotentialTargetList.OrderBy(x => Vector3D.Distance(sourcePosition, EntityHelper.GetBlockPosition((IMySlimBlock)x))))
                 {
                     if (m_constructionBlock.IsUserDefinedLimitReached())
                     {
-                        m_lastInvalidTargetReason = "User defined maximum nanite limit reached";
+                        InvalidTargetReason("User defined maximum nanite limit reached");
                         return;
                     }
 
-                    if (TargetList.Contains(item))
+                    if (TargetList.Contains(item)) 
                         continue;
 
                     missing = inventoryManager.GetProjectionComponents((IMySlimBlock)item);
@@ -126,44 +133,44 @@ namespace NaniteConstructionSystem.Entities.Targets
                     {
                         if (((IMySlimBlock)item).CubeGrid.GetPosition() == Vector3D.Zero)
                         {
-                            m_lastInvalidTargetReason = "Target blocks grid is in an invalid position (Vector3D.Zero, this shouldn't happen!)";
+                            LastInvalidTargetReason = "Target blocks grid is in an invalid position (Vector3D.Zero, this shouldn't happen!)";
                             continue;
                         }
 
-                        var blockList = NaniteConstructionManager.GetConstructionBlocks((IMyCubeGrid)m_constructionBlock.ConstructionBlock.CubeGrid);
                         bool found = false;
                         foreach (var block in blockList)
                         {
                             if(block.GetTarget<NaniteProjectionTargets>().TargetList.Contains(item))
                             {
                                 found = true;
+                                LastInvalidTargetReason = "Another factory has this block as a target";
                                 break;
                             }
                         }
 
                         if (found)
-                        {
-                            m_lastInvalidTargetReason = "Another factory has this block as a target";
                             continue;
-                        }
 
-                        TargetList.Add(item);
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {
+                            TargetList.Add(item);
+                        });
                         IMySlimBlock slimBlock = (IMySlimBlock)item;
                         var def = slimBlock.BlockDefinition as MyCubeBlockDefinition;
-                        Logging.Instance.WriteLine(string.Format("ADDING Projection Target: conid={0} subtypeid={1} entityID={2} position={3}", m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, slimBlock.FatBlock != null ? slimBlock.FatBlock.EntityId : 0, slimBlock.Position));
-                        if (TargetList.Count >= GetMaximumTargets())
+                        Logging.Instance.WriteLine(string.Format("ADDING Projection Target: conid={0} subtypeid={1} entityID={2} position={3}", 
+                          m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, slimBlock.FatBlock != null ? slimBlock.FatBlock.EntityId : 0, slimBlock.Position));
+                        if (++TargetListCount >= GetMaximumTargets()) 
                             break;
                     }
                     else if(!haveComponents)
-                    {
-                        m_lastInvalidTargetReason = "Missing components to start projected block";
-                    }
+                        LastInvalidTargetReason = "Missing components to start projected block";
+
                     else if(!NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
-                    {
-                        m_lastInvalidTargetReason = "Insufficient power for another target.";
-                    }
+                        LastInvalidTargetReason = "Insufficient power for another target.";
                 }
             }
+            if (LastInvalidTargetReason != "")
+                InvalidTargetReason(LastInvalidTargetReason);
         }
 
         public override void Update()
