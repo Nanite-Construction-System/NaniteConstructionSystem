@@ -46,40 +46,37 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_maxDistance = NaniteConstructionManager.Settings.CleanupMaxDistance;
         }
 
-        public override void FindTargets(ref Dictionary<string, int> available)
+        public override void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList)
         {
-            if (!IsEnabled())
+            InvalidTargetReason("");
+            
+            if (!IsEnabled()) 
                 return;
 
             if (TargetList.Count >= GetMaximumTargets())
             {
                 if (PotentialTargetList.Count > 0)
-                    m_lastInvalidTargetReason = "Maximum targets reached.  Add more upgrades!";
+                    InvalidTargetReason("Maximum targets reached. Add more upgrades!");
 
                 return;
             }
 
-            using (Lock.AcquireExclusiveUsing())
+            int TargetListCount = TargetList.Count;
+
+            lock (m_potentialTargetList)
             {
-                for(int r = PotentialTargetList.Count - 1; r >= 0; r--)
+                foreach (IMyEntity item in m_potentialTargetList)
                 {
                     if (m_constructionBlock.IsUserDefinedLimitReached())
                     {
-                        m_lastInvalidTargetReason = "User defined maximum nanite limit reached";
+                        InvalidTargetReason("User defined maximum nanite limit reached");
                         return;
                     }
 
-                    var item = (IMyEntity)PotentialTargetList[r];
-                    if (TargetList.Contains(item))
+                    if (item == null || TargetList.Contains(item) || item.Closed) 
                         continue;
 
-                    if (item.Closed)
-                    {
-                        PotentialTargetList.RemoveAt(r);
-                        continue;
-                    }
 
-                    var blockList = NaniteConstructionManager.GetConstructionBlocks((IMyCubeGrid)m_constructionBlock.ConstructionBlock.CubeGrid);
                     bool found = false;
                     foreach (var block in blockList)
                     {
@@ -92,16 +89,22 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                     if (found)
                     {
-                        m_lastInvalidTargetReason = "Another factory has this block as a target";
+                        InvalidTargetReason("Another factory has this block as a target");
                         continue;
                     }
 
-                    if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), item.GetPosition()) < m_maxDistance * m_maxDistance &&
-                       NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
+                    if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), item.GetPosition()) < m_maxDistance * m_maxDistance 
+                      && NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
                     {
-                        TargetList.Add(item);
-                        Logging.Instance.WriteLine(string.Format("ADDING Floating Object Target: conid={0} type={1} entityID={2} position={3}", m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.EntityId, item.GetPosition()));
-                        if (TargetList.Count >= GetMaximumTargets())
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {
+                            if (item != null)
+                                TargetList.Add(item);
+                        });
+                        Logging.Instance.WriteLine(string.Format("ADDING Floating Object Target: conid={0} type={1} entityID={2} position={3}", 
+                          m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.EntityId, item.GetPosition()));
+
+                        if (++TargetListCount >= GetMaximumTargets()) 
                             break;
                     }
                 }
