@@ -195,7 +195,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
         }
 
-        public override void FindTargets(ref Dictionary<string, int> available)
+        public override void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList)
         {
             if (!IsEnabled())
                 return;
@@ -203,80 +203,74 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (TargetList.Count >= GetMaximumTargets())
             {
                 if (PotentialTargetList.Count > 0)
-                    m_lastInvalidTargetReason = "Maximum targets reached.  Add more upgrades!";
+                    InvalidTargetReason("Maximum targets reached.  Add more upgrades!");
 
                 return;
             }
 
-            DateTime start = DateTime.Now;
-            using (Lock.AcquireExclusiveUsing())
+            string LastInvalidTargetReason = "";
+
+            lock (m_potentialTargetList)
             {
                 if (m_constructionBlock.IsUserDefinedLimitReached())
                 {
-                    m_lastInvalidTargetReason = "User defined maximum nanite limit reached";
+                    InvalidTargetReason("User defined maximum nanite limit reached");
                     return;
                 }
 
-                //foreach (NaniteMiningItem item in PotentialTargetList)
-                for (int r = PotentialTargetList.Count - 1; r >= 0; r--)
+                foreach(NaniteMiningItem item in m_potentialTargetList)
                 {
-                    var item = (NaniteMiningItem)PotentialTargetList[r];
-                    if (TargetList.Contains(item))
+                    if (item == null || TargetList.Contains(item))
                         continue;
 
                     if (m_globalPositionList.Contains(item.Position))
                     {
-                        m_lastInvalidTargetReason = "Another factory has this voxel as a target";
+                        LastInvalidTargetReason = "Another factory has this voxel as a target";
                         continue;
                     }
 
-                    var blockList = NaniteConstructionManager.GetConstructionBlocks((IMyCubeGrid)m_constructionBlock.ConstructionBlock.CubeGrid);
                     bool found = false;
                     foreach (var block in blockList)
                     {
-                        
                         // This can be sped up if necessary by indexing items by position
                         if (block.GetTarget<NaniteMiningTargets>().TargetList.FirstOrDefault(x => ((NaniteMiningItem)x).Position == item.Position) != null)
                         {
                             found = true;
+                            LastInvalidTargetReason = "Another factory has this voxel as a target";
                             break;
                         }
                     }
 
                     if (found)
-                    {
-                        m_lastInvalidTargetReason = "Another factory has this voxel as a target";
                         continue;
-                    }
-
-                    //if (!NaniteMining.CheckVoxelContent(item.VoxelId, item.Position))
-                    //{
-                    //    continue;
-                    //}
 
                     if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), item.Position) < m_maxDistance * m_maxDistance &&
-                       NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
+                      NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
                     {
-                        Logging.Instance.WriteLine(string.Format("ADDING Mining Target: conid={0} pos={1} type={2}", m_constructionBlock.ConstructionBlock.EntityId, item.Position, MyDefinitionManager.Static.GetVoxelMaterialDefinition(item.VoxelMaterial).MinedOre));
+                        Logging.Instance.WriteLine(string.Format("ADDING Mining Target: conid={0} pos={1} type={2}", 
+                          m_constructionBlock.ConstructionBlock.EntityId, item.Position, MyDefinitionManager.Static.GetVoxelMaterialDefinition(item.VoxelMaterial).MinedOre));
 
-                        //PotentialTargetList.Remove(item);
-                        TargetList.Add(item);
-                        m_globalPositionList.Add(item.Position);
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {
+                            if (item != null)
+                            {
+                                TargetList.Add(item);
+                                m_globalPositionList.Add(item.Position);
+                            }
+                        });
                         if (TargetList.Count >= GetMaximumTargets())
                             break;
                     }
                 }
             }
-
-            //Logging.Instance.WriteLine(string.Format("FindTargets took {0}ms", (DateTime.Now - start).TotalMilliseconds));
+            if (LastInvalidTargetReason != "")
+                InvalidTargetReason(LastInvalidTargetReason);
         }
 
         public override void Update()
         {
             foreach(var item in TargetList.ToList())
-            {
-                ProcessItem(item);
-            }            
+                ProcessItem(item);         
         }
 
         private void ProcessItem(object miningTarget)
