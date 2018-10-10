@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Sandbox.ModAPI;
@@ -141,62 +141,63 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
         }
 
-        public override void FindTargets(ref Dictionary<string, int> available)
+        public override void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList)
         {
-            if (!IsEnabled())
+            InvalidTargetReason("");
+            
+            if (!IsEnabled()) 
                 return;
 
             if (TargetList.Count >= GetMaximumTargets())
             {
-                if (PotentialTargetList.Count > 0)
-                    m_lastInvalidTargetReason = "Maximum targets reached.  Add more upgrades!";
+                if (PotentialTargetList.Count > 0)  
+                    InvalidTargetReason("Maximum targets reached. Add more upgrades!");
 
                 return;
             }
 
-            using (Lock.AcquireExclusiveUsing())
+            int TargetListCount = TargetList.Count;
+
+            lock (m_potentialTargetList)
             {
-                for (int r = PotentialTargetList.Count - 1; r >= 0; r--)
+                foreach(IMyPlayer item in m_potentialTargetList)
                 {
                     if (m_constructionBlock.IsUserDefinedLimitReached())
                     {
-                        m_lastInvalidTargetReason = "User defined maximum nanite limit reached";
+                        InvalidTargetReason("User defined maximum nanite limit reached");
                         return;
                     }
 
-                    var item = (IMyPlayer)PotentialTargetList[r];
-                    if (TargetList.Contains(item))
+                    if (item == null || TargetList.Contains(item) || item.Controller == null || item.Controller.ControlledEntity == null || item.Controller.ControlledEntity.Entity == null)
                         continue;
 
-                    if (item.Controller == null || item.Controller.ControlledEntity == null || item.Controller.ControlledEntity.Entity == null)
-                    {
-                        PotentialTargetList.RemoveAt(r);
-                        continue;
-                    }
-
-                    var blockList = NaniteConstructionManager.GetConstructionBlocks((IMyCubeGrid)m_constructionBlock.ConstructionBlock.CubeGrid);
                     bool found = false;
                     foreach (var block in blockList)
                     {
                         if (block.Targets.First(x => x is NaniteMedicalTargets).TargetList.Contains(item))
                         {
                             found = true;
+                            InvalidTargetReason("Another factory has this block as a target");
                             break;
                         }
                     }
 
                     if (found)
-                    {
-                        m_lastInvalidTargetReason = "Another factory has this block as a target";
                         continue;
-                    }
 
-                    if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), item.GetPosition()) < m_maxDistance * m_maxDistance &&
-                       NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
+                    if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), item.GetPosition()) < m_maxDistance * m_maxDistance 
+                      && NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
                     {
-                        TargetList.Add(item);
-                        Logging.Instance.WriteLine(string.Format("ADDING Medical Target: conid={0} type={1} playerName={2} position={3}", m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.DisplayName, item.GetPosition()));
-                        if (TargetList.Count >= GetMaximumTargets())
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {
+                            if (item != null)
+                                TargetList.Add(item);
+                        });
+
+                        Logging.Instance.WriteLine(string.Format("ADDING Medical Target: conid={0} type={1} playerName={2} position={3}", 
+                          m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.DisplayName, item.GetPosition()));
+
+                        if (++TargetListCount >= GetMaximumTargets()) 
                             break;
                     }
                 }
