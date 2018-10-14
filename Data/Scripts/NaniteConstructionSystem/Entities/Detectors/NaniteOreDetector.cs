@@ -333,9 +333,9 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 MyStringId stringId = MyStringId.GetOrCompute(item);
 
                 // Filter upgrade
-                if (m_block.UpgradeValues["Scanning"] < 1f && (stringId.String == "Uranium" || stringId.String == "Platinum" || stringId.String == "Silver" || stringId.String == "Gold"))
+                if (m_block.UpgradeValues["Scanning"] < 1f && (stringId.String == "Uranium" || stringId.String == "Platinum" || stringId.String == "Deuterium" || stringId.String == "Silver" || stringId.String == "Gold"))
                     continue;
-                if (m_block.UpgradeValues["Scanning"] < 2f && (stringId.String == "Uranium" || stringId.String == "Platinum"))
+                if (m_block.UpgradeValues["Scanning"] < 2f && (stringId.String == "Uranium" || stringId.String == "Platinum" || stringId.String == "Deuterium"))
                     continue;
 
                 MyTerminalControlListBoxItem listItem = new MyTerminalControlListBoxItem(stringId, stringId, null);
