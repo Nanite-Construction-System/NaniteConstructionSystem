@@ -115,12 +115,14 @@ namespace NaniteConstructionSystem.Entities
 
                         foreach (var missingItem in missing)
                         {
-                            if (ComponentsRequired.ContainsKey(missingItem.Key))
-                                ComponentsRequired[missingItem.Key] += missingItem.Value;
-                            else
-                                ComponentsRequired.Add(missingItem.Key, missingItem.Value);
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                            {
+                                if (ComponentsRequired.ContainsKey(missingItem.Key))
+                                    ComponentsRequired[missingItem.Key] += missingItem.Value;
+                                else
+                                    ComponentsRequired.Add(missingItem.Key, missingItem.Value);
+                            });
                         }
-
                     }
                 }
 
@@ -143,10 +145,13 @@ namespace NaniteConstructionSystem.Entities
 
                     foreach (var missingItem in missing)
                     {
-                        if (ComponentsRequired.ContainsKey(missingItem.Key))
-                            ComponentsRequired[missingItem.Key] += missingItem.Value;
-                        else
-                            ComponentsRequired.Add(missingItem.Key, missingItem.Value);
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {
+                            if (ComponentsRequired.ContainsKey(missingItem.Key))
+                                ComponentsRequired[missingItem.Key] += missingItem.Value;
+                            else
+                                ComponentsRequired.Add(missingItem.Key, missingItem.Value);
+                        });
                     }
                 }
             }
