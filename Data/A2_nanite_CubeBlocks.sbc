@@ -1249,6 +1249,71 @@
       <EmissiveColorPreset>Default</EmissiveColorPreset>
       <PCU>2500</PCU>
     </Definition>
+	
+	<Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
+      <Id>
+        <TypeId>OreDetector</TypeId>
+		<SubtypeId>NaniteMiningStation</SubtypeId>
+	</Id>
+      <DisplayName>Large Nanite Mining Station</DisplayName>
+	<Icon>Textures\Icons\Scene.dds</Icon>
+	<CubeSize>Large</CubeSize>
+	<BlockTopology>TriangleMesh</BlockTopology>
+	<Size x="15" y="9" z="15" />
+	<ModelOffset x="0" y="0" z="0" />
+	<Center x="7" y="5" z="7" />
+	<Model>Models\Cubes\Large\NaniteMiningStation.mwm</Model>
+      <Components>
+        <Component Subtype="InteriorPlate" Count="300"/>
+        <Component Subtype="Construction" Count="400"/>
+        <Component Subtype="MetalGrid" Count="150"/>
+        <Component Subtype="LargeTube" Count="150"/>
+        <Component Subtype="GravityGenerator" Count="350"/>
+        <Component Subtype="Detector" Count="25"/>
+        <Component Subtype="PowerCell" Count="750"/>
+        <Component Subtype="Computer" Count="450"/>
+        <Component Subtype="Motor" Count="150"/>
+        <Component Subtype="Superconductor" Count="1200"/>
+        <Component Subtype="Display" Count="4"/>
+        <Component Subtype="SteelPlate" Count="900"/>
+        <Component Subtype="InteriorPlate" Count="400"/>
+      </Components>
+      <CriticalComponent Subtype="Display" Index="0"/>
+	<MountPoints>
+		<MountPoint Side="Front" StartX="6.58" StartY="0.01" EndX="8.41" EndY="2.21" />
+		<MountPoint Side="Back" StartX="6.59" StartY="0.01" EndX="8.42" EndY="2.21" />
+		<MountPoint Side="Left" StartX="6.58" StartY="0.01" EndX="8.40" EndY="2.21" />
+		<MountPoint Side="Right" StartX="6.60" StartY="0.01" EndX="8.42" EndY="2.21" />
+		<MountPoint Side="Bottom" StartX="6.75" StartY="11.80" EndX="8.25" EndY="14.98" Default="true" />
+		<MountPoint Side="Top" StartX="5.72" StartY="5.72" EndX="9.28" EndY="9.28" />
+		<MountPoint Side="Bottom" StartX="6.75" StartY="0.02" EndX="8.25" EndY="3.20" />
+		<MountPoint Side="Bottom" StartX="11.63" StartY="6.69" EndX="14.98" EndY="8.31" />
+		<MountPoint Side="Bottom" StartX="0.01" StartY="6.69" EndX="3.36" EndY="8.31" />
+	</MountPoints>
+      <BuildProgressModels>
+        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr1.mwm"/>
+        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr2.mwm"/>
+        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr3.mwm"/>
+      </BuildProgressModels>
+      <InventorySize>
+        <X>1</X>
+        <Y>1</Y>
+        <Z>1</Z>
+      </InventorySize>
+	<BlockPairName>NaniteMiningStationBase</BlockPairName>
+      <MirroringY>Z</MirroringY>
+      <MirroringZ>Y</MirroringZ>
+      <BuildTimeSeconds>300</BuildTimeSeconds>
+      <EdgeType>Light</EdgeType>
+      <DamageEffectId>212</DamageEffectId>
+      <DamagedSound>ParticleHeavyMech</DamagedSound>
+      <Public>true</Public>
+      <MaximumRange>3000</MaximumRange>
+      <PrimarySound>NaniteModule</PrimarySound>
+      <ResourceSinkGroup>Utility</ResourceSinkGroup>
+      <EmissiveColorPreset>Default</EmissiveColorPreset>
+      <PCU>5000</PCU>
+</Definition>
 
     <!-- Migration: block only, no function -->
     <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
