@@ -78,7 +78,8 @@ namespace NaniteConstructionSystem.Entities
                                 {
                                     inventory.RemoveItemsOfType((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
                                     constructionInventory.AddItems((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
-                                    ComponentsRequired[componentNeeded.Key] -= (int)amount;
+                                    if (ComponentsRequired.ToList().ContainsKey(componentNeeded.Key)) 
+                                        ComponentsRequired[componentNeeded.Key] -= (int)amount;
                                 }
                                 catch (Exception ex)
                                 {
