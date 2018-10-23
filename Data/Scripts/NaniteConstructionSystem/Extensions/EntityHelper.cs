@@ -118,14 +118,22 @@ namespace NaniteConstructionSystem.Extensions
             foreach (IMyInventory inv in connectedInventory.OrderByDescending(x => (float)x.MaxVolume - (float)x.CurrentVolume))
             {
                 MyInventory targetInventory = inv as MyInventory;
-                foreach (var subItem in sourceInventory.GetItems().ToList())
+                List<VRage.Game.Entity.MyPhysicalInventoryItem> items = sourceInventory.GetItems();
+                for (int i = 0; i < items.Count; i++)
                 {
-                    //Logging.Instance.WriteLine("TryMoveToFreeCargoParallel: Attempting to move items into inventory.");
-                    if (targetInventory.ItemsCanBeAdded(subItem.Amount, subItem)) targetInventory.TransferItemsFrom(sourceInventory, subItem, subItem.Amount);
+                    IMyInventoryItem subItem = items[i] as IMyInventoryItem;
+                    if (subItem == null) 
+                    {
+                        VRage.Utils.MyLog.Default.WriteLineAndConsole("WARNING: IMyInventoryItem subItem was NULL: NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo");
+                        continue;
+                    }
+                    if (targetInventory.ItemsCanBeAdded(subItem.Amount, subItem)) 
+                        targetInventory.TransferItemFrom(sourceInventory, i, null, null, subItem.Amount);
                     else
                     {
                         int amountFits = (int)targetInventory.ComputeAmountThatFits(new MyDefinitionId(subItem.Content.TypeId, subItem.Content.SubtypeId));
-                        if(amountFits > 0f) targetInventory.TransferItemsFrom(sourceInventory, subItem, amountFits);
+                        if(amountFits > 0f) 
+                            targetInventory.TransferItemFrom(sourceInventory, i, null, null, amountFits);
                     }
                 }
             }
