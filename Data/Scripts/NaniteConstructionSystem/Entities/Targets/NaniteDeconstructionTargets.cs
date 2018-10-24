@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Sandbox.Game.Entities;
@@ -49,22 +49,6 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             get { return m_mainGrid; }
         }
-
-        /*
-        private List<Node<IMySlimBlock>> m_gridTree;
-        public List<Node<IMySlimBlock>> GridTree
-        {
-            get { return m_gridTree; }
-            set { m_gridTree = value; }
-        }
-
-        private int m_treePosition = 0;
-        public int TreePosition
-        {
-            get { return m_treePosition; }
-            set { m_treePosition = value; }
-        }
-        */
 
         private DateTime m_lastUpdate;
 
@@ -138,16 +122,14 @@ namespace NaniteConstructionSystem.Entities.Targets
         public override bool IsEnabled()
         {
             bool result = true;
-            if (!((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).Enabled ||
-                !((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).IsFunctional ||
-                m_constructionBlock.ConstructionBlock.CustomName.ToLower().Contains("NoDeconstruction".ToLower()))
+            if (!((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).Enabled
+              || !((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).IsFunctional
+              || m_constructionBlock.ConstructionBlock.CustomName.ToLower().Contains("NoDeconstruction".ToLower()))
                 result = false;
 
-            if (NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.ConstructionBlock.EntityId))
-            {
-                if (!NaniteConstructionManager.TerminalSettings[m_constructionBlock.ConstructionBlock.EntityId].AllowDeconstruct)
-                    return false;
-            }
+            if (NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.ConstructionBlock.EntityId) 
+              && !NaniteConstructionManager.TerminalSettings[m_constructionBlock.ConstructionBlock.EntityId].AllowDeconstruct)
+                return false;
 
             return result;
         }
@@ -206,14 +188,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                             if (EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, item) > m_maxDistance)
                                 PotentialTargetList.Remove(item);
                         }
-
-                        //m_potentialTargetList = m_potentialTargetList.OrderBy(x => GetBlockConnections((IMySlimBlock)(x))).ToList();
                     }
                 }
                 else if (TargetList.Count == 0 && PotentialTargetList.Count == 0)
-                {
                     m_validBeaconedGrids.Clear();
-                }
             }
             catch(Exception ex)
             {
@@ -231,7 +209,8 @@ namespace NaniteConstructionSystem.Entities.Targets
 					continue;
 
 				MyRelationsBetweenPlayerAndBlock relation = cubeBlock.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId);
-                if (!(relation == MyRelationsBetweenPlayerAndBlock.Owner || relation == MyRelationsBetweenPlayerAndBlock.FactionShare || (MyAPIGateway.Session.CreativeMode && relation == MyRelationsBetweenPlayerAndBlock.NoOwnership)))
+                if (!(relation == MyRelationsBetweenPlayerAndBlock.Owner || relation == MyRelationsBetweenPlayerAndBlock.FactionShare 
+                  || (MyAPIGateway.Session.CreativeMode && relation == MyRelationsBetweenPlayerAndBlock.NoOwnership)))
                     continue;
 
                 var item = beaconBlock.Value as NaniteAreaBeacon;
@@ -243,41 +222,23 @@ namespace NaniteConstructionSystem.Entities.Targets
                 foreach (var entity in entities)
                 {
                     var grid = entity as IMyCubeGrid;
-                    if (grid == null)
-                        continue;
-
-                    if (grid.Physics == null)
-                        continue;
-
-                    if (grid.Physics.AngularVelocity.Length() != 0f || grid.Physics.LinearVelocity.Length() != 0f)
-                        continue;
-
-                    if (m_validBeaconedGrids.FirstOrDefault(x => x.GridsProcessed.Contains(grid)) != null)
-                        continue;
-
-                    if (GridHelper.GetGridGroup(grid).Contains(cubeBlock.CubeGrid))
-                        continue;
-
-                    if ((grid.GetPosition() - cubeBlock.GetPosition()).LengthSquared() < m_maxDistance * m_maxDistance)
+                    if (grid != null && grid.Physics != null && grid.Physics.AngularVelocity.Length() == 0f 
+                      && grid.Physics.LinearVelocity.Length() == 0f && m_validBeaconedGrids.FirstOrDefault(x => x.GridsProcessed.Contains(grid)) == null
+                      && !GridHelper.GetGridGroup(grid).Contains(cubeBlock.CubeGrid) 
+                      && (grid.GetPosition() - cubeBlock.GetPosition()).LengthSquared() < m_maxDistance * m_maxDistance && item.IsInsideBox(grid.WorldAABB, false))
                     {
-                        if (item.IsInsideBox(grid.WorldAABB, false))
-                        {
-                            NaniteDeconstructionGrid deconstruct = new NaniteDeconstructionGrid(grid);
-                            m_validBeaconedGrids.Add(deconstruct);
-                            CreateGridStack(deconstruct, (MyCubeGrid)grid, null);
-                            if (!m_areaTargetBlocks.ContainsKey(grid))
-                                m_areaTargetBlocks.Add(grid, item);
-                            else
-                                m_areaTargetBlocks[grid] = item;
+                        NaniteDeconstructionGrid deconstruct = new NaniteDeconstructionGrid(grid);
+                        m_validBeaconedGrids.Add(deconstruct);
+                        CreateGridStack(deconstruct, (MyCubeGrid)grid, null);
 
-                            foreach (var block in deconstruct.RemoveList)
-                            {
-                                if(!PotentialTargetList.Contains(block))
-                                {
-                                    PotentialTargetList.Add(block);
-                                }
-                            }
-                        }
+                        if (!m_areaTargetBlocks.ContainsKey(grid))
+                            m_areaTargetBlocks.Add(grid, item);
+                        else
+                            m_areaTargetBlocks[grid] = item;
+
+                        foreach (var block in deconstruct.RemoveList)
+                            if(!PotentialTargetList.Contains(block))
+                                PotentialTargetList.Add(block);
                     }
                 }
             }
@@ -295,6 +256,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 if (PotentialTargetList.Count > 0) 
                     InvalidTargetReason("Maximum targets reached. Add more upgrades!");
+
                 return;
             }
 
@@ -383,14 +345,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                         item.Key.Physics.AngularVelocity = Vector3.Zero;
                         item.Key.Physics.LinearDamping = 0.0f;
                         item.Key.Physics.AngularDamping = 0.0f;
-
-                        /*
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                        {
-                            item.Key.Physics.LinearVelocity = Vector3.Zero;
-                            item.Key.Physics.AngularVelocity = Vector3.Zero;
-                        });
-                        */
                     }
 
                     TempPhysicless.Remove(item.Key);
@@ -420,6 +374,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     return;
 
                 NaniteGrinder grinder = (NaniteGrinder)m_constructionBlock.ToolManager.Tools.FirstOrDefault(x => x.TargetBlock == target && x is NaniteGrinder);
+
                 if(grinder == null)
                 {
                     double distance = EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target);
@@ -533,9 +488,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             Logging.Instance.WriteLine(string.Format("CANCELLING Deconstruction Target: {0} - {1} (EntityID={2},Position={3})", m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position));
             if (Sync.IsServer)
-            {
                 m_constructionBlock.SendCancelTarget(obj, TargetTypes.Deconstruction);
-            }
 
             m_constructionBlock.ParticleManager.CancelTarget(obj);
             m_constructionBlock.ToolManager.Remove(obj);
@@ -566,35 +519,31 @@ namespace NaniteConstructionSystem.Entities.Targets
         private void OnEntityRemove(IMyEntity obj)
         {
             var grid = obj as IMyCubeGrid;
-            if(grid != null)
+            if (grid == null)
+                return;
+
+            foreach (var item in m_validBeaconedGrids.ToList())
             {
-                foreach(var item in m_validBeaconedGrids.ToList())
-                {
-                    if (item.GridsProcessed.Contains(grid))
-                        item.GridsProcessed.Remove(grid);
+                if (item.GridsProcessed.Contains(grid))
+                    item.GridsProcessed.Remove(grid);
 
-                    if(item.MainGrid == grid)
-                    {
-                        m_validBeaconedGrids.Remove(item);
-                    }
-                }
-
-                if (m_areaTargetBlocks.ContainsKey(grid))
-                    m_areaTargetBlocks.Remove(grid);
+                if (item.MainGrid == grid)
+                    m_validBeaconedGrids.Remove(item);
             }
+
+            if (m_areaTargetBlocks.ContainsKey(grid))
+                m_areaTargetBlocks.Remove(grid);
         }
 
         private int GetGridGroupBlockCount(IMyCubeGrid grid)
         {
             List<IMyCubeGrid> gridList = GridHelper.GetGridGroup(grid);
             int count = 0;
-            foreach (var item in gridList)
-            {
-                count += ((MyCubeGrid)item).GetBlocks().Count;
-            }
-            return count;
 
-            //return gridList.Sum(x => ((MyCubeGrid)x).GetBlocks().Count);
+            foreach (var item in gridList)
+                count += ((MyCubeGrid)item).GetBlocks().Count;
+
+            return count;
         }
 
         private long GetGridGroupOwner(IMyCubeGrid grid)
@@ -610,60 +559,50 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (item is IMyPistonBase)
                 {
                     IMyPistonBase pistonBase = (IMyPistonBase)item;
-                    if (pistonBase.TopGrid != null)
-                    {
-                        if (pistonBase.TopGrid.BigOwners.Count > 0)
-                            return pistonBase.TopGrid.BigOwners.First();
-                    }
+                    if (pistonBase.TopGrid != null && pistonBase.TopGrid.BigOwners.Count > 0)
+                        return pistonBase.TopGrid.BigOwners.First();
                 }
 
                 if (item is IMyMechanicalConnectionBlock)
                 {
                     var motorBase = item as IMyMechanicalConnectionBlock;
-                    if (motorBase.TopGrid != null)
-                    {
-                        if (motorBase.TopGrid.BigOwners.Count > 0)
-                            return motorBase.TopGrid.BigOwners.First();
-                    }
+                    if (motorBase.TopGrid != null && motorBase.TopGrid.BigOwners.Count > 0)
+                        return motorBase.TopGrid.BigOwners.First();
                 }
 
                 if (item is Ingame.IMyShipConnector)
                 {
                     Ingame.IMyShipConnector connector = (Ingame.IMyShipConnector)item;
-                    if (connector.Status == Sandbox.ModAPI.Ingame.MyShipConnectorStatus.Connected && connector.OtherConnector != null)
-                    {
-                        if (((IMyCubeGrid)connector.OtherConnector.CubeGrid).BigOwners.Count > 0)
-                            return ((IMyCubeGrid)connector.OtherConnector.CubeGrid).BigOwners.First();
-                    }
+                    if (connector.Status == Sandbox.ModAPI.Ingame.MyShipConnectorStatus.Connected && connector.OtherConnector != null 
+                      && ((IMyCubeGrid)connector.OtherConnector.CubeGrid).BigOwners.Count > 0)
+                        return ((IMyCubeGrid)connector.OtherConnector.CubeGrid).BigOwners.First();
                 }
 
                 if (item is IMyAttachableTopBlock)
                 {
                     var motorRotor = item as IMyAttachableTopBlock;
-                    if (motorRotor.IsAttached && motorRotor.Base != null)
-                    {
-                        if (motorRotor.Base.CubeGrid.BigOwners.Count > 0)
-                            return motorRotor.Base.CubeGrid.BigOwners.First();
-                    }
+                    if (motorRotor.IsAttached && motorRotor.Base != null && motorRotor.Base.CubeGrid.BigOwners.Count > 0)
+                        return motorRotor.Base.CubeGrid.BigOwners.First();
                 }
             }
 
             return 0;
         }
 
-        private int GetBlockConnections(NaniteDeconstructionGrid deconstruct, IMySlimBlock currentBlock)
+        private void addNeighboursDeconstruct(ref NaniteDeconstructionGrid deconstruct, IMySlimBlock currentBlock, bool clear = true)
         {
-            deconstruct.AddingList.Clear();
-            deconstruct.AddingGridList.Clear();
+            if (clear)
+            {
+                deconstruct.AddingList.Clear();
+                deconstruct.AddingGridList.Clear();
+            }
 
-            MyObjectBuilder_CubeBlock block = (MyObjectBuilder_CubeBlock)currentBlock.GetObjectBuilder();
-            MyCubeBlockDefinition blockDefinition;
-            MyDefinitionManager.Static.TryGetCubeBlockDefinition(block.GetId(), out blockDefinition);
+            MyCubeBlockDefinition blockDefinition = (MyCubeBlockDefinition)currentBlock.BlockDefinition;
 
             // Get real block max
             Vector3I Max = Vector3I.Zero;
-            Vector3I Min = block.Min;
-            ComputeMax(blockDefinition, block.BlockOrientation, ref Min, out Max);
+            Vector3I Min = currentBlock.Min;
+            ComputeMax(blockDefinition, currentBlock.Orientation, ref Min, out Max);
 
             AddNeighbours(deconstruct, currentBlock, Min, new Vector3I(Min.X, Max.Y, Max.Z), -Vector3I.UnitX);
             AddNeighbours(deconstruct, currentBlock, Min, new Vector3I(Max.X, Min.Y, Max.Z), -Vector3I.UnitY);
@@ -671,10 +610,11 @@ namespace NaniteConstructionSystem.Entities.Targets
             AddNeighbours(deconstruct, currentBlock, new Vector3I(Max.X, Min.Y, Min.Z), Max, Vector3I.UnitX);
             AddNeighbours(deconstruct, currentBlock, new Vector3I(Min.X, Max.Y, Min.Z), Max, Vector3I.UnitY);
             AddNeighbours(deconstruct, currentBlock, new Vector3I(Min.X, Min.Y, Max.Z), Max, Vector3I.UnitZ);
+        }
 
-            // Check if currentBlock is a connector of some kind, then follow it
-            // AddConnectedGridBlock(deconstruct, currentBlock);
-
+        private int GetBlockConnections(NaniteDeconstructionGrid deconstruct, IMySlimBlock currentBlock)
+        {
+            addNeighboursDeconstruct(ref deconstruct, currentBlock);
             return deconstruct.AddingList.Count + deconstruct.AddingGridList.Count;
         }
 
@@ -685,41 +625,11 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             NaniteDeconstructionGrid deconstruct = new NaniteDeconstructionGrid(currentBlock.CubeGrid);
 
-            deconstruct.AddingList.Clear();
-            deconstruct.AddingGridList.Clear();
-
-            MyObjectBuilder_CubeBlock block = (MyObjectBuilder_CubeBlock)currentBlock.GetObjectBuilder();
-            MyCubeBlockDefinition blockDefinition;
-            MyDefinitionManager.Static.TryGetCubeBlockDefinition(block.GetId(), out blockDefinition);
-
-            // Get real block max
-            Vector3I Max = Vector3I.Zero;
-            Vector3I Min = block.Min;
-            ComputeMax(blockDefinition, block.BlockOrientation, ref Min, out Max);
-
-            AddNeighbours(deconstruct, currentBlock, Min, new Vector3I(Min.X, Max.Y, Max.Z), -Vector3I.UnitX);
-            AddNeighbours(deconstruct, currentBlock, Min, new Vector3I(Max.X, Min.Y, Max.Z), -Vector3I.UnitY);
-            AddNeighbours(deconstruct, currentBlock, Min, new Vector3I(Max.X, Max.Y, Min.Z), -Vector3I.UnitZ);
-            AddNeighbours(deconstruct, currentBlock, new Vector3I(Max.X, Min.Y, Min.Z), Max, Vector3I.UnitX);
-            AddNeighbours(deconstruct, currentBlock, new Vector3I(Min.X, Max.Y, Min.Z), Max, Vector3I.UnitY);
-            AddNeighbours(deconstruct, currentBlock, new Vector3I(Min.X, Min.Y, Max.Z), Max, Vector3I.UnitZ);
+            addNeighboursDeconstruct(ref deconstruct, currentBlock);
 
             int additional = 0;
             if (currentBlock.FatBlock != null && currentBlock.FatBlock.BlockDefinition.SubtypeName.Contains("NaniteBeaconDeconstruct"))
                 additional += 10;
-
-            /*
-            if (currentBlock.FatBlock != null && 
-                    (currentBlock.FatBlock is IMyPistonBase ||
-                     currentBlock.FatBlock is IMyPistonTop ||
-                     currentBlock.FatBlock is IMyMotorRotor ||
-                     currentBlock.FatBlock is IMyMotorStator ||
-                     currentBlock.FatBlock is IMyMotorBase ||
-                     currentBlock.FatBlock is Ingame.IMyShipConnector))
-            {
-                additional += 10;
-            }
-            */
 
             AddConnectedGridBlock(deconstruct, currentBlock);
 
@@ -731,31 +641,29 @@ namespace NaniteConstructionSystem.Entities.Targets
             DateTime start = DateTime.Now;
             List<IMyCubeGrid> gridList = GridHelper.GetGridGroup((IMyCubeGrid)grid);
             IMyCubeGrid mainGrid = gridList.OrderByDescending(x => ((MyCubeGrid)x).GetBlocks().Count).FirstOrDefault();
+
             if (mainGrid == null)
                 return;
 
             List<IMySlimBlock> blocks = new List<IMySlimBlock>();
             mainGrid.GetBlocks(blocks);
             IMySlimBlock block = blocks.OrderBy(x => GetBlockConnections(deconstruct, x)).FirstOrDefault();
-            if (block == null) // No blocks ?
+
+            if (block == null)
                 return;
 
             if(beacon != null && mainGrid == beacon.CubeGrid)
                 block = (IMySlimBlock)beacon.SlimBlock;
 
-            //deconstruct.GridTree = new List<Node<IMySlimBlock>>();
-            //deconstruct.GridTree.Add(new Node<IMySlimBlock>(block));
-
             CreateRemovalOrder(deconstruct, block);
             DateTime end = DateTime.Now;
             deconstruct.AddingGridList.Clear();
             deconstruct.AddingList.Clear();
-            Logging.Instance.WriteLine($"PROCESS Creating Grid Stack.  Total Process Time: {(end - start).TotalMilliseconds}ms");
+            Logging.Instance.WriteLine($"PROCESS Creating Grid Stack. Total Process Time: {(end - start).TotalMilliseconds}ms");
         }
 
-        private void CreateRemovalOrder(NaniteDeconstructionGrid deconstruct, IMySlimBlock startBlock)
+        private void CreateRemovalOrder(NaniteDeconstructionGrid deconstruct, IMySlimBlock currentBlock)
         {
-            IMySlimBlock currentBlock = startBlock;
             deconstruct.AddingList.Clear();
             deconstruct.GridsProcessed.Clear();
 
@@ -767,21 +675,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     deconstruct.GridsProcessed.Add(currentBlock.CubeGrid);
                 }
 
-                MyObjectBuilder_CubeBlock block = (MyObjectBuilder_CubeBlock)currentBlock.GetObjectBuilder();
-                MyCubeBlockDefinition blockDefinition;
-                MyDefinitionManager.Static.TryGetCubeBlockDefinition(block.GetId(), out blockDefinition);
-
-                // Get real block max
-                Vector3I Max = Vector3I.Zero;
-                Vector3I Min = block.Min;
-                ComputeMax(blockDefinition, block.BlockOrientation, ref Min, out Max);
-
-                AddNeighbours(deconstruct, currentBlock, Min, new Vector3I(Min.X, Max.Y, Max.Z), -Vector3I.UnitX);
-                AddNeighbours(deconstruct, currentBlock, Min, new Vector3I(Max.X, Min.Y, Max.Z), -Vector3I.UnitY);
-                AddNeighbours(deconstruct, currentBlock, Min, new Vector3I(Max.X, Max.Y, Min.Z), -Vector3I.UnitZ);
-                AddNeighbours(deconstruct, currentBlock, new Vector3I(Max.X, Min.Y, Min.Z), Max, Vector3I.UnitX);
-                AddNeighbours(deconstruct, currentBlock, new Vector3I(Min.X, Max.Y, Min.Z), Max, Vector3I.UnitY);
-                AddNeighbours(deconstruct, currentBlock, new Vector3I(Min.X, Min.Y, Max.Z), Max, Vector3I.UnitZ);
+                addNeighboursDeconstruct(ref deconstruct, currentBlock, false);
 
                 // Check if currentBlock is a connector of some kind, then follow it
                 AddConnectedGridBlock(deconstruct, currentBlock);
@@ -797,8 +691,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                 {
                     currentBlock = deconstruct.AddingGridList[0];
                     deconstruct.AddingGridList.Remove(currentBlock);
-                    //deconstruct.TreePosition++;
-                    //deconstruct.GridTree.Add(new Node<IMySlimBlock>(currentBlock));
                 }
                 else
                 {
@@ -808,22 +700,21 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
 
             // Find user defined priority blocks for deconstruction.  
-            FindPriorityBlocks(deconstruct, startBlock);
+            FindPriorityBlocks(deconstruct, currentBlock);
 
             Logging.Instance.WriteLine($"Block Count: {deconstruct.RemoveList.Count}");
             Logging.Instance.WriteLine($"Grid Count: {deconstruct.GridsProcessed.Count}");
-            //Logging.Instance.WriteLine($"Tree Size: {deconstruct.GridTree.Sum(x => x.All.Count())}");
         }
 
         private void FindPriorityBlocks(NaniteDeconstructionGrid deconstruct, IMySlimBlock startBlock)
         {
             var grids = GridHelper.GetGridGroup(startBlock.CubeGrid);
 
-            foreach(var grid in grids)
+            foreach (var grid in grids)
             {
                 List<IMySlimBlock> blocks = new List<IMySlimBlock>();
                 grid.GetBlocks(blocks);
-                foreach(var block in blocks)
+                foreach (var block in blocks)
                 {
                     if (block.FatBlock == null)
                         continue;
@@ -848,32 +739,16 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             Vector3I temp;
             for (temp.X = min.X; temp.X <= max.X; temp.X++)
-            {
                 for (temp.Y = min.Y; temp.Y <= max.Y; temp.Y++)
-                {
                     for (temp.Z = min.Z; temp.Z <= max.Z; temp.Z++)
-                    {
                         AddNeighbour(deconstruct, block, temp, normalDirection);
-                    }
-                }
-            }
         }
 
         private void AddNeighbour(NaniteDeconstructionGrid deconstruct, IMySlimBlock block, Vector3I pos, Vector3I dir)
         {
             var otherBlock = (IMySlimBlock)block.CubeGrid.GetCubeBlock(pos + dir);
             if (otherBlock != null && otherBlock != block && !deconstruct.AddingList.Contains(otherBlock) && !deconstruct.RemoveList.Contains(otherBlock))
-            {
                 deconstruct.AddingList.Add(otherBlock);
-
-                /*
-                if(deconstruct.GridTree != null)
-                {
-                    var parent = deconstruct.GridTree[deconstruct.TreePosition].All.FirstOrDefault(x => x.Value == block);
-                    parent.Add(otherBlock);
-                }
-                */
-            }
         }
 
         private void AddConnectedGridBlock(NaniteDeconstructionGrid deconstruct, IMySlimBlock slimBlock)
@@ -959,14 +834,10 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             ((IMyCubeGrid)original).Physics.LinearVelocity = Vector3.Zero;
             ((IMyCubeGrid)original).Physics.AngularVelocity = Vector3.Zero;
-            //original.Physics.Enabled = false;
-            //AddPhysicless((IMyCubeGrid)original);
-
             ((IMyCubeGrid)newGrid).Physics.LinearVelocity = Vector3.Zero;
             ((IMyCubeGrid)newGrid).Physics.AngularVelocity = Vector3.Zero;
             ((IMyCubeGrid)newGrid).Physics.LinearDamping = 100.0f;
             ((IMyCubeGrid)newGrid).Physics.AngularDamping = 100.0f;
-            //newGrid.Physics.Enabled = false;
             AddPhysicless((IMyCubeGrid)newGrid);
 
             newGrid.OnGridSplit += OnGridSplit;
