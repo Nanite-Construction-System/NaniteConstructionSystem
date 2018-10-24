@@ -51,67 +51,6 @@ namespace NaniteConstructionSystem.Extensions
 
     public static class GridHelper
     {
-        public static List<IMyCubeGrid> GetGridGroup(IMyCubeGrid grid)
-        {
-            List<IMyCubeGrid> gridList = new List<IMyCubeGrid>();
-            gridList.Add(grid);
-
-            try
-            {
-                List<Ingame.IMyTerminalBlock> terminalBlocks = new List<Ingame.IMyTerminalBlock>();
-                Ingame.IMyGridTerminalSystem system = MyAPIGateway.TerminalActionsHelper.GetTerminalSystemForGrid(grid);
-                if (system != null)
-                {
-                    system.GetBlocks(terminalBlocks);
-                    foreach (var item in terminalBlocks)
-                    {
-                        if (!gridList.Contains((IMyCubeGrid)item.CubeGrid))
-                            gridList.Add((IMyCubeGrid)item.CubeGrid);
-
-                        if (item is IMyPistonBase)
-                        {
-                            IMyPistonBase pistonBase = (IMyPistonBase)item;
-                            if (pistonBase.TopGrid != null && !gridList.Contains(pistonBase.TopGrid))
-                                gridList.Add(pistonBase.TopGrid);
-                        }
-
-                        if (item is IMyMechanicalConnectionBlock)
-                        {
-                            var motorBase = item as IMyMechanicalConnectionBlock;
-                            if (motorBase.TopGrid != null && !gridList.Contains(motorBase.TopGrid))
-                                gridList.Add(motorBase.TopGrid);
-                        }
-
-                        if (item is Ingame.IMyShipConnector)
-                        {
-                            Ingame.IMyShipConnector connector = (Ingame.IMyShipConnector)item;
-                            if (connector.Status == Sandbox.ModAPI.Ingame.MyShipConnectorStatus.Connected && connector.OtherConnector != null)
-                            {
-                                if (!gridList.Contains((IMyCubeGrid)connector.OtherConnector.CubeGrid))
-                                    gridList.Add((IMyCubeGrid)connector.OtherConnector.CubeGrid);
-                            }
-                        }
-
-                        if (item is IMyAttachableTopBlock)
-                        {
-                            var motorRotor = item as IMyAttachableTopBlock;
-                            if (motorRotor.IsAttached && motorRotor.Base != null)
-                            {
-                                if (!gridList.Contains((IMyCubeGrid)motorRotor.Base.CubeGrid))
-                                    gridList.Add((IMyCubeGrid)motorRotor.Base.CubeGrid);
-                            }
-                        }
-                    }
-                }
-            }
-            catch(Exception ex)
-            {
-                Logging.Instance.WriteLine(string.Format("GetGridGroup Error: {0}", ex.ToString()));
-            }
-
-            return gridList;
-        }
-
         public static void TryMoveToFreeCargo(MyCubeBlock target, List<IMyInventory> connectedInventory, bool ignoreOtherFactories = false)
         {
             MyInventory sourceInventory = target.GetInventory();
