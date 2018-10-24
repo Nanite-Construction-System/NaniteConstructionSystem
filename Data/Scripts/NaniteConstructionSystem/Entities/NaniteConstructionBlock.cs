@@ -337,29 +337,34 @@ namespace NaniteConstructionSystem.Entities
             {
                 try
                 {
-                    foreach (IMySlimBlock SlimBlock in m_constructionCubeBlock.CubeGrid.GetBlocks())
+                    foreach (IMyCubeGrid grid in MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)m_constructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical))
                     {
-                        IMyEntity entity = SlimBlock.FatBlock as IMyEntity;
-                        if (entity == null || entity.EntityId == ConstructionBlock.EntityId || entity is Sandbox.ModAPI.Ingame.IMyReactor 
-                          || !entity.HasInventory || SlimBlock.FatBlock.BlockDefinition.SubtypeName.Contains("Nanite")) 
-                            continue;
-
-                        //Add assemblers for assembler queue processing
-                        IMyProductionBlock prodblock = entity as IMyProductionBlock;
-                        IMyInventory prodblockinv = null;
-                        IMyInventory inv; 
-                        if (prodblock != null) prodblockinv = prodblock.OutputInventory;
-                        if (prodblockinv != null) inv = prodblockinv; 
-                        else inv = entity.GetInventory();
-
-                        if (inv == null || !inv.IsConnectedTo(m_constructionCubeBlock.GetInventory())) 
-                            continue;
-
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                        foreach (IMySlimBlock SlimBlock in ((MyCubeGrid)grid).GetBlocks())
                         {
-                            InventoryManager.connectedInventory.Add(inv);
-                        });
+                            IMyEntity entity = SlimBlock.FatBlock as IMyEntity;
+                            if (entity == null || entity.EntityId == ConstructionBlock.EntityId || entity is Sandbox.ModAPI.Ingame.IMyReactor 
+                            || !entity.HasInventory || SlimBlock.FatBlock.BlockDefinition.SubtypeName.Contains("Nanite")) 
+                                continue;
+
+                            //Add assemblers for assembler queue processing
+                            IMyProductionBlock prodblock = entity as IMyProductionBlock;
+                            IMyInventory prodblockinv = null;
+                            IMyInventory inv; 
+                            if (prodblock != null) prodblockinv = prodblock.OutputInventory;
+                            if (prodblockinv != null) inv = prodblockinv; 
+                            else inv = entity.GetInventory();
+
+                            if (inv == null || !inv.IsConnectedTo(m_constructionCubeBlock.GetInventory()) 
+                              || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(SlimBlock.FatBlock.GetUserRelationToOwner(ConstructionBlock.OwnerId))) 
+                                continue;
+
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                            {
+                                InventoryManager.connectedInventory.Add(inv);
+                            });
+                        }
                     }
+                        
                 }
                 catch (Exception ex)
                 {
