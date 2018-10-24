@@ -1396,17 +1396,12 @@ namespace NaniteConstructionSystem
 
         public static List<NaniteConstructionBlock> GetConstructionBlocks(IMyCubeGrid grid)
         {
-            List<IMyCubeGrid> gridList = GridHelper.GetGridGroup(grid);
             List<NaniteConstructionBlock> blockList = new List<NaniteConstructionBlock>();
 
-            foreach(var item in NaniteBlocks)
-            {
-                if(gridList.Contains(item.Value.ConstructionBlock.CubeGrid))
-                {
-                    if(!blockList.Contains(item.Value))
-                        blockList.Add(item.Value);
-                }
-            }
+            foreach (var item in NaniteBlocks)
+                if (MyAPIGateway.GridGroups.GetGroup(grid, GridLinkTypeEnum.Physical).Contains(item.Value.ConstructionBlock.CubeGrid) 
+                  && !blockList.Contains(item.Value))
+                    blockList.Add(item.Value);
 
             return blockList;
         }
