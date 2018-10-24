@@ -268,17 +268,15 @@ namespace NaniteConstructionSystem.Entities.Targets
                     Dictionary<string, int> missing = new Dictionary<string, int>();
                     target.GetMissingComponents(missing);
 
-                    if (!target.HasDeformation && !target.CanContinueBuild(((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory()))
+                    if (!target.HasDeformation && !target.CanContinueBuild(((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory()) 
+                      && !MyAPIGateway.Session.CreativeMode)
                     {
-                        if (!MyAPIGateway.Session.CreativeMode)
-                        {
-                            Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to missing components");
-                            foreach (var item in missing)
-                            {
-                                Logging.Instance.WriteLine(string.Format("Missing component: {0} - {1}", item.Value, item.Key));
-                            }
-                            CancelTarget(target);
-                        }
+                        Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to missing components");
+
+                        foreach (var item in missing)
+                            Logging.Instance.WriteLine(string.Format("Missing component: {0} - {1}", item.Value, item.Key));
+
+                        CancelTarget(target);
                     }
 
                     return;
@@ -379,9 +377,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                 return;
 
             foreach (var block in blocks)
-            {
                 AddPotentialBlock(block);
-            }
+
             CheckBeacons();
             CheckAreaBeacons();
         }
@@ -395,27 +392,18 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 var item = beaconBlock.Value.BeaconBlock;
 
-                if (!item.Enabled || !item.IsFunctional)
+                if (!item.Enabled || !item.IsFunctional 
+                  || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
                     continue;
 
-                MyRelationsBetweenPlayerAndBlock relation = item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId);
-                if (!(relation == MyRelationsBetweenPlayerAndBlock.Owner || relation == MyRelationsBetweenPlayerAndBlock.FactionShare || (MyAPIGateway.Session.CreativeMode && relation == MyRelationsBetweenPlayerAndBlock.NoOwnership)))
-                    continue;
-
-                List<IMyCubeGrid> beaconGridList = GridHelper.GetGridGroup((IMyCubeGrid)item.CubeGrid);
                 List<IMySlimBlock> beaconBlocks = new List<IMySlimBlock>();
-                foreach (var grid in beaconGridList)
-                {
+
+                foreach (var grid in MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)item.CubeGrid, GridLinkTypeEnum.Physical))
                     grid.GetBlocks(beaconBlocks);
-                }
 
                 foreach (var block in beaconBlocks)
-                {
                     if (AddPotentialBlock(block, true))
-                    {
                         remoteList.Add(block);
-                    }
-                }
             }
 
             using (m_remoteLock.AcquireExclusiveUsing())
@@ -425,12 +413,9 @@ namespace NaniteConstructionSystem.Entities.Targets
         }
         private void CheckAreaBeacons()
         {
-            foreach(var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteAreaBeacon))
+            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteAreaBeacon))
             {
                 IMyCubeBlock cubeBlock = beaconBlock.Value.BeaconBlock;
-                //MyRelationsBetweenPlayerAndBlock relation = cubeBlock.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId);
-                //if (!(relation == MyRelationsBetweenPlayerAndBlock.Owner || relation == MyRelationsBetweenPlayerAndBlock.FactionShare || (MyAPIGateway.Session.CreativeMode && relation == MyRelationsBetweenPlayerAndBlock.NoOwnership)))
-                //    continue;
 
                 if (!((IMyFunctionalBlock)cubeBlock).Enabled || !((IMyFunctionalBlock)cubeBlock).IsFunctional)
                     continue;
@@ -454,9 +439,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                             BoundingBoxD blockbb;
                             block.GetWorldBoundingBox(out blockbb);
                             if (item.IsInsideBox(blockbb))
-                            {
                                 AddPotentialBlock(block, true, item);
-                            }
                         }
                     }
                 }
@@ -471,33 +454,14 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, block) > m_maxDistance)
                 return false;
 
-            if (!remote && block.FatBlock != null && block.FatBlock is IMyTerminalBlock && block.FatBlock.OwnerId != 0)
-            {
-                IMyTerminalBlock terminal = (IMyTerminalBlock)block.FatBlock;
-                MyRelationsBetweenPlayerAndBlock relation = terminal.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId);
+            if (!remote && block.FatBlock != null && block.FatBlock is IMyTerminalBlock && block.FatBlock.OwnerId != 0 
+              && !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(((IMyTerminalBlock)block.FatBlock).GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
+                return false;
 
-                if (relation == MyRelationsBetweenPlayerAndBlock.Neutral ||
-                    relation == MyRelationsBetweenPlayerAndBlock.Enemies)
-                {
-                    return false;
-                }
-            }
             else if(remote)
-            {
-                //if (block.CubeGrid.BigOwners.Count < 1)
-                //    return false;
-
                 foreach (var item in block.CubeGrid.BigOwners)
-                {
-                    MyRelationsBetweenPlayerAndBlock relation = m_constructionBlock.ConstructionBlock.GetUserRelationToOwner(item);
-
-                    if (relation == MyRelationsBetweenPlayerAndBlock.Neutral ||
-                        relation == MyRelationsBetweenPlayerAndBlock.Enemies)
-                    {
+                    if (!MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(m_constructionBlock.ConstructionBlock.GetUserRelationToOwner(item)))
                         return false;
-                    }
-                }
-            }
 
             if (!block.IsFullIntegrity || block.HasDeformation)
             {
