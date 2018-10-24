@@ -149,18 +149,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                 {
                     IMyCubeBlock item = (IMyCubeBlock)beaconBlock.Value.BeaconBlock;
 
-                    if (!((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional)
+                    if (!((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional || gridList.Contains(item.CubeGrid) 
+                      || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId))
+                      || m_validBeaconedGrids.FirstOrDefault(x => x.GridsProcessed.Contains(item.CubeGrid)) != null)
 						continue;
-
-                    if (gridList.Contains(item.CubeGrid))
-                        continue;
-
-                    MyRelationsBetweenPlayerAndBlock relation = item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId);
-                    if (!(relation == MyRelationsBetweenPlayerAndBlock.Owner || relation == MyRelationsBetweenPlayerAndBlock.FactionShare || (MyAPIGateway.Session.CreativeMode && relation == MyRelationsBetweenPlayerAndBlock.NoOwnership)))
-                        continue;
-
-                    if (m_validBeaconedGrids.FirstOrDefault(x => x.GridsProcessed.Contains(item.CubeGrid)) != null)
-                        continue;
 
                     NaniteDeconstructionGrid deconstruct = new NaniteDeconstructionGrid(item.CubeGrid);
                     m_validBeaconedGrids.Add(deconstruct);
@@ -205,13 +197,9 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 IMyCubeBlock cubeBlock = (IMyCubeBlock)beaconBlock.Value.BeaconBlock;
 
-				if (!((IMyFunctionalBlock)cubeBlock).Enabled || !((IMyFunctionalBlock)cubeBlock).IsFunctional)
+				if (!((IMyFunctionalBlock)cubeBlock).Enabled || !((IMyFunctionalBlock)cubeBlock).IsFunctional
+                  || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(cubeBlock.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
 					continue;
-
-				MyRelationsBetweenPlayerAndBlock relation = cubeBlock.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId);
-                if (!(relation == MyRelationsBetweenPlayerAndBlock.Owner || relation == MyRelationsBetweenPlayerAndBlock.FactionShare 
-                  || (MyAPIGateway.Session.CreativeMode && relation == MyRelationsBetweenPlayerAndBlock.NoOwnership)))
-                    continue;
 
                 var item = beaconBlock.Value as NaniteAreaBeacon;
                 if (!item.Settings.AllowDeconstruction)
@@ -224,7 +212,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     var grid = entity as IMyCubeGrid;
                     if (grid != null && grid.Physics != null && grid.Physics.AngularVelocity.Length() == 0f 
                       && grid.Physics.LinearVelocity.Length() == 0f && m_validBeaconedGrids.FirstOrDefault(x => x.GridsProcessed.Contains(grid)) == null
-                      && !GridHelper.GetGridGroup(grid).Contains(cubeBlock.CubeGrid) 
+                      && !MyAPIGateway.GridGroups.GetGroup(grid, GridLinkTypeEnum.Physical).Contains(cubeBlock.CubeGrid) 
                       && (grid.GetPosition() - cubeBlock.GetPosition()).LengthSquared() < m_maxDistance * m_maxDistance && item.IsInsideBox(grid.WorldAABB, false))
                     {
                         NaniteDeconstructionGrid deconstruct = new NaniteDeconstructionGrid(grid);
@@ -537,10 +525,8 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private int GetGridGroupBlockCount(IMyCubeGrid grid)
         {
-            List<IMyCubeGrid> gridList = GridHelper.GetGridGroup(grid);
             int count = 0;
-
-            foreach (var item in gridList)
+            foreach (var item in MyAPIGateway.GridGroups.GetGroup(grid, GridLinkTypeEnum.Physical))
                 count += ((MyCubeGrid)item).GetBlocks().Count;
 
             return count;
@@ -548,43 +534,12 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private long GetGridGroupOwner(IMyCubeGrid grid)
         {
-            Ingame.IMyGridTerminalSystem system = MyAPIGateway.TerminalActionsHelper.GetTerminalSystemForGrid(grid);
-            List<Ingame.IMyTerminalBlock> terminalBlocks = new List<Ingame.IMyTerminalBlock>();
-            system.GetBlocks(terminalBlocks);
-            foreach (var item in terminalBlocks)
-            {
-                if (((IMyCubeGrid)item.CubeGrid).BigOwners.Count > 0)
-                    return ((IMyCubeGrid)item.CubeGrid).BigOwners.First();
+            if(grid.BigOwners.Count > 0)
+                return grid.BigOwners.First();
 
-                if (item is IMyPistonBase)
-                {
-                    IMyPistonBase pistonBase = (IMyPistonBase)item;
-                    if (pistonBase.TopGrid != null && pistonBase.TopGrid.BigOwners.Count > 0)
-                        return pistonBase.TopGrid.BigOwners.First();
-                }
-
-                if (item is IMyMechanicalConnectionBlock)
-                {
-                    var motorBase = item as IMyMechanicalConnectionBlock;
-                    if (motorBase.TopGrid != null && motorBase.TopGrid.BigOwners.Count > 0)
-                        return motorBase.TopGrid.BigOwners.First();
-                }
-
-                if (item is Ingame.IMyShipConnector)
-                {
-                    Ingame.IMyShipConnector connector = (Ingame.IMyShipConnector)item;
-                    if (connector.Status == Sandbox.ModAPI.Ingame.MyShipConnectorStatus.Connected && connector.OtherConnector != null 
-                      && ((IMyCubeGrid)connector.OtherConnector.CubeGrid).BigOwners.Count > 0)
-                        return ((IMyCubeGrid)connector.OtherConnector.CubeGrid).BigOwners.First();
-                }
-
-                if (item is IMyAttachableTopBlock)
-                {
-                    var motorRotor = item as IMyAttachableTopBlock;
-                    if (motorRotor.IsAttached && motorRotor.Base != null && motorRotor.Base.CubeGrid.BigOwners.Count > 0)
-                        return motorRotor.Base.CubeGrid.BigOwners.First();
-                }
-            }
+            foreach (IMyCubeGrid item in MyAPIGateway.GridGroups.GetGroup(grid, GridLinkTypeEnum.Physical))
+                if (item.BigOwners.Count > 0)
+                    return item.BigOwners.First();
 
             return 0;
         }
@@ -639,8 +594,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         private void CreateGridStack(NaniteDeconstructionGrid deconstruct, MyCubeGrid grid, MyCubeBlock beacon)
         {
             DateTime start = DateTime.Now;
-            List<IMyCubeGrid> gridList = GridHelper.GetGridGroup((IMyCubeGrid)grid);
-            IMyCubeGrid mainGrid = gridList.OrderByDescending(x => ((MyCubeGrid)x).GetBlocks().Count).FirstOrDefault();
+            IMyCubeGrid mainGrid = MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)grid, GridLinkTypeEnum.Physical).OrderByDescending(x => ((MyCubeGrid)x).GetBlocks().Count).FirstOrDefault();
 
             if (mainGrid == null)
                 return;
@@ -708,9 +662,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void FindPriorityBlocks(NaniteDeconstructionGrid deconstruct, IMySlimBlock startBlock)
         {
-            var grids = GridHelper.GetGridGroup(startBlock.CubeGrid);
-
-            foreach (var grid in grids)
+            foreach (var grid in MyAPIGateway.GridGroups.GetGroup(startBlock.CubeGrid, GridLinkTypeEnum.Physical))
             {
                 List<IMySlimBlock> blocks = new List<IMySlimBlock>();
                 grid.GetBlocks(blocks);
