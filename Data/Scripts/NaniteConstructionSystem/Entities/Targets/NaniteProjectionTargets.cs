@@ -342,33 +342,25 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             HashSet<IMyEntity> entities = new HashSet<IMyEntity>();
             MyAPIGateway.Entities.GetEntities(entities, x => x is IMyCubeGrid && x.Physics == null);
+
             foreach(var item in blocks)
-            {
                 CheckBlockProjection(item);
-            }
 
             foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteBeaconProjection && Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), x.Value.BeaconBlock.GetPosition()) < m_maxDistance * m_maxDistance))
             {
                 IMyCubeBlock item = (IMyCubeBlock)beaconBlock.Value.BeaconBlock;
 
-				if (!((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional)
+				if (!((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional 
+                  || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
 					continue;
 
-				MyRelationsBetweenPlayerAndBlock relation = item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId);
-                if (!(relation == MyRelationsBetweenPlayerAndBlock.Owner || relation == MyRelationsBetweenPlayerAndBlock.FactionShare || (MyAPIGateway.Session.CreativeMode && relation == MyRelationsBetweenPlayerAndBlock.NoOwnership)))
-                    continue;
-
-                List<IMyCubeGrid> beaconGridList = GridHelper.GetGridGroup((IMyCubeGrid)item.CubeGrid);
                 List<IMySlimBlock> beaconBlocks = new List<IMySlimBlock>();
-                foreach (var grid in beaconGridList)
-                {
+
+                foreach (var grid in MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)item.CubeGrid, GridLinkTypeEnum.Physical))
                     grid.GetBlocks(beaconBlocks);
-                }
 
                 foreach (var block in beaconBlocks)
-                {
                     CheckBlockProjection(block);
-                }
             }
 
             CheckAreaBeacons();
@@ -380,9 +372,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 var projector = item.Value as IMyProjector;
                 if(projector.ProjectedGrid != null && projector.ProjectedGrid.EntityId == block.CubeGrid.EntityId)
-                {
                     return projector.EntityId;
-                }
             }
 
             return 0;
@@ -425,24 +415,12 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void CheckBlockProjection(IMySlimBlock item)
         {
-            if (item.FatBlock == null)
-                return;
-
-            if (!(item.FatBlock is IMyProjector))
+            if (item.FatBlock == null || !(item.FatBlock is IMyProjector))
                 return;
 
             IMyProjector projector = item.FatBlock as IMyProjector;
-            if (!projector.Enabled)
-                return;
-
-            if (projector.ProjectedGrid == null)
-                return;
-
-            //Logging.Instance.WriteLine(string.Format("Projector: {0} - BuildableBlocksCount: {1}", projector.CustomName, projector.BuildableBlocksCount));
-            if (projector.BuildableBlocksCount > 0)
-            {
+            if (projector.Enabled && projector.ProjectedGrid != null && projector.BuildableBlocksCount > 0)
                 ProcessProjector(projector);
-            }
         }
 
         private void ProcessProjector(IMyProjector projector)
@@ -467,10 +445,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             foreach(var item in NaniteConstructionManager.ProjectorBlocks)
             {
                 var projector = item.Value as IMyProjector;
-                if (projector == null)
-                    continue;
-
-                if(projector.ProjectedGrid == block.CubeGrid)
+                if(projector != null && projector.ProjectedGrid == block.CubeGrid)
                 {
                     projector.Build(block, m_constructionBlock.ConstructionBlock.OwnerId, m_constructionBlock.ConstructionBlock.EntityId, false);
                     break;
@@ -480,7 +455,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private bool UpdateProjection(MyCubeBlock projector, MyCubeGrid projectedGrid, MyObjectBuilder_ProjectorBase projectorBuilder)
         {
-            // god fucking damnit object builders
+            // SPLEN: REMOVE USE OF OBJECT BUILDERS ASAP
             MyCubeGrid cubeGrid = projector.CubeGrid;
             MyObjectBuilder_CubeGrid gridBuilder = (MyObjectBuilder_CubeGrid)projectedGrid.GetObjectBuilder();
             bool found = false;
