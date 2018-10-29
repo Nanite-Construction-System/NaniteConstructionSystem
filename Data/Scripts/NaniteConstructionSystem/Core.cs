@@ -271,24 +271,16 @@ namespace NaniteConstructionSystem
                 MessageHub.SendMessageToServer(new MessageClientConnected());
 
                 foreach (var item in NaniteBlocks)
-                {
                     m_sync.SendNeedTerminalSettings(item.Key);
-                }
 
                 foreach (var item in AssemblerBlocks)
-                {
                     m_sync.SendNeedAssemblerSettings(item.Value.EntityId);
-                }
 
                 foreach (var item in HammerTerminalSettings)
-                {
                     m_sync.SendNeedHammerTerminalSettings(item.Key);
-                }
 
                 foreach (var item in BeaconTerminalSettings)
-                {
                     m_sync.SendNeedBeaconTerminalSettings(item.Key);
-                }
             }
         }
         #endregion
@@ -1049,9 +1041,7 @@ namespace NaniteConstructionSystem
                 {
                     var listItem = possibleOreList.FirstOrDefault(ore => ore.Text.ToString() == item);
                     if (listItem != null)
-                    {
                         selected.Add(listItem);
-                    }
                 }
             };
             oreList.ItemSelected = (block, selected) =>
@@ -1104,9 +1094,7 @@ namespace NaniteConstructionSystem
 
             HammerTerminalSettings[block.EntityId].SelectedOres.Clear();
             foreach (var item in list)
-            {
                 HammerTerminalSettings[block.EntityId].SelectedOres.Add(item.Text.ToString());
-            }
 
             m_sync.SendHammerTerminalSettings(block.EntityId);
             block.RefreshCustomInfo();
@@ -1138,9 +1126,7 @@ namespace NaniteConstructionSystem
             {
                 var listItem = list.FirstOrDefault(x => x.Text.ToString() == item);
                 if(listItem != null)
-                {
                     selected.Add(listItem);
-                }
             }
         }
 
@@ -1185,7 +1171,7 @@ namespace NaniteConstructionSystem
                 return;
             }
 
-            if (!(block.BlockDefinition.SubtypeName == "LargeNaniteFactory"))
+            if (!(block.BlockDefinition.SubtypeName == "LargeNaniteControlFacility"))
                 return;
 
             foreach (var item in m_customControls)
@@ -1196,8 +1182,16 @@ namespace NaniteConstructionSystem
         {
             if(messageText.ToLower() == "/nanite")
             {
-                string message = @"02/16/2018
+                string message = @"10/29/2018
 
+-Version 2 release!
+-All target processing moved to parallel for better performance
+-Tons of code optimizations
+-New models!
+-Old models have a rusty look. They can be torn down to retrieve parts
+-New mining logic and ore detector block
+                
+02/16/2018
 -Fixed settings load on world load - BAM5
 -Fixed some texture issues, and cleaned up textures folder
 -Adjusted beacon costs and build times
@@ -1254,11 +1248,11 @@ namespace NaniteConstructionSystem
                 {
                     message += $"Factory: {item.Key}:\n";
                     message += $"- Exists: {item.Value.ConstructionBlock != null}\n";
+
                     var name = "N/A";
                     if (item.Value.ConstructionBlock != null)
-                    {
                         name = item.Value.ConstructionBlock.CustomName;
-                    }
+
                     message += $"- Name: {name}\n";
                     message += $"- Init: {item.Value.Initialized}\n";
                     message += $"- UserDefinedNaniteLimit: {item.Value.UserDefinedNaniteLimit}\n";
@@ -1342,12 +1336,8 @@ namespace NaniteConstructionSystem
             HashSet<IMyCubeGrid> gridsToRemove = new HashSet<IMyCubeGrid>();
             MyAPIGateway.Entities.GetEntities(grids, x => x is IMyCubeGrid);
             foreach(var item in grids)
-            {
                 if(((IMyCubeGrid)item).DisplayName == "SmallNaniteWelderCube")
-                {
                     gridsToRemove.Add((IMyCubeGrid)item);
-                }
-            }
 
             foreach (var item in gridsToRemove)
                 item.Close();
@@ -1355,7 +1345,7 @@ namespace NaniteConstructionSystem
 
         /// <summary>
         /// This is required to remove blocks that are supposed to not exist on the clients.  Clients don't need actual welders as welding
-        /// happen on the server.  (This is obsolete, but leaving for now)
+        /// happen on the server. (This is obsolete, but leaving for now)
         /// </summary>
         /// <param name="obj"></param>
         private void Entities_OnEntityAdd(IMyEntity obj)
@@ -1374,23 +1364,6 @@ namespace NaniteConstructionSystem
                     if (!obj.Closed)
                         obj.Close();
                 }
-                /*
-                foreach (var item in grid.GetBlocks())
-                {
-                    IMySlimBlock slimBlock = (IMySlimBlock)item;
-                    if (slimBlock.FatBlock == null)
-                        continue;
-
-                    IMyCubeBlock block = (IMyCubeBlock)slimBlock.FatBlock;
-                    if (block.BlockDefinition.SubtypeName.Contains("NaniteShipWelder"))
-                    {
-                        if(!obj.Closed)
-                            obj.Close();
-
-                        return;
-                    }
-                }
-                */
             }
         }
 
