@@ -253,7 +253,7 @@ namespace NaniteConstructionSystem.Entities
 
                 ScanForTargets();
 
-                ProcessPlayers();
+                //ProcessPlayers();
 
                 ProcessInventory();
 
