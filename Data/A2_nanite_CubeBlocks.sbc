@@ -59,7 +59,7 @@
       <PrimarySound>NaniteModule</PrimarySound>
       <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>
       <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <SensorRadius>6.1</SensorRadius>
+      <SensorRadius>4</SensorRadius>
       <SensorOffset>0</SensorOffset>
       <PCU>2500</PCU>
     </Definition>
@@ -1423,7 +1423,7 @@
   </CubeBlocks>
   <BlockPositions>
     <BlockPosition>
-      <Name>NaniteControlFacility</Name>
+      <Name>LargeNaniteControlFacility</Name>
       <Position>
         <X>0</X>
         <Y>22</Y>
