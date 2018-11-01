@@ -1265,7 +1265,7 @@
     <!-- Migration: block only, no function -->
     <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
       <Id>
-        <TypeId>ShipWelder</TypeId>
+        <TypeId>OxygenFarm</TypeId>
         <SubtypeId>LargeNaniteFactory</SubtypeId>
       </Id>
       <DisplayName>OLD Nanite Control Factory</DisplayName>
@@ -1326,7 +1326,7 @@
     </Definition>
     <Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
       <Id>
-        <TypeId>OreDetector</TypeId>
+        <TypeId>OxygenFarm</TypeId>
         <SubtypeId>NaniteUltrasonicHammer</SubtypeId>
       </Id>
       <DisplayName>Nanite Ultrasonic Hammer Ore Locator - NUHOL</DisplayName>

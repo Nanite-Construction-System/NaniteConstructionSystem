@@ -364,9 +364,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             byte material = 0;
             float amount = 0;
-            //NaniteMining.CheckVoxelContent(target.VoxelId, target.Position, target.LocalPos);
-            NaniteMining.RemoveVoxelContent(target.VoxelId, target.Position, out material, out amount);
-            //NaniteMining.TestRemoveVoxel(target.VoxelId, target.Position, out material, out amount);
+            // TODO: process voxel removal, by cutting sphere
             //gging.Instance.WriteLine($"Removing: {target.Position} ({material} {amount})");
 
             /*

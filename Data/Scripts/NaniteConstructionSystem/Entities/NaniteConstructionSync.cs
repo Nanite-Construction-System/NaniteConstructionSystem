@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using Sandbox.ModAPI;
 using VRage.Utils;
@@ -30,8 +30,6 @@ namespace NaniteConstructionSystem.Entities
               //*  MyAPIGateway.Multiplayer.RegisterMessageHandler(8959, HandleRemoveParticle);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8960, HandleTerminalSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8962, HandleAssemblerSettings);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8966, HandleHammerTerminalSettings);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8969, HandleVoxelRemoval);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8971, HandleBeaconTerminalSettings);
             }
             else
@@ -41,8 +39,6 @@ namespace NaniteConstructionSystem.Entities
                 // Same function but server.  I think SendMessageToOthers sends to self, which will stack overflow
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8964, HandleTerminalSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8965, HandleAssemblerSettings);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8967, HandleHammerTerminalSettings);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8968, HandleNeedHammerTerminalSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8972, HandleBeaconTerminalSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8973, HandleNeedBeaconTerminalSettings);
             }
@@ -67,8 +63,6 @@ namespace NaniteConstructionSystem.Entities
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8963, HandleNeedAssemblerSettings);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8964, HandleTerminalSettings);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8965, HandleAssemblerSettings);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8967, HandleHammerTerminalSettings);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8968, HandleNeedHammerTerminalSettings);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8972, HandleBeaconTerminalSettings);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8973, HandleNeedBeaconTerminalSettings);
             }
@@ -188,29 +182,13 @@ namespace NaniteConstructionSystem.Entities
                 DetailData details = MyAPIGateway.Utilities.SerializeFromXML<DetailData>(ASCIIEncoding.ASCII.GetString(data));
                 //Logging.Instance.WriteLine(string.Format("HandleDetails: {0}", details.EntityId));
 
-                bool found = false;
                 foreach (var item in NaniteConstructionManager.NaniteBlocks)
                 {
                     if (item.Key == details.EntityId && item.Value.Initialized)
                     {
                         //Logging.Instance.WriteLine(string.Format("Details for Factory: {0}", details.EntityId));
                         item.Value.SyncDetails(details);
-                        found = true;
                         break;
-                    }
-                }
-
-                if(!found)
-                {
-                    foreach(var item in NaniteConstructionManager.MiningList)
-                    {
-                        if(item.MiningBlock.EntityId == details.EntityId)
-                        {
-                            //Logging.Instance.WriteLine(string.Format("Details for Hammer: {0}", details.EntityId));
-                            item.SyncDetails(details);
-                            found = true;
-                            break;
-                        }
                     }
                 }
             }
@@ -437,86 +415,6 @@ namespace NaniteConstructionSystem.Entities
             MyAPIGateway.Multiplayer.SendMessageToServer(8963, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(blockId)));
         }
 
-        public void SendHammerTerminalSettings(long blockId)
-        {
-            if (!NaniteConstructionManager.HammerTerminalSettings.ContainsKey(blockId))
-                NaniteConstructionManager.HammerTerminalSettings.Add(blockId, new NaniteHammerTerminalSettings());
-
-            SerializableKeyValuePair<long, NaniteHammerTerminalSettings> settings = new SerializableKeyValuePair<long, NaniteHammerTerminalSettings>(blockId, NaniteConstructionManager.HammerTerminalSettings[blockId]);
-
-            if (!Sync.IsServer)
-            {
-                //Logging.Instance.WriteLine("SendAssemblerSettings -> Server");
-                MyAPIGateway.Multiplayer.SendMessageToServer(8967, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(settings)));
-            }
-            else
-            {
-                //Logging.Instance.WriteLine("SendAssemblerSettings -> Others");
-                MyAPIGateway.Multiplayer.SendMessageToOthers(8966, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(settings)));
-            }
-        }
-
-        private void HandleHammerTerminalSettings(byte[] data)
-        {
-            try
-            {
-                if (MyAPIGateway.Session == null)
-                    return;
-
-                var settings = MyAPIGateway.Utilities.SerializeFromXML<SerializableKeyValuePair<long, NaniteHammerTerminalSettings>>(ASCIIEncoding.ASCII.GetString(data));
-                if (!NaniteConstructionManager.HammerTerminalSettings.ContainsKey(settings.Key))
-                    NaniteConstructionManager.HammerTerminalSettings.Add(settings.Key, settings.Value);
-
-                NaniteConstructionManager.HammerTerminalSettings[settings.Key] = settings.Value;
-
-                IMyEntity entity;
-                if(MyAPIGateway.Entities.TryGetEntityById(settings.Key, out entity))
-                {
-                    var block = entity as IMyTerminalBlock;
-                    block.RefreshCustomInfo();
-                }
-                
-                if (Sync.IsServer)
-                    SendHammerTerminalSettings(settings.Key);
-            }
-            catch (Exception ex)
-            {
-                MyLog.Default.WriteLine(string.Format("HandleHammerTerminalSettings() Error: {0}", ex.ToString()));
-            }
-        }
-
-        public void SendNeedHammerTerminalSettings(long blockId)
-        {
-            if (MyAPIGateway.Multiplayer == null)
-                return;
-
-            //Logging.Instance.WriteLine(string.Format("Requesting Assembler Settings -> {0}", blockId));
-            MyAPIGateway.Multiplayer.SendMessageToServer(8968, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(blockId)));
-        }
-
-        private void HandleNeedHammerTerminalSettings(byte[] data)
-        {
-            try
-            {
-                if (MyAPIGateway.Session == null)
-                    return;
-
-                var settings = MyAPIGateway.Utilities.SerializeFromXML<long>(ASCIIEncoding.ASCII.GetString(data));
-                foreach (var item in NaniteConstructionManager.HammerTerminalSettings)
-                {
-                    if (item.Key == settings)
-                    {
-                        SendHammerTerminalSettings(item.Key);
-                        break;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MyLog.Default.WriteLine(string.Format("HandleNeedHammerTerminalSettings() Error: {0}", ex.ToString()));
-            }
-        }
-
         public void SendBeaconTerminalSettings(long blockId)
         {
             if (!NaniteConstructionManager.BeaconTerminalSettings.ContainsKey(blockId))
@@ -593,25 +491,6 @@ namespace NaniteConstructionSystem.Entities
             catch (Exception ex)
             {
                 MyLog.Default.WriteLine(string.Format("HandleNeedBeaconTerminalSettings() Error: {0}", ex.ToString()));
-            }
-        }
-
-
-        private void HandleVoxelRemoval(byte[] data)
-        {
-            try
-            {
-                if (MyAPIGateway.Session == null)
-                    return;
-
-                var settings = MyAPIGateway.Utilities.SerializeFromXML<VoxelRemovalData>(ASCIIEncoding.ASCII.GetString(data));
-                byte materialRemoved = 0;
-                float amountOfMaterial = 0f;
-                Detectors.NaniteMining.RemoveVoxelContent(settings.VoxelID, settings.Position, out materialRemoved, out amountOfMaterial);
-            }
-            catch(Exception ex)
-            {
-                MyLog.Default.WriteLine("HandleVoxelRemoval(): " + ex.ToString());
             }
         }
     }

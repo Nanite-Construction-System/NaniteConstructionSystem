@@ -106,7 +106,6 @@ namespace NaniteConstructionSystem.Entities.Detectors
             get { return m_block; }
         }
 
-        private bool m_busy;
         private DateTime m_lastUpdate;
         private readonly List<MyVoxelBase> m_oreInRangeCache = new List<MyVoxelBase>();
         private float _maxRange = 0f;
@@ -147,7 +146,6 @@ namespace NaniteConstructionSystem.Entities.Detectors
         public NaniteOreDetector(IMyFunctionalBlock entity)
         {
             m_block = entity as IMyOreDetector;
-            m_busy = false;
             m_lastUpdate = DateTime.MinValue;
             m_scanStart = DateTime.MinValue;
             m_scanEnd = DateTime.MinValue;

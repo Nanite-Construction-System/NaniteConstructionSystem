@@ -153,18 +153,6 @@ namespace NaniteConstructionSystem
             get { return m_sync; }
         }
 
-        private static HashSet<NaniteMining> m_miningList;
-        public static HashSet<NaniteMining> MiningList
-        {
-            get
-            {
-                if (m_miningList == null)
-                    m_miningList = new HashSet<NaniteMining>();
-
-                return m_miningList;
-            }
-        }
-
         private static Dictionary<long, NaniteOreDetector> m_oreDetectors;
         public static Dictionary<long, NaniteOreDetector> OreDetectors
         {
@@ -249,11 +237,6 @@ namespace NaniteConstructionSystem
 
                 BeaconList.Clear();
 
-                foreach (var item in MiningList.ToList())
-                    item.Close();
-
-                MiningList.Clear();
-
                 Logging.Instance.Close();
 
                 //if(Logging.Instance != null)
@@ -275,9 +258,6 @@ namespace NaniteConstructionSystem
 
                 foreach (var item in AssemblerBlocks)
                     m_sync.SendNeedAssemblerSettings(item.Value.EntityId);
-
-                foreach (var item in HammerTerminalSettings)
-                    m_sync.SendNeedHammerTerminalSettings(item.Key);
 
                 foreach (var item in BeaconTerminalSettings)
                     m_sync.SendNeedBeaconTerminalSettings(item.Key);
@@ -321,24 +301,6 @@ namespace NaniteConstructionSystem
         private void ProcessParticleEffects()
         {
             ParticleManager.Update();
-        }
-
-        private void ProcessMiningBlocks()
-        {
-            foreach(var item in MiningList.ToList())
-            {
-                if (item.MiningBlock.Closed || item.MiningBlock.CubeGrid.Closed)
-                {
-                    Logging.Instance.WriteLine(string.Format("REMOVING Mining Hammer: {0}", item.MiningBlock.EntityId));
-                    item.Close();
-                    continue;
-                }
-
-                if (item.MiningBlock.CubeGrid.Physics == null)
-                    continue;
-
-                item.Update();
-            }
         }
 
         public void InitializeControls()
@@ -1085,49 +1047,6 @@ namespace NaniteConstructionSystem
                     slider.Setter(x, maxValue);
             };
             m_customBeaconActions.Add(heightSliderActionDec);
-        }
-
-        private void OreListSelected(IMyTerminalBlock block, List<MyTerminalControlListBoxItem> list)
-        {
-            if (!HammerTerminalSettings.ContainsKey(block.EntityId))
-                HammerTerminalSettings.Add(block.EntityId, new NaniteHammerTerminalSettings(true));
-
-            HammerTerminalSettings[block.EntityId].SelectedOres.Clear();
-            foreach (var item in list)
-                HammerTerminalSettings[block.EntityId].SelectedOres.Add(item.Text.ToString());
-
-            m_sync.SendHammerTerminalSettings(block.EntityId);
-            block.RefreshCustomInfo();
-
-            // Trigger a refresh
-            var detector = block as Ingame.IMyOreDetector;
-            var action = detector.GetActionWithName("BroadcastUsingAntennas");
-            action.Apply(block);
-            action.Apply(block);
-        }
-
-        private void OreListContent(IMyTerminalBlock block, List<MyTerminalControlListBoxItem> list, List<MyTerminalControlListBoxItem> selected)
-        {
-            var miningItem = MiningList.FirstOrDefault(x => x.MiningBlock == block);
-            if (miningItem == null)
-                return;
-
-            foreach(var item in MyDefinitionManager.Static.GetVoxelMaterialDefinitions().Select(x => x.MinedOre).Distinct())
-            {
-                MyTerminalControlListBoxItem listItem = new MyTerminalControlListBoxItem(MyStringId.GetOrCompute(item), MyStringId.GetOrCompute(item), null);
-                list.Add(listItem);
-            }
-
-            if (!HammerTerminalSettings.ContainsKey(block.EntityId))
-                HammerTerminalSettings.Add(block.EntityId, new NaniteHammerTerminalSettings(true));
-
-            var oreList = HammerTerminalSettings[block.EntityId];
-            foreach(var item in oreList.SelectedOres)
-            {
-                var listItem = list.FirstOrDefault(x => x.Text.ToString() == item);
-                if(listItem != null)
-                    selected.Add(listItem);
-            }
         }
 
         private void CustomActionGetter(IMyTerminalBlock block, List<IMyTerminalAction> actions)

@@ -134,8 +134,6 @@
     <Compile Include="Entities\Beacons\NaniteBeaconProjectionLogic.cs" />
     <Compile Include="Entities\Detectors\LargeNaniteOreDetector.cs" />
     <Compile Include="Entities\Detectors\LargeNaniteOreDetectorLogic.cs" />
-    <Compile Include="Entities\Detectors\NaniteMining.cs" />
-    <Compile Include="Entities\Detectors\NaniteMiningLogic.cs" />
     <Compile Include="Entities\Detectors\NaniteOreDetector.cs" />
     <Compile Include="Entities\Detectors\NaniteOreDetectorSettings.cs" />
     <Compile Include="Entities\Effects\CenterOrbEffect.cs" />
@@ -143,7 +141,6 @@
     <Compile Include="Entities\Effects\LightningBolt\LightningBoltInstance.cs" />
     <Compile Include="Entities\Effects\LightningBolt\LightningBoltItem.cs" />
     <Compile Include="Entities\Effects\LightningBolt\LightningBoltPath.cs" />
-    <Compile Include="Entities\Effects\MiningHammerEffect.cs" />
     <Compile Include="Entities\Effects\NaniteAreaBeaconEffect.cs" />
     <Compile Include="Entities\Effects\NaniteBeaconEffect.cs" />
     <Compile Include="Entities\Effects\NaniteBlockEffectBase.cs" />

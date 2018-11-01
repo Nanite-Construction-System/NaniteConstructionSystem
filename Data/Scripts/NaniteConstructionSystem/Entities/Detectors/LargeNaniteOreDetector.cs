@@ -1,4 +1,5 @@
 using Sandbox.ModAPI;
+using VRageMath;
 
 namespace NaniteConstructionSystem.Entities.Detectors
 {
@@ -11,5 +12,13 @@ namespace NaniteConstructionSystem.Entities.Detectors
             minRange = 50f;
             basePower = 0.5f;
         }
+    }
+
+    public class NaniteMiningItem
+    {
+        public byte VoxelMaterial { get; set; }
+        public Vector3D Position { get; set; }
+        public long VoxelId { get; set; }
+        public float Amount { get; set; }
     }
 }
