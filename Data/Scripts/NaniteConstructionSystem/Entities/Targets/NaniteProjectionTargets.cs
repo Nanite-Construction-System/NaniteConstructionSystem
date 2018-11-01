@@ -38,7 +38,6 @@ namespace NaniteConstructionSystem.Entities.Targets
         private int m_count;
         private float m_maxDistance = 300f;
 
-        //private NaniteConstructionBlock m_constructionBlock;
         public NaniteProjectionTargets(NaniteConstructionBlock constructionBlock) : base(constructionBlock)
         {
             m_count = 0;
@@ -48,44 +47,42 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override int GetMaximumTargets()
         {
-            MyCubeBlock block = (MyCubeBlock)m_constructionBlock.ConstructionBlock;
-            return (int)Math.Min(NaniteConstructionManager.Settings.ProjectionNanitesNoUpgrade + (block.UpgradeValues["ProjectionNanites"] * NaniteConstructionManager.Settings.ProjectionNanitesPerUpgrade), NaniteConstructionManager.Settings.ProjectionMaxStreams);
+            return (int)Math.Min(NaniteConstructionManager.Settings.ProjectionNanitesNoUpgrade 
+              + (((MyCubeBlock)m_constructionBlock.ConstructionBlock).UpgradeValues["ProjectionNanites"] 
+              * NaniteConstructionManager.Settings.ProjectionNanitesPerUpgrade), NaniteConstructionManager.Settings.ProjectionMaxStreams);
         }
 
         public override float GetPowerUsage()
         {
-            MyCubeBlock block = (MyCubeBlock)m_constructionBlock.ConstructionBlock;
-            return Math.Max(1, NaniteConstructionManager.Settings.ProjectionPowerPerStream - (int)(block.UpgradeValues["PowerNanites"] * NaniteConstructionManager.Settings.PowerDecreasePerUpgrade));
+            return Math.Max(1, NaniteConstructionManager.Settings.ProjectionPowerPerStream 
+              - (int)(((MyCubeBlock)m_constructionBlock.ConstructionBlock).UpgradeValues["PowerNanites"] 
+              * NaniteConstructionManager.Settings.PowerDecreasePerUpgrade));
         }
 
         public override float GetMinTravelTime()
         {
-            MyCubeBlock block = (MyCubeBlock)m_constructionBlock.ConstructionBlock;
-            return Math.Max(1f, NaniteConstructionManager.Settings.ProjectionMinTravelTime - (block.UpgradeValues["SpeedNanites"] * NaniteConstructionManager.Settings.MinTravelTimeReductionPerUpgrade));
+            return Math.Max(1f, NaniteConstructionManager.Settings.ProjectionMinTravelTime 
+              - (((MyCubeBlock)m_constructionBlock.ConstructionBlock).UpgradeValues["SpeedNanites"] 
+              * NaniteConstructionManager.Settings.MinTravelTimeReductionPerUpgrade));
         }
 
         public override float GetSpeed()
         {
-            MyCubeBlock block = (MyCubeBlock)m_constructionBlock.ConstructionBlock;
-            return NaniteConstructionManager.Settings.ProjectionDistanceDivisor + (block.UpgradeValues["SpeedNanites"] * (float)NaniteConstructionManager.Settings.SpeedIncreasePerUpgrade);
+            return NaniteConstructionManager.Settings.ProjectionDistanceDivisor 
+              + (((MyCubeBlock)m_constructionBlock.ConstructionBlock).UpgradeValues["SpeedNanites"] 
+              * (float)NaniteConstructionManager.Settings.SpeedIncreasePerUpgrade);
         }
 
         public override bool IsEnabled()
         {
-            bool result = true;
-            if (!((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).Enabled ||
-                !((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).IsFunctional ||
-                m_constructionBlock.ConstructionBlock.CustomName.ToLower().Contains("NoProjection".ToLower()))
-                result = false;
+            if (!((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).Enabled 
+              || !((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).IsFunctional 
+              || m_constructionBlock.ConstructionBlock.CustomName.ToLower().Contains("NoProjection".ToLower()) 
+              || (NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.ConstructionBlock.EntityId) 
+              && !NaniteConstructionManager.TerminalSettings[m_constructionBlock.ConstructionBlock.EntityId].AllowProjection))
+                return false;
 
-            if (NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.ConstructionBlock.EntityId))
-            {
-                if (!NaniteConstructionManager.TerminalSettings[m_constructionBlock.ConstructionBlock.EntityId].AllowProjection)
-                    return false;
-            }
-
-
-            return result;
+            return true;
         }
 
         public override void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList)
@@ -102,7 +99,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (TargetList.Count >= GetMaximumTargets())
             {
                 if(PotentialTargetList.Count > 0)
-                    InvalidTargetReason("Maximum targets reached.  Add more upgrades!");
+                    InvalidTargetReason("Maximum targets reached. Add more upgrades!");
 
                 return;
             }
@@ -129,18 +126,13 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                     missing = inventoryManager.GetProjectionComponents((IMySlimBlock)item);
                     bool haveComponents = inventoryManager.CheckComponentsAvailable(ref missing, ref available);
-                    if (haveComponents && NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
+                    if (haveComponents && NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this) 
+                      && ((IMySlimBlock)item).CubeGrid.GetPosition() != Vector3D.Zero)
                     {
-                        if (((IMySlimBlock)item).CubeGrid.GetPosition() == Vector3D.Zero)
-                        {
-                            LastInvalidTargetReason = "Target blocks grid is in an invalid position (Vector3D.Zero, this shouldn't happen!)";
-                            continue;
-                        }
-
                         bool found = false;
                         foreach (var block in blockList)
                         {
-                            if(block.GetTarget<NaniteProjectionTargets>().TargetList.Contains(item))
+                            if (block.GetTarget<NaniteProjectionTargets>().TargetList.Contains(item))
                             {
                                 found = true;
                                 LastInvalidTargetReason = "Another factory has this block as a target";
@@ -155,17 +147,19 @@ namespace NaniteConstructionSystem.Entities.Targets
                         {
                             TargetList.Add(item);
                         });
+
                         IMySlimBlock slimBlock = (IMySlimBlock)item;
                         var def = slimBlock.BlockDefinition as MyCubeBlockDefinition;
                         Logging.Instance.WriteLine(string.Format("ADDING Projection Target: conid={0} subtypeid={1} entityID={2} position={3}", 
                           m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, slimBlock.FatBlock != null ? slimBlock.FatBlock.EntityId : 0, slimBlock.Position));
+
                         if (++TargetListCount >= GetMaximumTargets()) 
                             break;
                     }
-                    else if(!haveComponents)
+                    else if (!haveComponents)
                         LastInvalidTargetReason = "Missing components to start projected block";
 
-                    else if(!NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
+                    else if (!NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
                         LastInvalidTargetReason = "Insufficient power for another target.";
                 }
             }
@@ -181,8 +175,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (block != null)
                     ProcessProjectedItem(block);
             }
-
-            
         }
 
         private void ProcessProjectedItem(IMySlimBlock target)
@@ -237,7 +229,6 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - m_targetBlocks[target].StartTime >= time / 2)
                 {
-                    //BuildBlock(target, (MyCubeBlock)m_constructionBlock.ConstructionBlock);
                     ProcessBuildBlock(target);
                     CompleteTarget(target);
                     return;
@@ -250,7 +241,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                     return;
                 }
             }
-
             CreateProjectionParticle(target);
         }
 
@@ -286,7 +276,9 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public void CompleteTarget(IMySlimBlock target)
         {
-            Logging.Instance.WriteLine(string.Format("COMPLETING Projection Target: {0} - {1} (EntityID={2},Position={3})", m_constructionBlock.ConstructionBlock.EntityId, target.GetType().Name, target.FatBlock != null ? target.FatBlock.EntityId : 0, target.Position));
+            Logging.Instance.WriteLine(string.Format("COMPLETING Projection Target: {0} - {1} (EntityID={2},Position={3})", 
+              m_constructionBlock.ConstructionBlock.EntityId, target.GetType().Name, target.FatBlock != null ? target.FatBlock.EntityId : 0, target.Position));
+
             if (Sync.IsServer)
                 m_constructionBlock.SendCompleteTarget(target, TargetTypes.Projection, GetProjectorByBlock(target));
 
@@ -346,7 +338,8 @@ namespace NaniteConstructionSystem.Entities.Targets
             foreach(var item in blocks)
                 CheckBlockProjection(item);
 
-            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteBeaconProjection && Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), x.Value.BeaconBlock.GetPosition()) < m_maxDistance * m_maxDistance))
+            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteBeaconProjection 
+              && Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), x.Value.BeaconBlock.GetPosition()) < m_maxDistance * m_maxDistance))
             {
                 IMyCubeBlock item = (IMyCubeBlock)beaconBlock.Value.BeaconBlock;
 
@@ -396,18 +389,16 @@ namespace NaniteConstructionSystem.Entities.Targets
                 foreach (var entity in entities)
                 {
                     var grid = entity as IMyCubeGrid;
-                    if (grid == null)
-                        continue;
 
-                    if ((grid.GetPosition() - cubeBlock.GetPosition()).LengthSquared() < m_maxDistance * m_maxDistance)
+                    if (grid == null || (grid.GetPosition() - cubeBlock.GetPosition()).LengthSquared() >= m_maxDistance * m_maxDistance)
+                        continue;
+                        
+                    foreach (IMySlimBlock block in ((MyCubeGrid)grid).GetBlocks())
                     {
-                        foreach (IMySlimBlock block in ((MyCubeGrid)grid).GetBlocks())
-                        {
-                            BoundingBoxD blockbb;
-                            block.GetWorldBoundingBox(out blockbb, true);
-                            if (item.IsInsideBox(blockbb))
-                                CheckBlockProjection(block);
-                        }
+                        BoundingBoxD blockbb;
+                        block.GetWorldBoundingBox(out blockbb, true);
+                        if (item.IsInsideBox(blockbb))
+                            CheckBlockProjection(block);
                     }
                 }
             }
@@ -455,47 +446,41 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private bool UpdateProjection(MyCubeBlock projector, MyCubeGrid projectedGrid, MyObjectBuilder_ProjectorBase projectorBuilder)
         {
-            // SPLEN: REMOVE USE OF OBJECT BUILDERS ASAP
             MyCubeGrid cubeGrid = projector.CubeGrid;
             MyObjectBuilder_CubeGrid gridBuilder = (MyObjectBuilder_CubeGrid)projectedGrid.GetObjectBuilder();
             bool found = false;
-            foreach (MyObjectBuilder_CubeBlock blockBuilder in gridBuilder.CubeBlocks)
+            List<IMySlimBlock> blocks = new List<IMySlimBlock>();
+            ((IMyCubeGrid)projectedGrid).GetBlocks(blocks, e => {return true;});
+
+            foreach (IMySlimBlock block in blocks)
             {
-                Vector3 worldPosition = projectedGrid.GridIntegerToWorld(blockBuilder.Min);
+                Vector3 worldPosition = projectedGrid.GridIntegerToWorld(block.Min);
                 Vector3I realPosition = cubeGrid.WorldToGridInteger(worldPosition);
                 var realBlock = (IMySlimBlock)cubeGrid.GetCubeBlock(realPosition);
+                if (realBlock != null)
+                    continue;
 
-                MyCubeBlockDefinition blockDefinition;
-                MyDefinitionManager.Static.TryGetCubeBlockDefinition(blockBuilder.GetId(), out blockDefinition);
-                if (realBlock != null) // && blockDefinition.Id == new MyDefinitionId(realBlock.GetType()))
+                MyCubeBlockDefinition blockDefinition = (MyCubeBlockDefinition)block.BlockDefinition;
+                
+                if (CanBuildBlock(block, projectedGrid, projector, cubeGrid, projectorBuilder, blockDefinition))
                 {
-                    //Logging.Instance.WriteLine(string.Format("Found overlap - {0} {1}", blockBuilder.GetId(), realBlock.GetObjectBuilder().GetId()));
+                    var slimBlock = (IMySlimBlock)projectedGrid.GetCubeBlock(block.Min);
+                    if (slimBlock != null && slimBlock.CubeGrid.GetPosition() != Vector3D.Zero)
+                    {
+                        PotentialTargetList.Add(slimBlock);
+                        found = true;
+                    }
                 }
                 else
                 {
-                    //Logging.Instance.WriteLine(string.Format("No block at position: {0}", blockBuilder.GetId()));
-                    if (CanBuildBlock(blockBuilder, projectedGrid, projector, cubeGrid, projectorBuilder))
+                    using (m_lock.AcquireExclusiveUsing())
                     {
-                        //Logging.Instance.WriteLine(string.Format("No block at position: {0}", blockBuilder.GetId()));
-                        var slimBlock = (IMySlimBlock)projectedGrid.GetCubeBlock(blockBuilder.Min);
-                        if (slimBlock != null && slimBlock.CubeGrid.GetPosition() != Vector3D.Zero)
+                        foreach (var item in blockDefinition.Components)
                         {
-                            //Logging.Instance.WriteLine(string.Format("Adding block: {0}", blockBuilder.GetId()));
-                            PotentialTargetList.Add(slimBlock);
-                            found = true;
-                        }
-                    }
-                    else
-                    {
-                        using (m_lock.AcquireExclusiveUsing())
-                        {
-                            foreach (var item in blockDefinition.Components)
-                            {
-                                if (!ComponentsRequired.ContainsKey(item.Definition.Id.SubtypeName))
-                                    ComponentsRequired.Add(item.Definition.Id.SubtypeName, item.Count);
-                                else
-                                    ComponentsRequired[item.Definition.Id.SubtypeName] += item.Count;
-                            }
+                            if (!ComponentsRequired.ContainsKey(item.Definition.Id.SubtypeName))
+                                ComponentsRequired.Add(item.Definition.Id.SubtypeName, item.Count);
+                            else
+                                ComponentsRequired[item.Definition.Id.SubtypeName] += item.Count;
                         }
                     }
                 }
@@ -504,9 +489,9 @@ namespace NaniteConstructionSystem.Entities.Targets
             return found;
         }
 
-        private bool CanBuildBlock(MyObjectBuilder_CubeBlock block, MyCubeGrid blockGrid, MyCubeBlock projector, MyCubeGrid projectorGrid, MyObjectBuilder_ProjectorBase projectorBuilder)
+        private bool CanBuildBlock(IMySlimBlock block, MyCubeGrid blockGrid, MyCubeBlock projector, MyCubeGrid projectorGrid, MyObjectBuilder_ProjectorBase projectorBuilder, MyCubeBlockDefinition blockDefinition)
         {
-            MyBlockOrientation blockOrientation = block.BlockOrientation;
+            MyBlockOrientation blockOrientation = block.Orientation;
 
             Matrix local;
             blockOrientation.GetMatrix(out local);
@@ -524,14 +509,11 @@ namespace NaniteConstructionSystem.Entities.Targets
             projector.Orientation.GetQuaternion(out projQuat);
             blockOrientationQuat = Quaternion.Multiply(projQuat, blockOrientationQuat);
 
-            MyCubeBlockDefinition blockDefinition;
-            MyDefinitionManager.Static.TryGetCubeBlockDefinition(block.GetId(), out blockDefinition);
-
             // Get real block max            
             Vector3I blockMax = Vector3I.Zero;
             Vector3I blockMin = block.Min;
-            ComputeMax(blockDefinition, block.BlockOrientation, ref blockMin, out blockMax);
-            var position = ComputePositionInGrid(new MatrixI(block.BlockOrientation), blockDefinition, blockMin);
+            ComputeMax(blockDefinition, blockOrientation, ref blockMin, out blockMax);
+            var position = ComputePositionInGrid(new MatrixI(blockOrientation), blockDefinition, blockMin);
 
             Vector3I projectedMin = projectorGrid.WorldToGridInteger(blockGrid.GridIntegerToWorld(block.Min));
             Vector3I projectedMax = projectorGrid.WorldToGridInteger(blockGrid.GridIntegerToWorld(blockMax));
@@ -555,27 +537,16 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             var mountPoints = blockDefinition.GetBuildProgressModelMountPoints(1.0f);
             bool isConnected = MyCubeGrid.CheckConnectivity(projectorGrid, blockDefinition, mountPoints, ref blockOrientationQuat, ref blockPos);
-            if (isConnected)
-            {
-                if (projectorGrid.GetCubeBlock(blockPos) == null)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
+            if (isConnected && projectorGrid.GetCubeBlock(blockPos) == null)
+                return true;
             else
-            {
                 return false;
-            }
         }
 
         private void BuildBlock(IMySlimBlock block, MyCubeBlock constructionBlock)
         {
             MyObjectBuilder_CubeBlock cubeBlock = block.GetObjectBuilder();
-            MyObjectBuilder_ProjectorBase projectorBuilder = null;// = (MyObjectBuilder_ProjectorBase)constructionBlock.GetObjectBuilderCubeBlock();
+            MyObjectBuilder_ProjectorBase projectorBuilder = null;
             MyCubeGrid projectorGrid = null;
             MyCubeGrid blockGrid = (MyCubeGrid)block.CubeGrid;
             MyCubeBlock projector = null;
@@ -597,33 +568,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                     break;
                 }
             }
-
-            /*
-            Ingame.IMyGridTerminalSystem system = MyAPIGateway.TerminalActionsHelper.GetTerminalSystemForGrid((IMyCubeGrid)m_constructionBlock.ConstructionBlock.CubeGrid);
-            List<Ingame.IMyTerminalBlock> terminalBlocks = new List<Ingame.IMyTerminalBlock>();
-            system.GetBlocks(terminalBlocks);
-            foreach(var item in terminalBlocks)
-            {
-                if (!(item is IMyFunctionalBlock) || !((IMyFunctionalBlock)item).Enabled)
-                    continue;
-
-                if (!(item is Ingame.IMyProjector))
-                    continue;
-
-                var cube = (MyCubeBlock)item;
-                MyObjectBuilder_ProjectorBase testBuilder = (MyObjectBuilder_ProjectorBase)cube.GetObjectBuilderCubeBlock();
-                if (testBuilder.ProjectedGrid == null)
-                    continue;
-
-                if(testBuilder.ProjectedGrid.DisplayName == blockGrid.DisplayName)
-                {
-                    projector = cube;
-                    projectorGrid = cube.CubeGrid;
-                    projectorBuilder = testBuilder;
-                    break;
-                }
-            }
-            */
 
             if(projectorBuilder == null)
             {
@@ -662,24 +606,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             Vector3I projectedMax = new Vector3I(Math.Max(min.X, max.X), Math.Max(min.Y, max.Y), Math.Max(min.Z, max.Z));
 
             MyCubeGrid.MyBlockLocation location = new MyCubeGrid.MyBlockLocation(blockDefinition.Id, projectedMin, projectedMax, pos,
-                quat, 0, constructionBlock.OwnerId);
-
-            /*
-            MyObjectBuilder_CubeGrid originalGridBuilder = (MyObjectBuilder_CubeGrid)blockGrid.GetObjectBuilder();
-            MyObjectBuilder_CubeBlock objectBuilder = null;
-            //Find original grid builder
-            foreach (var blockBuilder in originalGridBuilder.CubeBlocks)
-            {
-                if (blockBuilder.GetId() == blockDefinition.Id)
-                {
-                    if ((Vector3I)blockBuilder.Min == blockMin)
-                    {
-                        objectBuilder = (MyObjectBuilder_CubeBlock)blockBuilder.Clone();
-                        objectBuilder.SetupForProjector();
-                    }
-                }
-            }
-            */
+              quat, 0, constructionBlock.OwnerId);
 
             MyObjectBuilder_CubeBlock objectBuilder = cubeBlock;
             objectBuilder.SetupForProjector();
@@ -699,9 +626,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                 shipConnector.MasterToSlaveGrid = null;
                 shipConnector.MasterToSlaveTransform = null;
             }
-
-            //if (objectBuilder == null)
-            //    objectBuilder = cubeBlock;
 
             location.EntityId = 0; // MyEntityIdentifier.AllocateId();
             objectBuilder.EntityId = 0;
@@ -787,18 +711,14 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             m_orientationAngle += angle;
             if (m_orientationAngle >= (float)Math.PI * 2.0f)
-            {
                 m_orientationAngle -= (float)Math.PI * 2.0f;
-            }
         }
 
         private void AngleMinus(float angle)
         {
             m_orientationAngle -= angle;
             if (m_orientationAngle < 0.0f)
-            {
                 m_orientationAngle += (float)Math.PI * 2.0f;
-            }
         }
 
         private void UpPlus(float angle)
