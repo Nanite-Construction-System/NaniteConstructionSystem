@@ -48,7 +48,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         public override int GetMaximumTargets()
         {
             return (int)Math.Min(NaniteConstructionManager.Settings.ProjectionNanitesNoUpgrade 
-              + (((MyCubeBlock)m_constructionBlock.ConstructionBlock).UpgradeValues["ProjectionNanites"] 
+              + (((MyCubeBlock)m_constructionBlock.ConstructionBlock).UpgradeValues["ConstructionNanites"] 
               * NaniteConstructionManager.Settings.ProjectionNanitesPerUpgrade), NaniteConstructionManager.Settings.ProjectionMaxStreams);
         }
 

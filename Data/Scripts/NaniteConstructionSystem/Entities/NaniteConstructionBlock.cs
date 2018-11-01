@@ -130,7 +130,6 @@ namespace NaniteConstructionSystem.Entities
             m_constructionCubeBlock = (MyCubeBlock)entity;
             m_constructionCubeBlock.UpgradeValues.Add("ConstructionNanites", 0f);
             m_constructionCubeBlock.UpgradeValues.Add("DeconstructionNanites", 0f);
-            m_constructionCubeBlock.UpgradeValues.Add("ProjectionNanites", 0f);
             m_constructionCubeBlock.UpgradeValues.Add("CleanupNanites", 0f);
             m_constructionCubeBlock.UpgradeValues.Add("MiningNanites", 0f);
             m_constructionCubeBlock.UpgradeValues.Add("MedicalNanites", 0f);

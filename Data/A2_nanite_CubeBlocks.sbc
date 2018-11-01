@@ -415,10 +415,6 @@
       <BlockVariants>
         <BlockVariant>
           <TypeId>UpgradeModule</TypeId>
-          <SubtypeId>NaniteProjectionUpgrade</SubtypeId>
-        </BlockVariant>
-        <BlockVariant>
-          <TypeId>UpgradeModule</TypeId>
           <SubtypeId>NaniteDeconstructUpgrade</SubtypeId>
         </BlockVariant>
         <BlockVariant>
@@ -483,55 +479,6 @@
       <Upgrades>
         <MyUpgradeModuleInfo>
           <UpgradeType>DeconstructionNanites</UpgradeType>
-          <Modifier>1</Modifier>
-          <ModifierType>Additive</ModifierType>
-        </MyUpgradeModuleInfo>
-      </Upgrades>
-      <PrimarySound>BlockModuleEfficiency</PrimarySound>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <GuiVisible>false</GuiVisible>
-      <PCU>5</PCU>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>NaniteProjectionUpgrade</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Projection Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteProjection.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="120"/>
-        <Component Subtype="Construction" Count="40"/>
-        <Component Subtype="SmallTube" Count="20"/>
-        <Component Subtype="LargeTube" Count="10"/>
-        <Component Subtype="Computer" Count="40"/>
-        <Component Subtype="GravityGenerator" Count="5"/>
-        <Component Subtype="PowerCell" Count="25"/>
-        <Component Subtype="Superconductor" Count="50"/>
-        <Component Subtype="Motor" Count="5"/>
-        <Component Subtype="SteelPlate" Count="40"/>
-      </Components>
-      <CriticalComponent Subtype="Motor" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>UpgradeProjection</BlockPairName>
-      <MirroringX>Z</MirroringX>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Upgrades>
-        <MyUpgradeModuleInfo>
-          <UpgradeType>ProjectionNanites</UpgradeType>
           <Modifier>1</Modifier>
           <ModifierType>Additive</ModifierType>
         </MyUpgradeModuleInfo>

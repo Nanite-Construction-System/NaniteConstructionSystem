@@ -379,7 +379,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             var remoteList = new HashSet<IMySlimBlock>();
 
             // Find beacons in range
-            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteBeaconConstruct && Vector3D.Distance(m_constructionBlock.ConstructionBlock.GetPosition(), x.Value.BeaconBlock.GetPosition()) < m_maxDistance))
+            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => (x.Value is NaniteBeaconConstruct || x.Value is NaniteBeaconProjection) && Vector3D.Distance(m_constructionBlock.ConstructionBlock.GetPosition(), x.Value.BeaconBlock.GetPosition()) < m_maxDistance))
             {
                 var item = beaconBlock.Value.BeaconBlock;
 
