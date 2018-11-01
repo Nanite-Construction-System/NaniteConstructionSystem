@@ -130,17 +130,6 @@
       <DisplayName>DisplayName_Category_LargeBlocks</DisplayName>
       <Name>LargeBlocks</Name>
       <ItemIds>
-        <string>UpgradeModule/NaniteProjectionUpgrade</string>
-      </ItemIds>
-    </Category>
-    <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
-      <Id>
-        <TypeId>GuiBlockCategoryDefinition</TypeId>
-        <SubtypeId/>
-      </Id>
-      <DisplayName>DisplayName_Category_LargeBlocks</DisplayName>
-      <Name>LargeBlocks</Name>
-      <ItemIds>
         <string>UpgradeModule/NaniteMiningUpgrade</string>
       </ItemIds>
     </Category>
@@ -197,7 +186,6 @@
         <string>UpgradeModule/NaniteConstructUpgrade</string>
         <string>UpgradeModule/NaniteDeconstructUpgrade</string>
         <string>UpgradeModule/NaniteCleanupUpgrade</string>
-        <string>UpgradeModule/NaniteProjectionUpgrade</string>
         <string>UpgradeModule/NaniteMiningUpgrade</string>
         <string>UpgradeModule/NaniteMedicalUpgrade</string>
         <string>UpgradeModule/NaniteSpeedUpgrade</string>
