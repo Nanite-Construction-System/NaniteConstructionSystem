@@ -115,12 +115,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                 
                 foreach (var item in PotentialTargetList.OrderBy(x => Vector3D.Distance(sourcePosition, EntityHelper.GetBlockPosition((IMySlimBlock)x))))
                 {
-                    if (m_constructionBlock.IsUserDefinedLimitReached())
-                    {
-                        InvalidTargetReason("User defined maximum nanite limit reached");
-                        return;
-                    }
-
                     if (TargetList.Contains(item)) 
                         continue;
 
@@ -145,7 +139,10 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                         MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         {
-                            TargetList.Add(item);
+                            if (m_constructionBlock.IsUserDefinedLimitReached())
+                                InvalidTargetReason("User defined maximum nanite limit reached");
+                            else
+                                TargetList.Add(item);
                         });
 
                         IMySlimBlock slimBlock = (IMySlimBlock)item;
@@ -595,7 +592,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             // Get real block max
             MyCubeBlockDefinition blockDefinition = (MyCubeBlockDefinition)block.BlockDefinition;
             Vector3I blockMax = block.Max;
-            Vector3I blockMin = cubeBlock.Min;
+            Vector3I blockMin = block.Min;
             Vector3I position = block.Position;
 
             Vector3I min = projectorGrid.WorldToGridInteger(blockGrid.GridIntegerToWorld(blockMin));
