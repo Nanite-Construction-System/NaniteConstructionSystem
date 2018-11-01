@@ -114,7 +114,6 @@ namespace NaniteConstructionSystem.Entities
             m_constructionBlock = (IMyTerminalBlock)entity;
             var inventory = ((MyCubeBlock)entity).GetInventory();
             inventory.SetFlags(MyInventoryFlags.CanReceive |MyInventoryFlags.CanSend);
-            m_constructionBlock.CustomNameChanged += CustomNameChanged;
             m_defCache = new Dictionary<MyDefinitionId, MyBlueprintDefinitionBase>();
 
             m_constructionCubeBlock = (MyCubeBlock)entity;
@@ -126,26 +125,6 @@ namespace NaniteConstructionSystem.Entities
             m_constructionCubeBlock.UpgradeValues.Add("MedicalNanites", 0f);
             m_constructionCubeBlock.UpgradeValues.Add("SpeedNanites", 0f);
             m_constructionCubeBlock.UpgradeValues.Add("PowerNanites", 0f);
-        }
-
-        private void CustomNameChanged(IMyTerminalBlock block)
-        {
-            try
-            {
-                if (!block.CustomName.ToLower().Contains("MaxNanites".ToLower()))
-                    return;
-
-                Regex regexObj = new Regex(@".*?MaxNanites[ :](\d{1,4})", RegexOptions.Singleline | RegexOptions.IgnoreCase);
-                Match matchResults = regexObj.Match(block.CustomName);
-                int value = 0;
-
-                if (matchResults.Success && int.TryParse(matchResults.Groups[1].Value, out value))
-                    m_userDefinedNaniteLimit = value;
-            }
-            catch(Exception ex)
-            {
-                Logging.Instance.WriteLine(string.Format("Parse error: {0}", ex.ToString()));
-            }
         }
 
         /// <summary>
@@ -268,6 +247,9 @@ namespace NaniteConstructionSystem.Entities
                     m_constructionBlock.ShowInToolbarConfig = !m_constructionBlock.ShowInToolbarConfig;
                 }
             }
+
+            if (m_updateCount % 120 == 0)
+                m_userDefinedNaniteLimit = NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].MaxNanites;
 
             if (Sync.IsServer)
                 m_constructionBlock.RefreshCustomInfo();
@@ -666,22 +648,38 @@ namespace NaniteConstructionSystem.Entities
                 details.Append(string.Format("Status: {0}\r\n", m_factoryState.ToString()));
                 details.Append(string.Format("Active Nanites: {0}\r\n", m_particleManager.Particles.Count));
 
-                if(m_factoryState == FactoryStates.InvalidTargets)
-                {
-                    details.Append("Last invalid target reasons:\r\n");
+                if (m_userDefinedNaniteLimit > 0)
+                    details.Append($"Maximum Nanites: {m_userDefinedNaniteLimit}\r\n");
 
-                    foreach(var item in m_targets)
-                        if (item.LastInvalidTargetReason != null && item.LastInvalidTargetReason != "")
-                            details.Append(item.LastInvalidTargetReason + string.Format(" ({0})\r\n", item.TargetName));
+                bool invalidTitleAppended = false;
+                foreach(var item in m_targets)
+                {
+                    if (item.LastInvalidTargetReason != null && item.LastInvalidTargetReason != "")
+                    {
+                        if(!invalidTitleAppended)
+                        {
+                            details.Append("\nTarget information:\r\n");
+                            invalidTitleAppended = true;
+                        }
+                        details.Append($"\n- ({item.TargetName}) " + item.LastInvalidTargetReason);
+                    }
                 }
 
-                if(InventoryManager.ComponentsRequired.Count > 0)
+                bool missingCompTitleAppended = false;
+                if (InventoryManager.ComponentsRequired.Count > 0)
                 {
-                    details.Append(string.Format("\r\nMissing components:\r\n"));
-
                     foreach (var component in InventoryManager.ComponentsRequired)
+                    {
                         if (component.Value > 0)
+                        {
+                            if(!missingCompTitleAppended)
+                            {
+                                details.Append("\r\nMissing components:\r\n");
+                                missingCompTitleAppended = true;
+                            }
                             details.Append(string.Format("{0}: {1}\r\n", component.Key, component.Value));
+                        }
+                    }
                 }
 
                 if(m_syncDetails.Length != details.Length || DateTime.Now - m_syncLastUpdate > TimeSpan.FromSeconds(3))
