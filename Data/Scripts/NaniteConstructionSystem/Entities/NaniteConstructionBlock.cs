@@ -312,7 +312,6 @@ namespace NaniteConstructionSystem.Entities
         /// <summary>
         /// in a parallel thread, gets all connected inventories. Replaces outdated Conveyor.cs helper scripts
         /// TO DO: This is currently set to rebuild 30 seconds (and once on init), will change to only rebuild when a grid's layout or block integrity changes
-        /// TO DO: Include connected subgrids
         /// </summary>
         public void BuildConnectedInventory()
         {
@@ -554,7 +553,7 @@ namespace NaniteConstructionSystem.Entities
             {
                 List<IMyCubeGrid> grids = MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)m_constructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical);
                 List<IMySlimBlock> blocks = new List<IMySlimBlock>();
-                
+
                 foreach (IMyCubeGrid grid in grids)
                     grid.GetBlocks(blocks);       
 
@@ -1366,7 +1365,6 @@ namespace NaniteConstructionSystem.Entities
             }
             players.Clear();
         }
-
         #endregion
     }
 
