@@ -161,13 +161,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             lock (m_potentialTargetList)
             {
                 foreach(IMyPlayer item in m_potentialTargetList)
-                {
-                    if (m_constructionBlock.IsUserDefinedLimitReached())
-                    {
-                        InvalidTargetReason("User defined maximum nanite limit reached");
-                        return;
-                    }
-
+                {                 
                     if (item == null || TargetList.Contains(item) || item.Controller == null || item.Controller.ControlledEntity == null || item.Controller.ControlledEntity.Entity == null)
                         continue;
 
@@ -188,11 +182,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), item.GetPosition()) < m_maxDistance * m_maxDistance 
                       && NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
                     {
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                        {
-                            if (item != null)
-                                TargetList.Add(item);
-                        });
+                        AddTarget(item);
 
                         Logging.Instance.WriteLine(string.Format("ADDING Medical Target: conid={0} type={1} playerName={2} position={3}", 
                           m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.DisplayName, item.GetPosition()));

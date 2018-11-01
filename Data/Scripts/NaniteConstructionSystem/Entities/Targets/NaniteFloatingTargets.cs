@@ -67,12 +67,6 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 foreach (IMyEntity item in m_potentialTargetList)
                 {
-                    if (m_constructionBlock.IsUserDefinedLimitReached())
-                    {
-                        InvalidTargetReason("User defined maximum nanite limit reached");
-                        return;
-                    }
-
                     if (item == null || TargetList.Contains(item) || item.Closed) 
                         continue;
 
@@ -96,11 +90,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                     if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), item.GetPosition()) < m_maxDistance * m_maxDistance 
                       && NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
                     {
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                        {
-                            if (item != null)
-                                TargetList.Add(item);
-                        });
+                        AddTarget(item);
+                        
                         Logging.Instance.WriteLine(string.Format("ADDING Floating Object Target: conid={0} type={1} entityID={2} position={3}", 
                           m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.EntityId, item.GetPosition()));
 

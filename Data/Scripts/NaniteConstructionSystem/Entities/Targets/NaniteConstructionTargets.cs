@@ -111,12 +111,6 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 foreach (IMySlimBlock item in m_potentialTargetList)
                 {
-                    if (m_constructionBlock.IsUserDefinedLimitReached())
-                    {
-                        InvalidTargetReason("User defined maximum nanite limit reached");
-                        return;
-                    }
-
                     if (item == null || TargetList.Contains(item)) 
                         continue;
 
@@ -146,11 +140,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                             continue;
 
                         removalList.Add(item);
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                        {
-                            if (item != null)
-                                m_targetList.Add(item);
-                        });
+                        AddTarget(item);
+
                         var def = item.BlockDefinition as MyCubeBlockDefinition;
                         Logging.Instance.WriteLine(string.Format("ADDING Construction/Repair Target: conid={0} subtype={1} entityID={2} position={3}", 
                           m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, item.FatBlock != null ? item.FatBlock.EntityId : 0, item.Position));

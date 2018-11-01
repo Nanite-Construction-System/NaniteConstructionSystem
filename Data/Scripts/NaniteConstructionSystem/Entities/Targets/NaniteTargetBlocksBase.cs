@@ -74,5 +74,16 @@ namespace NaniteConstructionSystem.Entities.Targets
                 m_lastInvalidTargetReason = reason;
             });
         }
+
+        internal void AddTarget(object target)
+        {
+            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+            {
+                if (m_constructionBlock.IsUserDefinedLimitReached())
+                    InvalidTargetReason("User defined maximum nanite limit reached");
+                else if (target != null)
+                    m_targetList.Add(target);
+            });
+        }
     }
 }

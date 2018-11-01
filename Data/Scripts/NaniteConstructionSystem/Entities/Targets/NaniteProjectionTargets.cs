@@ -137,13 +137,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         if (found)
                             continue;
 
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                        {
-                            if (m_constructionBlock.IsUserDefinedLimitReached())
-                                InvalidTargetReason("User defined maximum nanite limit reached");
-                            else
-                                TargetList.Add(item);
-                        });
+                        AddTarget(item);
 
                         IMySlimBlock slimBlock = (IMySlimBlock)item;
                         var def = slimBlock.BlockDefinition as MyCubeBlockDefinition;
