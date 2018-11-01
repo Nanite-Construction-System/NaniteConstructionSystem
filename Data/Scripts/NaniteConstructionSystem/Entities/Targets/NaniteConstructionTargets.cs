@@ -123,7 +123,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     if (missing.Count > 0) 
                         foundMissingComponents = m_constructionBlock.InventoryManager.CheckComponentsAvailable(ref missing, ref available);
 
-                    if (foundMissingComponents && NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
+                    if (foundMissingComponents && m_constructionBlock.HasRequiredPowerForNewTarget(this))
                     {
                         bool found = false;
                         foreach (var block in blockList)
@@ -151,7 +151,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     else if (!foundMissingComponents)
                         LastInvalidTargetReason = "Missing components";
 
-                    else if (!NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
+                    else if (!m_constructionBlock.HasRequiredPowerForNewTarget(this))
                         LastInvalidTargetReason = "Insufficient power for another target.";
                 }
                 foreach (var item in removalList)
@@ -206,7 +206,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     return;
                 }
 
-                if (!NaniteConstructionPower.HasRequiredPowerForCurrentTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock))
+                if (!m_constructionBlock.IsPowered())
                 {
                     Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to power shortage");
                     CancelTarget(target);

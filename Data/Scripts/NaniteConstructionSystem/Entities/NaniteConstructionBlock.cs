@@ -25,6 +25,8 @@ using NaniteConstructionSystem.Extensions;
 using NaniteConstructionSystem.Settings;
 using VRage.Collections;
 using NaniteConstructionSystem.Entities.Detectors;
+using VRage.Game.Components;
+using Sandbox.Game.EntityComponents;
 
 namespace NaniteConstructionSystem.Entities
 {
@@ -42,8 +44,8 @@ namespace NaniteConstructionSystem.Entities
             Active
         }
 
-        private IMyTerminalBlock m_constructionBlock;
-        public IMyTerminalBlock ConstructionBlock
+        private IMyShipWelder m_constructionBlock;
+        public IMyShipWelder ConstructionBlock
         {
             get { return m_constructionBlock; }
         }
@@ -92,6 +94,15 @@ namespace NaniteConstructionSystem.Entities
             get { return m_userDefinedNaniteLimit; }
         }
 
+        internal MyResourceSinkInfo ResourceInfo;
+        internal MyResourceSinkComponent Sink;
+
+        private float _power = 0f;
+        public float Power
+        {
+            get { return Sink.CurrentInputByType(MyResourceDistributorComponent.ElectricityId); }
+        }
+
         private List<NaniteBlockEffectBase> m_effects;
         private DateTime m_lastUpdate;
         private MySoundPair m_soundPair;
@@ -111,7 +122,7 @@ namespace NaniteConstructionSystem.Entities
         /// <param name="entity">The IMyEntity of the block</param>
         public NaniteConstructionBlock(IMyEntity entity)
         {
-            m_constructionBlock = (IMyTerminalBlock)entity;
+            m_constructionBlock = (IMyShipWelder)entity;
             var inventory = ((MyCubeBlock)entity).GetInventory();
             inventory.SetFlags(MyInventoryFlags.CanReceive |MyInventoryFlags.CanSend);
             m_defCache = new Dictionary<MyDefinitionId, MyBlueprintDefinitionBase>();
@@ -125,6 +136,17 @@ namespace NaniteConstructionSystem.Entities
             m_constructionCubeBlock.UpgradeValues.Add("MedicalNanites", 0f);
             m_constructionCubeBlock.UpgradeValues.Add("SpeedNanites", 0f);
             m_constructionCubeBlock.UpgradeValues.Add("PowerNanites", 0f);
+
+            m_constructionCubeBlock.Components.TryGet(out Sink);
+            ResourceInfo = new MyResourceSinkInfo()
+            {
+                ResourceTypeId = MyResourceDistributorComponent.ElectricityId,
+                MaxRequiredInput = 0f,
+                RequiredInputFunc = () => (m_constructionBlock.Enabled && m_constructionBlock.IsFunctional) ? _power : 0f
+            };
+            Sink.RemoveType(ref ResourceInfo.ResourceTypeId);
+            Sink.Init(MyStringHash.GetOrCompute("Utility"), ResourceInfo);
+            Sink.AddType(ref ResourceInfo);
         }
 
         /// <summary>
@@ -167,22 +189,6 @@ namespace NaniteConstructionSystem.Entities
             m_soundEmitter.CustomVolume = 2f;
 
             m_inventoryManager = new NaniteConstructionInventory((MyEntity)m_constructionBlock);
-            NaniteConstructionPower.SetPowerRequirements((IMyFunctionalBlock)m_constructionBlock, () =>
-            {
-                if (m_constructionBlock == null)
-                    return 0f;
-
-                IMyFunctionalBlock block = (IMyFunctionalBlock)m_constructionBlock;
-                if (!block.Enabled || !block.IsFunctional)
-                    return 0f;
-
-                var required = 0.1f;
-                var sum = m_targets.Sum(x => x.TargetList.Count * x.GetPowerUsage());
-                if (sum > 0)
-                    required = sum;
-
-                return required;
-            });
 
             ((IMyFunctionalBlock)m_constructionBlock).AppendingCustomInfo += AppendingCustomInfo;
 
@@ -275,6 +281,36 @@ namespace NaniteConstructionSystem.Entities
                 return true;
 
             return false;
+        }
+
+        private void UpdatePower()
+        {
+            if (!m_constructionBlock.Enabled || !m_constructionBlock.IsFunctional)
+            {
+                Sink.Update();
+                return;
+            }
+
+            float totalPowerRequired = m_targets.Sum(x => x.TargetList.Count * x.GetPowerUsage());
+
+            if (_power == totalPowerRequired)
+                return;
+
+            _power = totalPowerRequired;
+
+            Sink.Update();
+
+            Logging.Instance.WriteLine($"Updated power {_power}");
+        }
+
+        internal bool HasRequiredPowerForNewTarget(NaniteTargetBlocksBase target)
+        {
+            return Sink.IsPowerAvailable(MyResourceDistributorComponent.ElectricityId, _power + target.GetPowerUsage());
+        }
+
+        internal bool IsPowered()
+        {
+            return Sink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId);
         }
 
         private void ProcessInventory()
@@ -695,11 +731,6 @@ namespace NaniteConstructionSystem.Entities
 
         }
 
-        internal float GetPowerRequired(NaniteTargetBlocksBase targetStream)
-        {
-            return targetStream.GetPowerUsage();
-        }
-
         /// <summary>
         /// Change color of emissives on the block model to appropriate color
         /// </summary>
@@ -783,19 +814,19 @@ namespace NaniteConstructionSystem.Entities
             IMyFunctionalBlock blockEntity = (IMyFunctionalBlock)ConstructionBlock;
             int totalTargets = m_targets.Sum(x => x.TargetList.Count);
             int totalPotentialTargets = m_targets.Sum(x => x.PotentialTargetList.Count);
-            float totalPowerRequired = m_targets.Sum(x => x.TargetList.Count * x.GetPowerUsage());
+            UpdatePower();
 
             if(!blockEntity.Enabled || !blockEntity.IsFunctional)
                 m_factoryState = FactoryStates.Disabled;
 
-            if ((totalTargets > 0) && NaniteConstructionPower.HasRequiredPower(blockEntity, totalPowerRequired) || m_particleManager.Particles.Count > 0)
+            if ((totalTargets > 0) && IsPowered() || m_particleManager.Particles.Count > 0)
             {
                 if (m_spoolPosition == m_spoolingTime)
                     m_factoryState = FactoryStates.Active;
                 else
                     m_factoryState = FactoryStates.SpoolingUp;
             }
-            else if (totalTargets == 0 && totalPotentialTargets > 0 && !NaniteConstructionPower.HasRequiredPower(blockEntity, m_targets.Min(x => x.GetPowerUsage())))
+            else if (totalTargets == 0 && totalPotentialTargets > 0 && !IsPowered())
                 m_factoryState = FactoryStates.MissingPower;
 
             else if (totalTargets == 0 && totalPotentialTargets > 0)

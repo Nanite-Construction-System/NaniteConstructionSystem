@@ -57,7 +57,7 @@
       <DamagedSound>ParticleHeavyMech</DamagedSound>
       <Public>true</Public>
       <PrimarySound>NaniteModule</PrimarySound>
-      <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>
+      <ResourceSinkGroup>Utility</ResourceSinkGroup>
       <EmissiveColorPreset>Default</EmissiveColorPreset>
       <SensorRadius>4</SensorRadius>
       <SensorOffset>0</SensorOffset>

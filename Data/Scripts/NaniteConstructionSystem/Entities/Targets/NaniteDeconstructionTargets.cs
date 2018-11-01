@@ -258,7 +258,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     if (TargetList.Contains(item)) 
                         continue;
 
-                    if (!NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
+                    if (!m_constructionBlock.HasRequiredPowerForNewTarget(this))
                     {
                         LastInvalidTargetReason = "Insufficient power for another target.";
                         break;
@@ -341,7 +341,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     return;
                 }
 
-                if(!NaniteConstructionPower.HasRequiredPowerForCurrentTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock))
+                if(!m_constructionBlock.IsPowered())
                 {
                     Logging.Instance.WriteLine("CANCELLING Deconstruction Target due to power shortage");
                     CancelTarget(target);

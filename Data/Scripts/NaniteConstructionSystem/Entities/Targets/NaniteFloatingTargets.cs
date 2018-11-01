@@ -88,7 +88,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     }
 
                     if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), item.GetPosition()) < m_maxDistance * m_maxDistance 
-                      && NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
+                      && m_constructionBlock.HasRequiredPowerForNewTarget(this))
                     {
                         AddTarget(item);
                         
@@ -169,7 +169,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
                     return;
 
-                if(!NaniteConstructionPower.HasRequiredPowerForCurrentTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock))
+                if(!m_constructionBlock.IsPowered())
                 {
                     Logging.Instance.WriteLine("CANCELLING Cleanup Target due to power shortage");
                     CancelTarget(floating);

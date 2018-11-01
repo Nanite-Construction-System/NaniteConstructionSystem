@@ -151,7 +151,6 @@
     <Compile Include="Entities\NaniteConstructionBlock.cs" />
     <Compile Include="Entities\NaniteConstructionInventory.cs" />
     <Compile Include="Entities\NaniteConstructionLogic.cs" />
-    <Compile Include="Entities\NaniteConstructionPower.cs" />
     <Compile Include="Entities\NaniteConstructionSync.cs" />
     <Compile Include="Entities\Targets\NaniteConstructionTargets.cs" />
     <Compile Include="Entities\Targets\NaniteDeconstructionTargets.cs" />
@@ -162,10 +161,8 @@
     <Compile Include="Entities\Targets\NaniteTargetBlocksBase.cs" />
     <Compile Include="Entities\Tools\NaniteGrinder.cs" />
     <Compile Include="Entities\Tools\NaniteToolBase.cs" />
-    <Compile Include="Entities\Tools\NaniteToolBaseOld.cs" />
     <Compile Include="Entities\Tools\NaniteToolManager.cs" />
     <Compile Include="Entities\Tools\NaniteWelder.cs" />
-    <Compile Include="Extensions\Conveyor.cs" />
     <Compile Include="Extensions\EntityHelper.cs" />
     <Compile Include="Extensions\MathExtensions.cs" />
     <Compile Include="Extensions\Nodes.cs" />

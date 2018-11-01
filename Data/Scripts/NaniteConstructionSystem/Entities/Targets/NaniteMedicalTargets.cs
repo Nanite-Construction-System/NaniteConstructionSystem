@@ -180,7 +180,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         continue;
 
                     if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), item.GetPosition()) < m_maxDistance * m_maxDistance 
-                      && NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
+                      && m_constructionBlock.HasRequiredPowerForNewTarget(this))
                     {
                         AddTarget(item);
 

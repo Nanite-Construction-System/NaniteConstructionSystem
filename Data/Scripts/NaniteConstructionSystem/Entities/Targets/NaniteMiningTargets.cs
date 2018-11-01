@@ -239,7 +239,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         continue;
 
                     if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), item.Position) < m_maxDistance * m_maxDistance &&
-                      NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
+                      m_constructionBlock.HasRequiredPowerForNewTarget(this))
                     {
                         Logging.Instance.WriteLine(string.Format("ADDING Mining Target: conid={0} pos={1} type={2}", 
                           m_constructionBlock.ConstructionBlock.EntityId, item.Position, MyDefinitionManager.Static.GetVoxelMaterialDefinition(item.VoxelMaterial).MinedOre));
@@ -295,7 +295,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 //    return;
                 //}
 
-                if (!NaniteConstructionPower.HasRequiredPowerForCurrentTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock))
+                if (!m_constructionBlock.IsPowered())
                 {
                     Logging.Instance.WriteLine("CANCELLING Mining Target due to power shortage");
                     CancelTarget(target);

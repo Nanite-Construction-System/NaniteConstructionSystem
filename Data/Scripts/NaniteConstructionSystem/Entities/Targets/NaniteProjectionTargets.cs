@@ -120,7 +120,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                     missing = inventoryManager.GetProjectionComponents((IMySlimBlock)item);
                     bool haveComponents = inventoryManager.CheckComponentsAvailable(ref missing, ref available);
-                    if (haveComponents && NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this) 
+                    if (haveComponents && m_constructionBlock.HasRequiredPowerForNewTarget(this) 
                       && ((IMySlimBlock)item).CubeGrid.GetPosition() != Vector3D.Zero)
                     {
                         bool found = false;
@@ -150,7 +150,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     else if (!haveComponents)
                         LastInvalidTargetReason = "Missing components to start projected block";
 
-                    else if (!NaniteConstructionPower.HasRequiredPowerForNewTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock, this))
+                    else if (!m_constructionBlock.HasRequiredPowerForNewTarget(this))
                         LastInvalidTargetReason = "Insufficient power for another target.";
                 }
             }
@@ -186,7 +186,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     return;
                 }
 
-                if (!NaniteConstructionPower.HasRequiredPowerForCurrentTarget((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock))
+                if (!m_constructionBlock.IsPowered())
                 {
                     Logging.Instance.WriteLine("CANCELLING Projection Target due to power shortage");
                     CancelTarget(target);
