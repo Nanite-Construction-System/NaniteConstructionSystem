@@ -1263,7 +1263,7 @@
 </Definition>
 
     <!-- Migration: block only, no function -->
-    <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
+    <Definition xsi:type="MyObjectBuilder_OxygenFarmDefinition">
       <Id>
         <TypeId>OxygenFarm</TypeId>
         <SubtypeId>LargeNaniteFactory</SubtypeId>
@@ -1324,7 +1324,7 @@
       <SensorRadius>2.26</SensorRadius>
       <PCU>1</PCU>
     </Definition>
-    <Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
+    <Definition xsi:type="MyObjectBuilder_OxygenFarmDefinition">
       <Id>
         <TypeId>OxygenFarm</TypeId>
         <SubtypeId>NaniteUltrasonicHammer</SubtypeId>
