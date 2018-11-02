@@ -97,7 +97,7 @@ namespace NaniteConstructionSystem.Entities
         internal MyResourceSinkInfo ResourceInfo;
         internal MyResourceSinkComponent Sink;
 
-        private float _power = 0f;
+        private float _power = 0.0001f;
         public float Power
         {
             get { return Sink.CurrentInputByType(MyResourceDistributorComponent.ElectricityId); }
@@ -141,7 +141,7 @@ namespace NaniteConstructionSystem.Entities
             {
                 ResourceTypeId = MyResourceDistributorComponent.ElectricityId,
                 MaxRequiredInput = 0f,
-                RequiredInputFunc = () => (m_constructionBlock.Enabled && m_constructionBlock.IsFunctional) ? _power : 0f
+                RequiredInputFunc = () => (m_constructionBlock.Enabled && m_constructionBlock.IsFunctional) ? _power : 0.0001f
             };
             Sink.RemoveType(ref ResourceInfo.ResourceTypeId);
             Sink.Init(MyStringHash.GetOrCompute("Utility"), ResourceInfo);
@@ -192,6 +192,7 @@ namespace NaniteConstructionSystem.Entities
             ((IMyFunctionalBlock)m_constructionBlock).AppendingCustomInfo += AppendingCustomInfo;
 
             BuildConnectedInventory();
+            UpdatePower();
         }
 
         /// <summary>
