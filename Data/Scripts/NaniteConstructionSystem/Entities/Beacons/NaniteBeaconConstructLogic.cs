@@ -29,6 +29,9 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
         public override void Close()
         {
+            if (m_beacon == null)
+                return;
+                
             m_beacon.Close();
             base.Close();
         }
