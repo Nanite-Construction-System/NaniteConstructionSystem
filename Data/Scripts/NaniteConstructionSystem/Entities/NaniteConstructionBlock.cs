@@ -200,6 +200,8 @@ namespace NaniteConstructionSystem.Entities
         /// </summary>
         public void Update()
         {
+            m_updateCount++;
+
             if (ConstructionBlock.Closed)
                 return;
 
@@ -208,18 +210,18 @@ namespace NaniteConstructionSystem.Entities
 
             if (m_updateCount % 1800 == 0)
             {
-                BuildConnectedInventory();
+                if (m_factoryState != FactoryStates.Disabled && m_factoryState != FactoryStates.MissingPower)
+                    BuildConnectedInventory();
 
                 string upgrades = "";
-                MyCubeBlock block = (MyCubeBlock)m_constructionBlock;
-                foreach(var item in block.UpgradeValues)
+                foreach(var item in ((MyCubeBlock)m_constructionBlock).UpgradeValues)
                     upgrades += string.Format("({0} - {1}) ", item.Key, item.Value);
 
                 Logging.Instance.WriteLine(string.Format("STATUS Nanite Factory: {0} - (t: {1}  pt: {2}  pw: {3} st: {4}) - {5}", ConstructionBlock.EntityId, m_targets.Sum(x => x.TargetList.Count), m_targets.Sum(x => x.PotentialTargetList.Count), m_targets.Sum(x => x.TargetList.Count * x.GetPowerUsage()), m_factoryState, upgrades)); //, slimBlock.BuildIntegrity, slimBlock.MaxIntegrity, slimBlock.BuildLevelRatio, missing.Count));
             }
 
             // Server updates
-            if (Sync.IsServer && ConstructionBlock.IsWorking && ConstructionBlock.IsFunctional)
+            if (Sync.IsServer && ConstructionBlock.IsFunctional)
             {
                 ProcessTools();
 
@@ -229,7 +231,8 @@ namespace NaniteConstructionSystem.Entities
 
                 ProcessInventory();
 
-                InventoryManager.TakeRequiredComponents();
+                if (m_updateCount % 60 == 0)
+                    InventoryManager.TakeRequiredComponents();
             }
 
             // Client and server updates (though draws are mostly ignored by server)
@@ -257,7 +260,7 @@ namespace NaniteConstructionSystem.Entities
             if (m_updateCount % 120 == 0)
                 m_userDefinedNaniteLimit = NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].MaxNanites;
 
-            if (Sync.IsServer)
+            if (Sync.IsServer && m_updateCount % 120 == 0)
                 m_constructionBlock.RefreshCustomInfo();
         }
 
@@ -511,7 +514,8 @@ namespace NaniteConstructionSystem.Entities
         /// </summary>
         private void ScanForTargets()
         {
-            if (DateTime.Now - m_lastUpdate > TimeSpan.FromSeconds(5) && ConstructionBlock.IsWorking && ConstructionBlock.IsFunctional)
+            if (m_factoryState != FactoryStates.Disabled && m_factoryState != FactoryStates.MissingPower 
+              && DateTime.Now - m_lastUpdate > TimeSpan.FromSeconds(5))
             {
                 m_lastUpdate = DateTime.Now;
                 MyAPIGateway.Parallel.StartBackground(() =>
@@ -650,6 +654,11 @@ namespace NaniteConstructionSystem.Entities
         /// <param name="details"></param>
         private void AppendingCustomInfo(IMyTerminalBlock block, StringBuilder details)
         {
+            if (m_factoryState == FactoryStates.Disabled || DateTime.Now - m_syncLastUpdate > TimeSpan.FromSeconds(3))
+                return;
+
+            m_syncLastUpdate = DateTime.Now;
+
             details.Clear();
 
             if (Sync.IsServer)
@@ -672,7 +681,7 @@ namespace NaniteConstructionSystem.Entities
 
                 details.Append("-----\r\n");
                 var powerRequired = string.Format("{0} MW", (int)m_targets.Sum(x => x.TargetList.Count * x.GetPowerUsage()));
-                if (m_targets.Sum(x => x.TargetList.Count * x.GetPowerUsage())  == 0f)
+                if (m_targets.Sum(x => x.TargetList.Count * x.GetPowerUsage()) == 0f)
                 {
                     if (((IMyFunctionalBlock)block).IsFunctional && (((IMyFunctionalBlock)block).Enabled))
                         powerRequired = string.Format("100kW");
@@ -708,7 +717,7 @@ namespace NaniteConstructionSystem.Entities
                     {
                         if (component.Value > 0)
                         {
-                            if(!missingCompTitleAppended)
+                            if (!missingCompTitleAppended)
                             {
                                 details.Append("\r\nMissing components:\r\n");
                                 missingCompTitleAppended = true;
@@ -718,9 +727,8 @@ namespace NaniteConstructionSystem.Entities
                     }
                 }
 
-                if(m_syncDetails.Length != details.Length || DateTime.Now - m_syncLastUpdate > TimeSpan.FromSeconds(3))
+                if (m_syncDetails.Length != details.Length)
                 {
-                    m_syncLastUpdate = DateTime.Now;
                     m_syncDetails.Clear();
                     m_syncDetails.Append(details);
                     SendDetails();
@@ -736,22 +744,13 @@ namespace NaniteConstructionSystem.Entities
         /// </summary>
         private void DrawEmissives()
         {
-            m_updateCount++;
+            if (m_factoryState == FactoryStates.SpoolingUp && (m_spoolPosition += (int)(1000f / 60f)) >= m_spoolingTime)
+                m_spoolPosition = m_spoolingTime;
 
-            if (m_factoryState == FactoryStates.SpoolingUp)
-            {
-                m_spoolPosition += (int)(1000f / 60f);
-                if (m_spoolPosition >= m_spoolingTime)
-                    m_spoolPosition = m_spoolingTime;
-            }
-            else if (m_factoryState == FactoryStates.SpoolingDown)
-            {
-                m_spoolPosition -= (int)(1000f / 60f);
-                if (m_spoolPosition <= 0)
-                    m_spoolPosition = 0;
-            }
+            else if (m_factoryState == FactoryStates.SpoolingDown && (m_spoolPosition -= (int)(1000f / 60f)) <= 0)
+                m_spoolPosition = 0;
 
-            if (MyAPIGateway.Session.Player == null)
+            if (MyAPIGateway.Session.Player == null || m_updateCount % 120 != 0)
                 return;
 
             float emissivity = 1.0f;
@@ -811,6 +810,9 @@ namespace NaniteConstructionSystem.Entities
         /// </summary>
         private void ProcessState()
         {
+            if (m_updateCount % 120 != 0)
+                return;
+
             IMyFunctionalBlock blockEntity = (IMyFunctionalBlock)ConstructionBlock;
             int totalTargets = m_targets.Sum(x => x.TargetList.Count);
             int totalPotentialTargets = m_targets.Sum(x => x.PotentialTargetList.Count);
@@ -856,7 +858,7 @@ namespace NaniteConstructionSystem.Entities
             if (m_factoryState != FactoryStates.Active && m_factoryState != FactoryStates.SpoolingUp && m_factoryState != FactoryStates.SpoolingDown && m_spoolPosition > 0f)
                 m_factoryState = FactoryStates.SpoolingDown;
 
-            if (m_lastState != m_factoryState || m_updateCount % 120 == 0)
+            if (m_lastState != m_factoryState)
             {
                 m_lastState = m_factoryState;
                 SendStateUpdate(m_factoryState);
