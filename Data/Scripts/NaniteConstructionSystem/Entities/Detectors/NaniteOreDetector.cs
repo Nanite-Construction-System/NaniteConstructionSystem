@@ -167,7 +167,8 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
             m_effects.Add(new OreDetectorEffect((MyCubeBlock)m_block));
 
-            NaniteConstructionManager.OreDetectors.Add(entity.EntityId, this);
+            if (!NaniteConstructionManager.OreDetectors.ContainsKey(entity.EntityId))
+                NaniteConstructionManager.OreDetectors.Add(entity.EntityId, this);
         }
 
         public void Init()
