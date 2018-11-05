@@ -272,14 +272,9 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                     return;
                 }
-
-                bool isRemote = false;
-                using (m_remoteLock.AcquireExclusiveUsing())
-                {
-                    isRemote = m_remoteTargets.Contains(target);
-                }
-
-                if (isRemote && EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target) > m_maxDistance)
+                
+                if (m_remoteTargets.Contains(target) 
+                  && EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target) > m_maxDistance)
                 {
                     Logging.Instance.WriteLine("CANCELLING Repair Target due to target being out of range");
                     CancelTarget(target);
@@ -379,17 +374,18 @@ namespace NaniteConstructionSystem.Entities.Targets
             var remoteList = new HashSet<IMySlimBlock>();
 
             // Find beacons in range
-            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => (x.Value is NaniteBeaconConstruct || x.Value is NaniteBeaconProjection) && Vector3D.Distance(m_constructionBlock.ConstructionBlock.GetPosition(), x.Value.BeaconBlock.GetPosition()) < m_maxDistance))
+            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => (x.Value is NaniteBeaconConstruct || x.Value is NaniteBeaconProjection) 
+              && Vector3D.Distance(m_constructionBlock.ConstructionBlock.GetPosition(), x.Value.BeaconBlock.GetPosition()) < m_maxDistance).ToList())
             {
                 var item = beaconBlock.Value.BeaconBlock;
 
-                if (!item.Enabled || !item.IsFunctional 
+                if (item == null || !item.Enabled || !item.IsFunctional
                   || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
                     continue;
 
                 List<IMySlimBlock> beaconBlocks = new List<IMySlimBlock>();
 
-                foreach (var grid in MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)item.CubeGrid, GridLinkTypeEnum.Physical))
+                foreach (var grid in MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)item.CubeGrid, GridLinkTypeEnum.Physical).ToList())
                     grid.GetBlocks(beaconBlocks);
 
                 foreach (var block in beaconBlocks)
@@ -397,18 +393,15 @@ namespace NaniteConstructionSystem.Entities.Targets
                         remoteList.Add(block);
             }
 
-            using (m_remoteLock.AcquireExclusiveUsing())
-            {
-                m_remoteTargets = remoteList;
-            }
+            m_remoteTargets = remoteList;
         }
         private void CheckAreaBeacons()
         {
-            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteAreaBeacon))
+            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteAreaBeacon).ToList())
             {
                 IMyCubeBlock cubeBlock = beaconBlock.Value.BeaconBlock;
 
-                if (!((IMyFunctionalBlock)cubeBlock).Enabled || !((IMyFunctionalBlock)cubeBlock).IsFunctional)
+                if (cubeBlock == null || !((IMyFunctionalBlock)cubeBlock).Enabled || !((IMyFunctionalBlock)cubeBlock).IsFunctional)
                     continue;
 
                 var item = beaconBlock.Value as NaniteAreaBeacon;
