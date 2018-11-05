@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Sandbox.ModAPI;
 
 using NaniteConstructionSystem.Entities.Effects;
@@ -20,7 +20,9 @@ namespace NaniteConstructionSystem.Entities.Beacons
         {
             m_beaconBlock = beaconBlock;
             m_effects = new List<NaniteBlockEffectBase>();
-            NaniteConstructionManager.BeaconList.Add(m_beaconBlock.EntityId, this);
+
+            if (!NaniteConstructionManager.BeaconList.ContainsKey(m_beaconBlock.EntityId))
+                NaniteConstructionManager.BeaconList.Add(m_beaconBlock.EntityId, this);
         }
 
         public virtual void Update()
