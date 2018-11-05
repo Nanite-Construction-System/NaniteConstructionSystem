@@ -12,7 +12,6 @@ using VRage.ModAPI;
 using VRageMath;
 using VRage.Utils;
 using VRage.ObjectBuilders;
-//using Ingame = VRage.ModAPI.Ingame;
 using Ingame = VRage.Game.ModAPI.Ingame;
 using VRage.Game.ModAPI;
 using Sandbox.Definitions;
@@ -36,7 +35,6 @@ namespace NaniteConstructionSystem.Entities
         private MyEntity m_constructionBlock;
         public NaniteConstructionInventory(MyEntity constructionBlock)
         {
-            //m_constructionBlock = block;
             m_constructionBlock = constructionBlock;
             m_componentsRequired = new Dictionary<string, int>();
         }
@@ -68,7 +66,9 @@ namespace NaniteConstructionSystem.Entities
 
                             if (inventoryItem.Amount >= componentNeeded.Value) 
                                 amount = Math.Min(componentNeeded.Value, validAmount);
-                            else amount = Math.Min((float)inventoryItem.Amount, validAmount);
+                            else 
+                                amount = Math.Min((float)inventoryItem.Amount, validAmount);
+
                             if (!constructionInventory.CanItemsBeAdded((int)amount, new SerializableDefinitionId(typeof(MyObjectBuilder_Component), componentNeeded.Key))) 
                                 continue;
 
@@ -78,12 +78,13 @@ namespace NaniteConstructionSystem.Entities
                                 {
                                     inventory.RemoveItemsOfType((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
                                     constructionInventory.AddItems((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
+
                                     if (ComponentsRequired.ContainsKey(componentNeeded.Key)) 
                                         ComponentsRequired[componentNeeded.Key] -= (int)amount;
                                 }
                                 catch (Exception ex)
                                 {
-                                    VRage.Utils.MyLog.Default.WriteLineAndConsole($"Nanite Control Factory: Error while moving inventory to Factory Block!\n {ex.StackTrace}");
+                                    VRage.Utils.MyLog.Default.WriteLineAndConsole($"Nanite Control Factory: Exception in NaniteConstructionInventory.TakeRequiredComponents:\n{ex.StackTrace}");
                                 }
                             });
                         }
@@ -106,9 +107,9 @@ namespace NaniteConstructionSystem.Entities
             Dictionary<string, int> missing = new Dictionary<string, int>();
             if (targetList.Count < maxTargets)
             {
-                if(!isProjection)
+                if (!isProjection)
                 {
-                    foreach(var item in targetList)
+                    foreach(var item in targetList.ToList())
                     {
                         missing.Clear();
                         item.GetMissingComponents(missing);
@@ -127,7 +128,7 @@ namespace NaniteConstructionSystem.Entities
                     }
                 }
 
-                foreach (var item in possibleTargetList)
+                foreach (var item in possibleTargetList.ToList())
                 {
                     if (targetList.Contains(item))
                         continue;
@@ -169,19 +170,11 @@ namespace NaniteConstructionSystem.Entities
             bool result = false;
             foreach (var item in checkMissing)
             {
-                //Logging.Instance.WriteLine(string.Format("Missing: {0}", item.Key, item.Value));
                 if (checkAvailable.ContainsKey(item.Key))
                 {
-                    //Logging.Instance.WriteLine(string.Format("Found: {0} - {1}", item.Key, item.Value));
                     result = true;
                     break;
                 }
-
-                //if (!checkAvailable.ContainsKey(item.Key))
-                //    continue;
-
-                //if (checkAvailable[item.Key] < item.Value)
-                //    return false;
             }
 
             foreach (var item in missing)
@@ -209,18 +202,13 @@ namespace NaniteConstructionSystem.Entities
             foreach (var item in checkMissing)
             {
                 if (!checkAvailable.ContainsKey(item.Key))
-                {
                     continue;
-                }
 
                 if (checkAvailable[item.Key] < item.Value)
-                {
                     missingResult[item.Key] -= checkAvailable[item.Key];
-                }
+
                 else
-                {
                     missingResult[item.Key] -= item.Value;
-                }
             }
 
             missing.Clear();
@@ -236,16 +224,11 @@ namespace NaniteConstructionSystem.Entities
 
             MyCubeBlockDefinition blockDefinition = (MyCubeBlockDefinition)block.BlockDefinition;
             if (firstOnly)
-            {
                 result.Add(blockDefinition.Components[0].Definition.Id.SubtypeName, 1);
-            }
+
             else
-            {
                 foreach (var item in blockDefinition.Components)
-                {
                     result.Add(item.Definition.Id.SubtypeName, item.Count);
-                }
-            }
 
             return result;
         }
@@ -260,8 +243,6 @@ namespace NaniteConstructionSystem.Entities
             {
                 foreach (var item in inventory.GetItems())
                 {
-                    //Logging.Instance.WriteLine(string.Format("Item: {0} - {1}", item.Amount, item.Content.SubtypeName));
-
                     if ((int)item.Amount < 1)
                         continue;
 
@@ -282,6 +263,7 @@ namespace NaniteConstructionSystem.Entities
             foreach (var item in targetList)
             {
                 missing.Clear();
+
                 if (isProjection)
                     item.GetMissingComponents(missing);
                 else
@@ -291,10 +273,8 @@ namespace NaniteConstructionSystem.Entities
                 }
 
                 foreach (var component in missing)
-                {
                     if (result.ContainsKey(component.Key))
                         result[component.Key] -= component.Value;
-                }
             }
         }
 
@@ -303,13 +283,12 @@ namespace NaniteConstructionSystem.Entities
             if (MyAPIGateway.Session.CreativeMode)
                 return true;
 
-            int pos = 0;
             try
             {
                 IMyInventory inventory = GetConstructionInventory();
                 if (inventory == null)
                 {
-                    Logging.Instance.WriteLine(string.Format("Inventory {0} is null.", inventory == null));
+                    Logging.Instance.WriteLine($"Inventory is null = {(inventory == null)}.");
                     return false;
                 }
 
@@ -328,15 +307,15 @@ namespace NaniteConstructionSystem.Entities
                         MyCubeBlockDefinition blockDefinition = (MyCubeBlockDefinition)target.BlockDefinition;
                         missingComponents.Add(blockDefinition.Components[0].Definition.Id.SubtypeName, 1);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
-                        Logging.Instance.WriteLine(string.Format("Process Error: {0}", ex.ToString()));
+                        VRage.Utils.MyLog.Default.WriteLineAndConsole($"Process Error: {ex.ToString()}");
                         return false;
                     }
 
                 }
 
-                foreach(var item in inventory.GetItems().ToList())
+                foreach (var item in inventory.GetItems().ToList())
                 {
                     if (missingComponents.ContainsKey(item.Content.SubtypeName))
                     {
@@ -359,7 +338,7 @@ namespace NaniteConstructionSystem.Entities
             }
             catch(Exception ex)
             {
-                Logging.Instance.WriteLine(string.Format("Exception {0} : {1}", pos, ex.ToString()));
+                Logging.Instance.WriteLine(string.Format("Exception: {0}", ex.ToString()));
                 return false;
             }
         }
