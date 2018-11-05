@@ -356,9 +356,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<IMySlimBlock> blocks)
         {
             using (Lock.AcquireExclusiveUsing())
-            {
                 PotentialTargetList.Clear();
-            }
 
             if (!IsEnabled())
                 return;
@@ -396,6 +394,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             m_remoteTargets = remoteList;
         }
+
         private void CheckAreaBeacons()
         {
             foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteAreaBeacon).ToList())
@@ -414,10 +413,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                 foreach(var entity in entities)
                 {
                     var grid = entity as IMyCubeGrid;
-                    if (grid == null)
-                        continue;
 
-                    if ((grid.GetPosition() - cubeBlock.GetPosition()).Length() < m_maxDistance)
+                    if (grid != null && (grid.GetPosition() - cubeBlock.GetPosition()).Length() < m_maxDistance)
                     {
                         foreach(IMySlimBlock block in ((MyCubeGrid)grid).GetBlocks())
                         {
