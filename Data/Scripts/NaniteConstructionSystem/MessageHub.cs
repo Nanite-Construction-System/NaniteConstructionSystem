@@ -221,7 +221,9 @@ namespace NaniteConstructionSystem
             }
 
             NaniteConstructionManager.Instance.UpdateSettingsChanges();
-            NaniteConstructionManager.Instance.InitializeControls();
+
+            if (MyAPIGateway.Multiplayer.MultiplayerActive)
+                NaniteConstructionManager.Instance.InitializeControls();
         }
 
         public override void ProcessServer()
