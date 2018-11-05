@@ -212,7 +212,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             lock (m_potentialTargetList)
             {
-                foreach(NaniteMiningItem item in m_potentialTargetList)
+                foreach(NaniteMiningItem item in m_potentialTargetList.ToList())
                 {
                     if (item == null || TargetList.Contains(item))
                         continue;
@@ -224,10 +224,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                     }
 
                     bool found = false;
-                    foreach (var block in blockList)
+                    foreach (var block in blockList.ToList())
                     {
                         // This can be sped up if necessary by indexing items by position
-                        if (block.GetTarget<NaniteMiningTargets>().TargetList.FirstOrDefault(x => ((NaniteMiningItem)x).Position == item.Position) != null)
+                        if (block != null && block.GetTarget<NaniteMiningTargets>().TargetList.FirstOrDefault(x => ((NaniteMiningItem)x).Position == item.Position) != null)
                         {
                             found = true;
                             LastInvalidTargetReason = "Another factory has this voxel as a target";

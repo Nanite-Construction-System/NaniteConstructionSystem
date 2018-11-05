@@ -256,7 +256,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 foreach(IMySlimBlock item in PotentialTargetList.ToList())
                 {
-                    if (TargetList.Contains(item)) 
+                    if (item == null || TargetList.Contains(item)) 
                         continue;
 
                     if (!m_constructionBlock.HasRequiredPowerForNewTarget(this))
@@ -272,9 +272,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                     }
 
                     bool found = false;
-                    foreach (var block in blockList)
+                    foreach (var block in blockList.ToList())
                     {
-                        if (block.Targets.First(x => x is NaniteDeconstructionTargets).TargetList.Contains(item as IMySlimBlock))
+                        if (block != null && block.Targets.First(x => x is NaniteDeconstructionTargets).TargetList.Contains(item as IMySlimBlock))
                         {
                             found = true;
                             LastInvalidTargetReason = "Another factory has this block as a target";

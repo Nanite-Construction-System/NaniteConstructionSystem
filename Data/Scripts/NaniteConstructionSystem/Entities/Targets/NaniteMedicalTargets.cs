@@ -160,15 +160,15 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             lock (m_potentialTargetList)
             {
-                foreach(IMyPlayer item in m_potentialTargetList)
+                foreach(IMyPlayer item in m_potentialTargetList.ToList())
                 {                 
                     if (item == null || TargetList.Contains(item) || item.Controller == null || item.Controller.ControlledEntity == null || item.Controller.ControlledEntity.Entity == null)
                         continue;
 
                     bool found = false;
-                    foreach (var block in blockList)
+                    foreach (var block in blockList.ToList())
                     {
-                        if (block.Targets.First(x => x is NaniteMedicalTargets).TargetList.Contains(item))
+                        if (block != null && block.Targets.First(x => x is NaniteMedicalTargets).TargetList.Contains(item))
                         {
                             found = true;
                             InvalidTargetReason("Another factory has this block as a target");

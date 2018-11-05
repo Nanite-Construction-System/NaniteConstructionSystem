@@ -113,9 +113,9 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 int TargetListCount = TargetList.Count;
                 
-                foreach (var item in PotentialTargetList.OrderBy(x => Vector3D.Distance(sourcePosition, EntityHelper.GetBlockPosition((IMySlimBlock)x))))
+                foreach (var item in PotentialTargetList.OrderBy(x => Vector3D.Distance(sourcePosition, EntityHelper.GetBlockPosition((IMySlimBlock)x))).ToList())
                 {
-                    if (TargetList.Contains(item)) 
+                    if (item == null || TargetList.Contains(item)) 
                         continue;
 
                     missing = inventoryManager.GetProjectionComponents((IMySlimBlock)item);
@@ -124,9 +124,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                       && ((IMySlimBlock)item).CubeGrid.GetPosition() != Vector3D.Zero)
                     {
                         bool found = false;
-                        foreach (var block in blockList)
+                        foreach (var block in blockList.ToList())
                         {
-                            if (block.GetTarget<NaniteProjectionTargets>().TargetList.Contains(item))
+                            if (block != null && block.GetTarget<NaniteProjectionTargets>().TargetList.Contains(item))
                             {
                                 found = true;
                                 LastInvalidTargetReason = "Another factory has this block as a target";

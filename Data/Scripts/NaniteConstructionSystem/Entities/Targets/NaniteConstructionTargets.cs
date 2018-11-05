@@ -106,10 +106,10 @@ namespace NaniteConstructionSystem.Entities.Targets
             
             lock (m_potentialTargetList)
             {
-                List<IMySlimBlock> removalList = new List<IMySlimBlock>();
+                //List<IMySlimBlock> removalList = new List<IMySlimBlock>();
                 int targetListCount = m_targetList.Count;
 
-                foreach (IMySlimBlock item in m_potentialTargetList)
+                foreach (IMySlimBlock item in m_potentialTargetList.ToList())
                 {
                     if (item == null || TargetList.Contains(item)) 
                         continue;
@@ -118,6 +118,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     item.GetMissingComponents(missing);
                     if (missing == null) 
                         continue;
+
                     bool foundMissingComponents = true;
 
                     if (missing.Count > 0) 
@@ -126,9 +127,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                     if (foundMissingComponents && m_constructionBlock.HasRequiredPowerForNewTarget(this))
                     {
                         bool found = false;
-                        foreach (var block in blockList)
+                        foreach (var block in blockList.ToList())
                         {
-                            if (block.Targets.First(y => y is NaniteConstructionTargets).TargetList.Contains(item as IMySlimBlock))
+                            if (block != null && block.Targets.First(y => y is NaniteConstructionTargets).TargetList.Contains(item as IMySlimBlock))
                             {
                                 found = true;
                                 LastInvalidTargetReason = "Another factory has this block as a target";
@@ -139,7 +140,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         if (found)
                             continue;
 
-                        removalList.Add(item);
+                        //removalList.Add(item);
                         AddTarget(item);
 
                         var def = item.BlockDefinition as MyCubeBlockDefinition;
@@ -154,9 +155,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                     else if (!m_constructionBlock.HasRequiredPowerForNewTarget(this))
                         LastInvalidTargetReason = "Insufficient power for another target.";
                 }
-                foreach (var item in removalList)
-                    if (m_potentialTargetList.Contains(item)) 
-                        m_potentialTargetList.Remove(item);
+                //foreach (var item in removalList)
+                    //if (m_potentialTargetList.Contains(item)) 
+                        //m_potentialTargetList.Remove(item);
             }
             if (LastInvalidTargetReason != "")
                 InvalidTargetReason(LastInvalidTargetReason);
