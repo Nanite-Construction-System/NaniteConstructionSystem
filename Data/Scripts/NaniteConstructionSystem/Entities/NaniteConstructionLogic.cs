@@ -1,4 +1,4 @@
-﻿using Sandbox.Common.ObjectBuilders;
+using Sandbox.Common.ObjectBuilders;
 using VRage.Game.Components;
 using VRage.ObjectBuilders;
 using VRage.Game.ModAPI;
@@ -22,9 +22,13 @@ namespace NaniteConstructionSystem.Entities
             base.UpdateOnceBeforeFrame();
 
             m_block = new NaniteConstructionBlock(Entity);
-            NaniteConstructionManager.NaniteBlocks.Add(Entity.EntityId, m_block);
+
+            if (!NaniteConstructionManager.NaniteBlocks.ContainsKey(Entity.EntityId))
+                NaniteConstructionManager.NaniteBlocks.Add(Entity.EntityId, m_block);
+
             IMySlimBlock slimBlock = ((MyCubeBlock)m_block.ConstructionBlock).SlimBlock as IMySlimBlock;
-            Logging.Instance.WriteLine(string.Format("ADDING Nanite Factory: conid={0} physics={1} ratio={2}", Entity.EntityId, m_block.ConstructionBlock.CubeGrid.Physics == null, slimBlock.BuildLevelRatio));
+            Logging.Instance.WriteLine(string.Format("ADDING Nanite Factory: conid={0} physics={1} ratio={2}", 
+              Entity.EntityId, m_block.ConstructionBlock.CubeGrid.Physics == null, slimBlock.BuildLevelRatio));
 
             if (NaniteConstructionManager.NaniteSync != null)
                 NaniteConstructionManager.NaniteSync.SendNeedTerminalSettings(Entity.EntityId);
@@ -49,10 +53,8 @@ namespace NaniteConstructionSystem.Entities
     {
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
-            if(!NaniteConstructionManager.ProjectorBlocks.ContainsKey(Entity.EntityId))
-            {
+            if (!NaniteConstructionManager.ProjectorBlocks.ContainsKey(Entity.EntityId))
                 NaniteConstructionManager.ProjectorBlocks.Add(Entity.EntityId, (IMyCubeBlock)Entity);
-            }
         }
 
         /// <summary>
@@ -71,9 +73,7 @@ namespace NaniteConstructionSystem.Entities
                 return;
 
             if (NaniteConstructionManager.ProjectorBlocks.ContainsKey(Entity.EntityId))
-            {
                 NaniteConstructionManager.ProjectorBlocks.Remove(Entity.EntityId);
-            }
         }
     }
 
@@ -106,9 +106,7 @@ namespace NaniteConstructionSystem.Entities
                 return;
 
             if (NaniteConstructionManager.AssemblerBlocks.ContainsKey(Entity.EntityId))
-            {
                 NaniteConstructionManager.AssemblerBlocks.Remove(Entity.EntityId);
-            }
         }
     }
 }
