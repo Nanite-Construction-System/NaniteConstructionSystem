@@ -84,7 +84,7 @@ namespace NaniteConstructionSystem.Entities
                                 }
                                 catch (Exception ex)
                                 {
-                                    VRage.Utils.MyLog.Default.WriteLineAndConsole($"Nanite Control Factory: Exception in NaniteConstructionInventory.TakeRequiredComponents:\n{ex.StackTrace}");
+                                    VRage.Utils.MyLog.Default.WriteLineAndConsole($"Nanite Control Factory: Exception in NaniteConstructionInventory.TakeRequiredComponents:\n{ex.ToString()}");
                                 }
                             });
                         }
