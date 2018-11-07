@@ -139,10 +139,9 @@ namespace NaniteConstructionSystem.Entities.Targets
             try
             {
                 if (!IsEnabled())
-                {
-                    PotentialTargetList.Clear();
                     return;
-                }
+
+                PotentialTargetList.Clear();
 
                 // Add 
                 foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteBeaconDeconstruct 
@@ -405,9 +404,9 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void RemoveGridTarget(IMyCubeGrid grid)
         {
-            foreach(var item in m_validBeaconedGrids)
+            foreach (var item in m_validBeaconedGrids)
             {
-                if(item.MainGrid == grid)
+                if (item.MainGrid == grid)
                 {
                     using (Lock.AcquireExclusiveUsing())
                     {
