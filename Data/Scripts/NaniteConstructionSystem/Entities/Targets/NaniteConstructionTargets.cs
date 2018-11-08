@@ -407,8 +407,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                 foreach (var grid in MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)item.CubeGrid, GridLinkTypeEnum.Physical).ToList())
                     grid.GetBlocks(beaconBlocks);
 
-                foreach (var block in beaconBlocks)
-                    if (AddPotentialBlock(block, true))
+                foreach (var block in beaconBlocks.ToList())
+                    if (block != null && AddPotentialBlock(block, true))
                         remoteList.Add(block);
             }
 
