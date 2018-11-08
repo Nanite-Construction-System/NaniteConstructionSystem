@@ -19,7 +19,7 @@ namespace NaniteConstructionSystem.Entities
 
         public void Initialize()
         {
-            if (!Sync.IsServer) // Client, why do I have to be so difficult
+            if (Sync.IsClient)
             {
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8950, HandleUpdateState);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8951, HandleAddTarget);
@@ -32,7 +32,7 @@ namespace NaniteConstructionSystem.Entities
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8962, HandleAssemblerSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8971, HandleBeaconTerminalSettings);
             }
-            else
+            else if (Sync.IsServer)
             {
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8961, HandleNeedTerminalSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8963, HandleNeedAssemblerSettings);
@@ -268,12 +268,12 @@ namespace NaniteConstructionSystem.Entities
 
             SerializableKeyValuePair<long, NaniteTerminalSettings> settings = new SerializableKeyValuePair<long, NaniteTerminalSettings>(blockId, NaniteConstructionManager.TerminalSettings[blockId]);
 
-            if (!Sync.IsServer)
+            if (Sync.IsClient)
             {
                 //Logging.Instance.WriteLine("SendTerminalSettings -> Server");
                 MyAPIGateway.Multiplayer.SendMessageToServer(8964, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(settings)));
             }
-            else
+            else if (Sync.IsServer)
             {
                 //Logging.Instance.WriteLine("SendTerminalSettings -> Others");
                 MyAPIGateway.Multiplayer.SendMessageToOthers(8960, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(settings)));
@@ -296,9 +296,7 @@ namespace NaniteConstructionSystem.Entities
                     NaniteConstructionManager.TerminalSettings[settings.Key] = settings.Value;
 
                 if (Sync.IsServer)
-                {
                     SendTerminalSettings(settings.Key);
-                }
             }
             catch (Exception ex)
             {
@@ -318,16 +316,10 @@ namespace NaniteConstructionSystem.Entities
 
             SerializableKeyValuePair<long, NaniteAssemblerSettings> settings = new SerializableKeyValuePair<long, NaniteAssemblerSettings>(blockId, NaniteConstructionManager.AssemblerSettings[blockId]);
 
-            if (!Sync.IsServer)
-            {
-                //Logging.Instance.WriteLine("SendAssemblerSettings -> Server");
+            if (Sync.IsClient)
                 MyAPIGateway.Multiplayer.SendMessageToServer(8965, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(settings)));
-            }
-            else
-            {
-                //Logging.Instance.WriteLine("SendAssemblerSettings -> Others");
+            else if (Sync.IsServer)
                 MyAPIGateway.Multiplayer.SendMessageToOthers(8962, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(settings)));
-            }
         }
 
         private void HandleAssemblerSettings(byte[] data)
@@ -342,6 +334,7 @@ namespace NaniteConstructionSystem.Entities
                     NaniteConstructionManager.AssemblerSettings.Add(settings.Key, settings.Value);
 
                 NaniteConstructionManager.AssemblerSettings[settings.Key] = settings.Value;
+                
                 if (Sync.IsServer)
                     SendAssemblerSettings(settings.Key);
             }
@@ -422,13 +415,13 @@ namespace NaniteConstructionSystem.Entities
 
             SerializableKeyValuePair<long, NaniteBeaconTerminalSettings> settings = new SerializableKeyValuePair<long, NaniteBeaconTerminalSettings>(blockId, NaniteConstructionManager.BeaconTerminalSettings[blockId]);
 
-            if (!Sync.IsServer)
+            if (Sync.IsClient)
             {
                 //Logging.Instance.WriteLine("SendAssemblerSettings -> Server");
                 Logging.Instance.WriteLine("SendBeaconTerminalSettings -> Server: {blockId}");
                 MyAPIGateway.Multiplayer.SendMessageToServer(8972, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(settings)));
             }
-            else
+            else if (Sync.IsServer)
             {
                 //Logging.Instance.WriteLine("SendAssemblerSettings -> Others");
                 Logging.Instance.WriteLine("SendBeaconTerminalSettings -> Client: {blockId}");
