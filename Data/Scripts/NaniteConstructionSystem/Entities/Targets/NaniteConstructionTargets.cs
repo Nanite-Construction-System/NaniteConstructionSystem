@@ -49,7 +49,9 @@ namespace NaniteConstructionSystem.Entities.Targets
         public override int GetMaximumTargets()
         {
             MyCubeBlock block = (MyCubeBlock)m_constructionBlock.ConstructionBlock;            
-            return (int)Math.Min(NaniteConstructionManager.Settings.ConstructionNanitesNoUpgrade + (block.UpgradeValues["ConstructionNanites"] * NaniteConstructionManager.Settings.ConstructionNanitesPerUpgrade), NaniteConstructionManager.Settings.ConstructionMaxStreams);
+            return (int)Math.Min(NaniteConstructionManager.Settings.ConstructionNanitesNoUpgrade 
+              + (block.UpgradeValues["ConstructionNanites"] 
+              * NaniteConstructionManager.Settings.ConstructionNanitesPerUpgrade), NaniteConstructionManager.Settings.ConstructionMaxStreams);
         }
 
         public override float GetPowerUsage()
@@ -106,7 +108,6 @@ namespace NaniteConstructionSystem.Entities.Targets
             
             lock (m_potentialTargetList)
             {
-                //List<IMySlimBlock> removalList = new List<IMySlimBlock>();
                 int targetListCount = m_targetList.Count;
 
                 foreach (IMySlimBlock item in m_potentialTargetList.ToList())
@@ -140,7 +141,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                         if (found)
                             continue;
 
-                        //removalList.Add(item);
                         AddTarget(item);
 
                         var def = item.BlockDefinition as MyCubeBlockDefinition;
@@ -155,9 +155,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                     else if (!m_constructionBlock.HasRequiredPowerForNewTarget(this))
                         LastInvalidTargetReason = "Insufficient power for another target.";
                 }
-                //foreach (var item in removalList)
-                    //if (m_potentialTargetList.Contains(item)) 
-                        //m_potentialTargetList.Remove(item);
             }
             if (LastInvalidTargetReason != "")
                 InvalidTargetReason(LastInvalidTargetReason);
@@ -188,12 +185,15 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void Update()
         {
-            foreach (var item in m_targetList.ToList())
+            MyAPIGateway.Parallel.StartBackground(() =>
             {
-                var block = item as IMySlimBlock;
-                if (block != null)
-                    ProcessConstructionItem(block);
-            }
+                foreach (var item in m_targetList.ToList())
+                {
+                    var block = item as IMySlimBlock;
+                    if (block != null)
+                        ProcessConstructionItem(block);
+                }
+            });
         }
 
         private void ProcessConstructionItem(IMySlimBlock target)
@@ -203,14 +203,20 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (!IsEnabled())
                 {
                     Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to being disabled");
-                    CancelTarget(target);
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                    {
+                        CancelTarget(target);
+                    });
                     return;
                 }
 
                 if (!m_constructionBlock.IsPowered())
                 {
                     Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to power shortage");
-                    CancelTarget(target);
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                    {
+                        CancelTarget(target);
+                    });
                     return;
                 }
 
@@ -225,14 +231,20 @@ namespace NaniteConstructionSystem.Entities.Targets
                 {
                     double distance = EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target);
                     int time = (int)Math.Max(GetMinTravelTime() * 1000f, (distance / GetSpeed()) * 1000f);
-                    welder = new NaniteWelder(m_constructionBlock, target, (int)(time / 2.5f), false);
-                    m_constructionBlock.ToolManager.Tools.Add(welder);
-                    m_constructionBlock.SendAddTarget(target, TargetTypes.Construction);
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                    {
+                        welder = new NaniteWelder(m_constructionBlock, target, (int)(time / 2.5f), false);
+                        m_constructionBlock.ToolManager.Tools.Add(welder);
+                        m_constructionBlock.SendAddTarget(target, TargetTypes.Construction);
+                    });
                 }
 
                 if (target.IsFullIntegrity && !target.HasDeformation)
                 {
-                    CompleteTarget(target);
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                    {
+                        CompleteTarget(target);
+                    });
                     return;
                 }
 
@@ -242,7 +254,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                     target.GetWorldBoundingBox(out bb, true);
                     if (!m_areaTargetBlocks[target].IsInsideBox(bb))
                     {
-                        CancelTarget(target);
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                        {
+                            CancelTarget(target);
+                        });
                         return;
                     }
                 }
@@ -250,26 +265,27 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (target.IsDestroyed || target.IsFullyDismounted || (target.FatBlock != null && target.FatBlock.Closed))
                 {
                     Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to target being destroyed");
-                    CancelTarget(target);
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                    {
+                        CancelTarget(target);
+                    });
                     return;
                 }
 
                 if (welder != null && MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - welder.StartTime >= welder.WaitTime)
                 {
-                    target.MoveItemsToConstructionStockpile(((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory());
-                    Dictionary<string, int> missing = new Dictionary<string, int>();
-                    target.GetMissingComponents(missing);
-
-                    if (!target.HasDeformation && !target.CanContinueBuild(((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory()) 
-                      && !MyAPIGateway.Session.CreativeMode)
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                     {
-                        Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to missing components");
+                        target.MoveItemsToConstructionStockpile(((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory());
 
-                        foreach (var item in missing)
-                            Logging.Instance.WriteLine(string.Format("Missing component: {0} - {1}", item.Value, item.Key));
+                        if (!target.HasDeformation && !target.CanContinueBuild(((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory()) 
+                          && !MyAPIGateway.Session.CreativeMode)
+                        {
+                            Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to missing components");
 
-                        CancelTarget(target);
-                    }
+                            CancelTarget(target);
+                        }
+                    });
 
                     return;
                 }
@@ -278,7 +294,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                   && EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target) > m_maxDistance)
                 {
                     Logging.Instance.WriteLine("CANCELLING Repair Target due to target being out of range");
-                    CancelTarget(target);
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                    {
+                        CancelTarget(target);
+                    });
                     return;
                 }
             }
@@ -302,12 +321,17 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_targetBlocks[target] = 0;
             Vector4 startColor = new Vector4(0.55f, 0.55f, 0.95f, 0.75f);
             Vector4 endColor = new Vector4(0.05f, 0.05f, 0.35f, 0.75f);
-            m_constructionBlock.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
+            MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+            {
+                m_constructionBlock.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
+            });
         }
 
         public void CompleteTarget(IMySlimBlock obj)
         {
-            Logging.Instance.WriteLine(string.Format("COMPLETING Construction/Repair Target: {0} - {1} (EntityID={2},Position={3})", m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position));
+            Logging.Instance.WriteLine(string.Format("COMPLETING Construction/Repair Target: {0} - {1} (EntityID={2},Position={3})", 
+              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position));
+
             if (Sync.IsServer)
                 m_constructionBlock.SendCompleteTarget(obj, TargetTypes.Construction);
 
@@ -316,13 +340,15 @@ namespace NaniteConstructionSystem.Entities.Targets
             Remove(obj);
             m_remoteTargets.Remove(obj);
 
-            if(m_areaTargetBlocks.ContainsKey(obj))
+            if (m_areaTargetBlocks.ContainsKey(obj))
                 m_areaTargetBlocks.Remove(obj);
         }
 
         public void CancelTarget(IMySlimBlock obj)
         {
-            Logging.Instance.WriteLine(string.Format("CANCELLING Construction/Repair Target: {0} - {1} (EntityID={2},Position={3})", m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position));
+            Logging.Instance.WriteLine(string.Format("CANCELLING Construction/Repair Target: {0} - {1} (EntityID={2},Position={3})", 
+              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position));
+
             if (Sync.IsServer)
                 m_constructionBlock.SendCancelTarget(obj, TargetTypes.Construction);
 
