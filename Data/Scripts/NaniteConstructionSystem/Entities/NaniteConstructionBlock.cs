@@ -191,7 +191,7 @@ namespace NaniteConstructionSystem.Entities
 
             m_inventoryManager = new NaniteConstructionInventory((MyEntity)m_constructionBlock);
 
-            ((IMyFunctionalBlock)m_constructionBlock).AppendingCustomInfo += AppendingCustomInfo;
+            ((IMyTerminalBlock)m_constructionBlock).AppendingCustomInfo += AppendingCustomInfo;
 
             BuildConnectedInventory();
             UpdatePower();
@@ -242,20 +242,19 @@ namespace NaniteConstructionSystem.Entities
             if (m_updateCount % 120 == 0)
                 m_userDefinedNaniteLimit = NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].MaxNanites;
 
-            if (!Sync.IsServer && m_updateCount % 60 == 0)
+            if (!Sync.IsServer && m_updateCount % 180 == 0)
             {
                 CleanupTargets();
                 if (MyAPIGateway.Gui?.GetCurrentScreen == MyTerminalPageEnum.ControlPanel)
                 {
-                    m_constructionBlock.RefreshCustomInfo();
-
                     // Toggle to trigger UI update
-                    m_constructionBlock.ShowInToolbarConfig = !m_constructionBlock.ShowInToolbarConfig;
-                    m_constructionBlock.ShowInToolbarConfig = !m_constructionBlock.ShowInToolbarConfig;
+                    ((IMyTerminalBlock)m_constructionBlock).ShowInToolbarConfig = false;
+                    ((IMyTerminalBlock)m_constructionBlock).ShowInToolbarConfig = true;
+                    ((IMyTerminalBlock)m_constructionBlock).RefreshCustomInfo();
                 }
             }
 
-            if (Sync.IsServer && m_updateCount % 120 == 0)
+            if (Sync.IsServer && m_updateCount % 180 == 0)
                 m_constructionBlock.RefreshCustomInfo();
         }
 
@@ -348,10 +347,7 @@ namespace NaniteConstructionSystem.Entities
                             IMyProductionBlock prodblock = entity as IMyProductionBlock; //assemblers
                             IMyInventory inv;
 
-                            if (prodblock != null && prodblock.OutputInventory != null) //Add assemblers for assembler queue processing
-                                inv = prodblock.OutputInventory; 
-                            else 
-                                inv = entity.GetInventory();
+                            inv = (prodblock != null && prodblock.OutputInventory != null) ? prodblock.OutputInventory : entity.GetInventory();
 
                             if (inv == null || !inv.IsConnectedTo(m_constructionCubeBlock.GetInventory()) 
                               || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(SlimBlock.FatBlock.GetUserRelationToOwner(ConstructionBlock.OwnerId))) 
@@ -534,8 +530,15 @@ namespace NaniteConstructionSystem.Entities
         /// </summary>
         private void ProcessTargetItems()
         {
-            foreach (var item in m_targets)
-                item.Update();
+            try
+            {
+                foreach (var item in m_targets)
+                    item.Update();
+            }
+            catch (Exception ex)
+            {
+                VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.ProcessTargetItems() Exception: {ex.ToString()}");
+            }
         }
 
         /// <summary>
@@ -655,11 +658,11 @@ namespace NaniteConstructionSystem.Entities
         {
             if (m_factoryState == FactoryStates.Disabled || m_updateCount % 180 != 0)
                 return;
-
+            
             details.Clear();
 
             if (Sync.IsServer)
-            {
+            {   
                 MyAPIGateway.Parallel.StartBackground(() =>
                 {
                     StringBuilder targetDetailsParallel = new StringBuilder();
@@ -742,10 +745,10 @@ namespace NaniteConstructionSystem.Entities
                     m_syncDetails.Clear();
                     m_syncDetails.Append(details);
                     SendDetails();
-                }
+                }      
             }
             else
-                details.Append(m_syncDetails);
+                details = m_syncDetails;
         }
 
         /// <summary>
@@ -1336,46 +1339,49 @@ namespace NaniteConstructionSystem.Entities
         {
             try
             {
-                foreach (var item in m_targets)
+                MyAPIGateway.Parallel.StartBackground(() =>
                 {
-                    if (item.TargetList == null || item.TargetList.Count < 1)
-                        continue;
-
-                    foreach (var targetItem in item.TargetList.ToList())
+                    foreach (var item in m_targets.ToList())
                     {
-                        if (!(targetItem is IMySlimBlock))
+                        if (item.TargetList == null || item.TargetList.Count < 1)
                             continue;
 
-                        var target = targetItem as IMySlimBlock;
-                        if (target == null)
-                            continue;
+                        foreach (var targetItem in item.TargetList.ToList())
+                        {
+                            if (!(targetItem is IMySlimBlock))
+                                continue;
 
-                        if (item is NaniteDeconstructionTargets && (target.IsDestroyed || target.IsFullyDismounted 
-                          || (target.CubeGrid != null && target.CubeGrid.GetCubeBlock(target.Position) == null) || (target.FatBlock != null && target.FatBlock.Closed)))
-                            item.CompleteTarget(target);
+                            var target = targetItem as IMySlimBlock;
+                            if (target == null)
+                                continue;
 
-                        else if (target.IsDestroyed || target.IsFullyDismounted || (target.CubeGrid != null && target.CubeGrid.GetCubeBlock(target.Position) == null) 
-                          || (target.FatBlock != null && target.FatBlock.Closed))
-                            item.CancelTarget(target);
+                            if (item is NaniteDeconstructionTargets && (target.IsDestroyed || target.IsFullyDismounted 
+                            || (target.CubeGrid != null && target.CubeGrid.GetCubeBlock(target.Position) == null) || (target.FatBlock != null && target.FatBlock.Closed)))
+                                MyAPIGateway.Utilities.InvokeOnGameThread(() => {item.CompleteTarget(target);});
 
-                        else if(item is NaniteConstructionTargets && target.IsFullIntegrity && !target.HasDeformation)
-                            item.CompleteTarget(target);
+                            else if (target.IsDestroyed || target.IsFullyDismounted || (target.CubeGrid != null && target.CubeGrid.GetCubeBlock(target.Position) == null) 
+                            || (target.FatBlock != null && target.FatBlock.Closed))
+                                MyAPIGateway.Utilities.InvokeOnGameThread(() => {item.CancelTarget(target);});
 
-                        else if(!item.IsEnabled())
-                            item.CancelTarget(target);
+                            else if(item is NaniteConstructionTargets && target.IsFullIntegrity && !target.HasDeformation)
+                                MyAPIGateway.Utilities.InvokeOnGameThread(() => {item.CompleteTarget(target);});
+
+                            else if(!item.IsEnabled())
+                                MyAPIGateway.Utilities.InvokeOnGameThread(() => {item.CancelTarget(target);});
+                        }
                     }
-                }
+                });
             }
             catch(Exception ex)
             {
-                Logging.Instance.WriteLine(string.Format("Cleanup Error: {0}", ex.ToString()));
+                VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.CleanupTargets Exception: {ex.ToString()}");
             }
         }
 
         public T GetTarget<T>() where T : NaniteTargetBlocksBase
         {
-            foreach(var item in m_targets)
-                if(item is T)
+            foreach (var item in m_targets)
+                if (item is T)
                     return (T)item;
 
             return null;
