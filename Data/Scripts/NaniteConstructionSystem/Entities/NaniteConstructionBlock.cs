@@ -114,6 +114,8 @@ namespace NaniteConstructionSystem.Entities
         private StringBuilder m_targetDetails;
         private StringBuilder m_invalidTargetDetails;
         private StringBuilder m_missingComponentsDetails;
+        private int m_potentialTargetsCount;
+        private int m_targetsCount;
 
         private const int m_spoolingTime = 3000;
 
@@ -137,16 +139,6 @@ namespace NaniteConstructionSystem.Entities
             m_constructionCubeBlock.UpgradeValues.Add("SpeedNanites", 0f);
             m_constructionCubeBlock.UpgradeValues.Add("PowerNanites", 0f);
 
-            m_constructionCubeBlock.Components.TryGet(out Sink);
-            ResourceInfo = new MyResourceSinkInfo()
-            {
-                ResourceTypeId = MyResourceDistributorComponent.ElectricityId,
-                MaxRequiredInput = 0f,
-                RequiredInputFunc = () => (m_constructionBlock.Enabled && m_constructionBlock.IsFunctional) ? _power : 0.0001f
-            };
-            Sink.RemoveType(ref ResourceInfo.ResourceTypeId);
-            Sink.Init(MyStringHash.GetOrCompute("Utility"), ResourceInfo);
-            Sink.AddType(ref ResourceInfo);
         }
 
         /// <summary>
@@ -193,6 +185,8 @@ namespace NaniteConstructionSystem.Entities
 
             ((IMyTerminalBlock)m_constructionBlock).AppendingCustomInfo += AppendingCustomInfo;
 
+            Sink = ((MyEntity)m_constructionBlock).Components.Get<MyResourceSinkComponent>();
+
             BuildConnectedInventory();
             UpdatePower();
         }
@@ -220,7 +214,7 @@ namespace NaniteConstructionSystem.Entities
                     upgrades += string.Format("({0} - {1}) ", item.Key, item.Value);
 
                 Logging.Instance.WriteLine(string.Format("STATUS Nanite Factory: {0} - (t: {1}  pt: {2}  pw: {3} st: {4}) - {5}", 
-                  ConstructionBlock.EntityId, m_targets.Sum(x => x.TargetList.Count), m_targets.Sum(x => x.PotentialTargetList.Count), m_targets.Sum(x => x.TargetList.Count * x.GetPowerUsage()), m_factoryState, upgrades));
+                  ConstructionBlock.EntityId, m_targetsCount, m_potentialTargetsCount, _power, m_factoryState, upgrades));
             }
 
             if (Sync.IsServer && ConstructionBlock.IsFunctional)
@@ -284,22 +278,29 @@ namespace NaniteConstructionSystem.Entities
 
         private void UpdatePower()
         {
-            if (!m_constructionBlock.Enabled || !m_constructionBlock.IsFunctional)
+            MyAPIGateway.Parallel.StartBackground(() =>
             {
-                Sink.Update();
-                return;
-            }
+                if (!m_constructionBlock.Enabled || !m_constructionBlock.IsFunctional)
+                {
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                        {Sink.SetRequiredInputByType(MyResourceDistributorComponent.ElectricityId, 0.0001f);});
 
-            float totalPowerRequired = m_targets.Sum(x => x.TargetList.Count * x.GetPowerUsage());
+                    return;
+                }
 
-            if (_power == totalPowerRequired)
-                return;
+                float totalPowerRequired = m_targets.Sum(x => (x.TargetList.Count) * x.GetPowerUsage());
 
-            _power = totalPowerRequired;
+                if (_power == totalPowerRequired)
+                    return;
 
-            Sink.Update();
+                MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                {
+                    _power = (totalPowerRequired > 0f) ? totalPowerRequired : 0.0001f;
+                    Sink.SetRequiredInputByType(MyResourceDistributorComponent.ElectricityId, _power);
+                });
 
-            Logging.Instance.WriteLine($"Factory {ConstructionBlock.EntityId} updated power usage to {_power} Watts");
+                Logging.Instance.WriteLine($"Factory {ConstructionBlock.EntityId} updated power usage to {_power} MegaWatts");
+            });
         }
 
         internal bool HasRequiredPowerForNewTarget(NaniteTargetBlocksBase target)
@@ -337,9 +338,9 @@ namespace NaniteConstructionSystem.Entities
             {
                 try
                 {
-                    foreach (IMyCubeGrid grid in MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)m_constructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical))
+                    foreach (IMyCubeGrid grid in MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)m_constructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical).ToList())
                     {
-                        foreach (IMySlimBlock SlimBlock in ((MyCubeGrid)grid).GetBlocks())
+                        foreach (IMySlimBlock SlimBlock in ((MyCubeGrid)grid).GetBlocks().ToList())
                         {
                             IMyEntity entity = SlimBlock.FatBlock as IMyEntity;
                             if (entity == null || entity.EntityId == ConstructionBlock.EntityId || entity is Sandbox.ModAPI.Ingame.IMyReactor 
@@ -676,14 +677,14 @@ namespace NaniteConstructionSystem.Entities
                     foreach (var item in m_targets.ToList())
                     {
                         targetDetailsParallel.Append("-----\r\n");
-                        targetDetailsParallel.Append(string.Format("{0} Nanites\r\n", item.TargetName));
+                        targetDetailsParallel.Append($"{item.TargetName} Nanites\r\n");
                         targetDetailsParallel.Append("-----\r\n");
-                        targetDetailsParallel.Append(string.Format("Possible {1} Targets: {0}\r\n", item.PotentialTargetList.Count, item.TargetName));
-                        targetDetailsParallel.Append(string.Format("Current {1} Targets: {0}\r\n", item.TargetList.Count, item.TargetName));
-                        targetDetailsParallel.Append(string.Format("Maximum {1} Streams: {0}\r\n", item.GetMaximumTargets(), item.TargetName));
-                        targetDetailsParallel.Append(string.Format("{1} Power / Stream: {0}MW\r\n", item.GetPowerUsage(), item.TargetName));
-                        targetDetailsParallel.Append(string.Format("{1} Min. Travel Time: {0}s\r\n", item.GetMinTravelTime(), item.TargetName));
-                        targetDetailsParallel.Append(string.Format("{1} Travel Speed: {0}m/s\r\n", item.GetSpeed(), item.TargetName));
+                        targetDetailsParallel.Append($"Possible {item.TargetName} Targets: {item.PotentialTargetList.Count}\r\n");
+                        targetDetailsParallel.Append($"Current {item.TargetName} Targets: {item.TargetList.Count}\r\n");
+                        targetDetailsParallel.Append($"Max {item.TargetName} Streams: {item.GetMaximumTargets()}\r\n");
+                        targetDetailsParallel.Append($"{item.TargetName} MW/Stream: {item.GetPowerUsage()} MW\r\n");
+                        targetDetailsParallel.Append($"{item.TargetName} Min. Travel Time: {item.GetMinTravelTime()} s\r\n");
+                        targetDetailsParallel.Append($"{item.TargetName} Travel Speed: {item.GetSpeed()} m/s\r\n");
 
                         if (item.LastInvalidTargetReason != null && item.LastInvalidTargetReason != "")
                         {
@@ -707,7 +708,7 @@ namespace NaniteConstructionSystem.Entities
                                     missingComponentsDetailsParallel.Append("\r\nMissing components:\r\n");
                                     missingCompTitleAppended = true;
                                 }
-                                missingComponentsDetailsParallel.Append(string.Format("{0}: {1}\r\n", component.Key, component.Value));
+                                missingComponentsDetailsParallel.Append($"{component.Key}: {component.Value}\r\n");
                             }
                         }
                     }
@@ -723,18 +724,9 @@ namespace NaniteConstructionSystem.Entities
                 details.Append(m_targetDetails);
                 details.Append("-----\r\n");
 
-                var powerRequired = string.Format("{0} MW", (int)m_targets.Sum(x => x.TargetList.Count * x.GetPowerUsage()));
-                if (m_targets.Sum(x => x.TargetList.Count * x.GetPowerUsage()) == 0f)
-                {
-                    if (((IMyFunctionalBlock)block).IsFunctional && (((IMyFunctionalBlock)block).Enabled))
-                        powerRequired = string.Format("100kW");
-                    else
-                        powerRequired = string.Format("0kW");
-                }
-
-                details.Append(string.Format("Current Power Required: {0}\r\n", powerRequired));
-                details.Append(string.Format("Status: {0}\r\n", m_factoryState.ToString()));
-                details.Append(string.Format("Active Nanites: {0}\r\n", m_particleManager.Particles.Count));
+                details.Append($"Current Power Required: {_power} MW\r\n");
+                details.Append($"Status: {m_factoryState.ToString()}\r\n");
+                details.Append($"Active Nanites: {m_particleManager.Particles.Count}\r\n");
 
                 if (m_userDefinedNaniteLimit > 0)
                     details.Append($"Maximum Nanites: {m_userDefinedNaniteLimit}\r\n");
@@ -822,63 +814,70 @@ namespace NaniteConstructionSystem.Entities
             if (m_updateCount % 120 != 0)
                 return;
 
-            IMyFunctionalBlock blockEntity = (IMyFunctionalBlock)ConstructionBlock;
-            int totalTargets = m_targets.Sum(x => x.TargetList.Count);
-            int totalPotentialTargets = m_targets.Sum(x => x.PotentialTargetList.Count);
             UpdatePower();
 
-            if (!blockEntity.Enabled || !blockEntity.IsFunctional)
-                m_factoryState = FactoryStates.Disabled;
-
-            if ((totalTargets > 0) && IsPowered() || m_particleManager.Particles.Count > 0)
+            MyAPIGateway.Parallel.StartBackground(() =>
             {
-                if (m_spoolPosition == m_spoolingTime)
-                    m_factoryState = FactoryStates.Active;
-                else
-                    m_factoryState = FactoryStates.SpoolingUp;
-            }
-            else if (totalTargets == 0 && totalPotentialTargets > 0 && !IsPowered())
-                m_factoryState = FactoryStates.MissingPower;
+                IMyFunctionalBlock blockEntity = (IMyFunctionalBlock)ConstructionBlock;
+                int targetsCount = m_targets.Sum(x => x.TargetList.Count);
+                int potentialTargetsCount = m_targets.Sum(x => x.PotentialTargetList.Count);
 
-            else if (totalTargets == 0 && totalPotentialTargets > 0)
-            {
-                m_factoryState = FactoryStates.InvalidTargets;
-
-                MyAPIGateway.Parallel.ForEach(InventoryManager.ComponentsRequired.ToList(), item =>
+                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                 {
-                    if (item.Value <= 0)
-                    {
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                        {
-                            InventoryManager.ComponentsRequired.Remove(item.Key);
-                        });
-                    }
+                    m_targetsCount = targetsCount;
+                    m_potentialTargetsCount = potentialTargetsCount;
                 });
 
-                if (InventoryManager.ComponentsRequired.Count > 0)
-                    m_factoryState = FactoryStates.MissingParts;
-            }
-            else if (blockEntity.Enabled)
-            { 
-                if (m_spoolPosition <= 0)
+                if (!blockEntity.Enabled || !blockEntity.IsFunctional)
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.Disabled;});
+
+                if ((targetsCount > 0) && IsPowered() || m_particleManager.Particles.Count > 0)
                 {
-                    m_spoolPosition = 0;
-                    m_factoryState = FactoryStates.Enabled;
+                    if (m_spoolPosition == m_spoolingTime)
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.Active;});
+                    else
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.SpoolingUp;});
+                }
+                else if (targetsCount == 0 && potentialTargetsCount > 0 && !IsPowered())
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.MissingPower;});
+
+                else if (targetsCount == 0 && potentialTargetsCount > 0)
+                {
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.InvalidTargets;});
+
+                    foreach(var item in InventoryManager.ComponentsRequired.ToList())
+                        if (item.Value <= 0)
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                                {InventoryManager.ComponentsRequired.Remove(item.Key);});
+
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                    {
+                        if (InventoryManager.ComponentsRequired.Count > 0)
+                            m_factoryState = FactoryStates.MissingParts;
+                    });
+                }
+                else if (blockEntity.Enabled)
+                { 
+                    if (m_spoolPosition <= 0)
+                    {
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_spoolPosition = 0;});
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.Enabled;});
+                    }
+                    else
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.SpoolingDown;});
                 }
                 else
-                    m_factoryState = FactoryStates.SpoolingDown;
-            }
-            else
-                m_factoryState = FactoryStates.Disabled;
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.Disabled;});
 
-            if (m_factoryState != FactoryStates.Active && m_factoryState != FactoryStates.SpoolingUp && m_factoryState != FactoryStates.SpoolingDown && m_spoolPosition > 0f)
-                m_factoryState = FactoryStates.SpoolingDown;
+                if (m_factoryState != FactoryStates.Active && m_factoryState != FactoryStates.SpoolingUp && m_factoryState != FactoryStates.SpoolingDown && m_spoolPosition > 0f)
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.SpoolingDown;});
 
-            if (m_lastState != m_factoryState)
-            {
-                m_lastState = m_factoryState;
-                SendStateUpdate(m_factoryState);
-            }
+                if (m_lastState != m_factoryState)
+                {
+                    m_lastState = m_factoryState;
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {SendStateUpdate(m_factoryState);});
+                }
+            });
         }
 
         #region Multiplayer Sync Functions
