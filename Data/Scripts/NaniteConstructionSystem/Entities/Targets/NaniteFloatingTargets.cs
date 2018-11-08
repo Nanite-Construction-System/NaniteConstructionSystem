@@ -152,7 +152,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             CreateFloatingParticle(floating);
 
-            if (Sync.IsServer)
+            if (!Sync.IsServer)
                 return;
 
             if (!IsEnabled())
