@@ -226,7 +226,7 @@ namespace NaniteConstructionSystem.Entities
             if (Sync.IsServer && ConstructionBlock.IsFunctional)
             {
                 ProcessTools();
-                UpdateState();
+                ProcessState();
                 ScanForTargets();
                 ProcessInventory();
 
@@ -237,20 +237,22 @@ namespace NaniteConstructionSystem.Entities
             DrawEmissives();
             DrawParticles();
             DrawEffects();
-            ProcessTargetItems();
+
+            if (m_updateCount % 60 == 0)
+                ProcessTargetItems();
 
             if (m_updateCount % 120 == 0)
                 m_userDefinedNaniteLimit = NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].MaxNanites;
 
-            if (!Sync.IsServer && m_updateCount % 180 == 0)
+            if (Sync.IsClient && m_updateCount % 180 == 0)
             {
                 CleanupTargets();
                 if (MyAPIGateway.Gui?.GetCurrentScreen == MyTerminalPageEnum.ControlPanel)
                 {
                     // Toggle to trigger UI update
+                    ((IMyTerminalBlock)m_constructionBlock).RefreshCustomInfo();
                     ((IMyTerminalBlock)m_constructionBlock).ShowInToolbarConfig = false;
                     ((IMyTerminalBlock)m_constructionBlock).ShowInToolbarConfig = true;
-                    ((IMyTerminalBlock)m_constructionBlock).RefreshCustomInfo();
                 }
             }
 
@@ -810,11 +812,6 @@ namespace NaniteConstructionSystem.Entities
                 m_soundEmitter.StopSound(true);
                 MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.Red, Color.White);
             }
-        }
-
-        private void UpdateState()
-        {
-            ProcessState();
         }
 
         /// <summary>
