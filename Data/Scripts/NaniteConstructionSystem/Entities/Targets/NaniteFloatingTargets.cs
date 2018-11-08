@@ -57,7 +57,6 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 if (PotentialTargetList.Count > 0)
                     InvalidTargetReason("Maximum targets reached. Add more upgrades!");
-
                 return;
             }
 
@@ -69,7 +68,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                 {
                     if (item == null || TargetList.Contains(item) || item.Closed) 
                         continue;
-
 
                     bool found = false;
                     foreach (var block in blockList.ToList())
@@ -131,10 +129,9 @@ namespace NaniteConstructionSystem.Entities.Targets
         public override bool IsEnabled()
         {
             if (!((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).Enabled
-                || !((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).IsFunctional 
-                || m_constructionBlock.ConstructionBlock.CustomName.ToLower().Contains("NoCleanup".ToLower())
-                || (NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.ConstructionBlock.EntityId) 
-                && !NaniteConstructionManager.TerminalSettings[m_constructionBlock.ConstructionBlock.EntityId].AllowCleanup))
+              || !((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).IsFunctional 
+              || (NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.ConstructionBlock.EntityId) 
+              && !NaniteConstructionManager.TerminalSettings[m_constructionBlock.ConstructionBlock.EntityId].AllowCleanup))
                 return false;
 
             return true;
@@ -150,7 +147,12 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             var floating = target as IMyEntity;
 
-            if (floating == null || !Sync.IsServer)
+            if (floating == null)
+                return;
+
+            CreateFloatingParticle(floating);
+
+            if (!Sync.IsServer)
                 return;
 
             if (!IsEnabled())
@@ -193,8 +195,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                     CancelTarget(floating);
                 }
             }
-
-            CreateFloatingParticle(floating);
         }
 
         private void OpenBag(IMyEntity bagEntity)
