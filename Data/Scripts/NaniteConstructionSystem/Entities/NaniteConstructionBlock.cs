@@ -220,13 +220,15 @@ namespace NaniteConstructionSystem.Entities
 
             if (Sync.IsServer && ConstructionBlock.IsFunctional)
             {
-                ProcessTools();
+                if (m_updateCount % 60 == 0)
+                {
+                    ToolManager.Update();
+                    InventoryManager.TakeRequiredComponents();
+                }
+                
                 ProcessState();
                 ScanForTargets();
                 ProcessInventory();
-
-                if (m_updateCount % 60 == 0)
-                    InventoryManager.TakeRequiredComponents();
             }
 
             if (m_clientEmissivesUpdate && Sync.IsClient)
@@ -553,7 +555,7 @@ namespace NaniteConstructionSystem.Entities
         /// </summary>
         private void DrawEffects()
         {
-            if (MyAPIGateway.Session.Player == null)
+            if (!Sync.IsClient)
                 return;
 
             foreach (var item in m_effects)
@@ -590,15 +592,7 @@ namespace NaniteConstructionSystem.Entities
                 VRage.Utils.MyLog.Default.WriteLineAndConsole($"ProcessTargetsParallel() Error {ex.ToString()}");
             }
         }
-
-        /// <summary>
-        /// Process our welding and grinding nanites
-        /// </summary>
-        private void ProcessTools()
-        {
-            ToolManager.Update();
-        }
-
+                
         /// <summary>
         /// Process and draw the particle effects of nanites
         /// </summary>
