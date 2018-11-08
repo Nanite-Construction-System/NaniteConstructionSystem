@@ -313,12 +313,6 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (NaniteParticleManager.TotalParticleCount > NaniteParticleManager.MaxTotalParticles)
                 return;
 
-            m_targetBlocks[target]++;
-            int size = (int)Math.Max(60f, NaniteParticleManager.TotalParticleCount);
-            if ((float)m_targetBlocks[target] / size < 1f)
-                return;
-
-            m_targetBlocks[target] = 0;
             Vector4 startColor = new Vector4(0.55f, 0.55f, 0.95f, 0.75f);
             Vector4 endColor = new Vector4(0.05f, 0.05f, 0.35f, 0.75f);
             MyAPIGateway.Utilities.InvokeOnGameThread(() => 

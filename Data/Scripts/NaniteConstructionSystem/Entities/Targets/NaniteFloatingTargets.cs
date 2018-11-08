@@ -152,7 +152,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             CreateFloatingParticle(floating);
 
-            if (!Sync.IsServer)
+            if (Sync.IsServer)
                 return;
 
             if (!IsEnabled())
@@ -393,13 +393,6 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             if (NaniteParticleManager.TotalParticleCount > NaniteParticleManager.MaxTotalParticles)
                 return;
-
-            m_targetTracker[target].ParticleCount++;
-            int size = (int)Math.Max(60f, NaniteParticleManager.TotalParticleCount);
-            if ((float)m_targetTracker[target].ParticleCount / size < 1f)
-                return;
-
-            m_targetTracker[target].ParticleCount = 0;
 
             // Create Particle
             Vector4 startColor = new Vector4(0.75f, 0.75f, 0.0f, 0.75f);

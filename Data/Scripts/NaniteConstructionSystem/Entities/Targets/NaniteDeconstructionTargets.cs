@@ -434,21 +434,10 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (NaniteParticleManager.TotalParticleCount > NaniteParticleManager.MaxTotalParticles)
                 return;
 
-            m_targetBlocks[target]++;
-            int size = (int)Math.Max(60f, NaniteParticleManager.TotalParticleCount);
-            if ((float)m_targetBlocks[target] / size < 1f)
-                return;
-
             m_targetBlocks[target] = 0;
             Vector4 startColor = new Vector4(0.55f, 0.95f, 0.95f, 0.75f);
             Vector4 endColor = new Vector4(0.05f, 0.35f, 0.35f, 0.75f);
             m_constructionBlock.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
-
-            var distance = EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target);
-            if (distance > 1000f)
-            {
-                Logging.Instance.WriteLine(string.Format("PROBLEM Creating particle that has to travel {0}m: {1} - {2} - {3} ({4} {5} {6} {7})", distance, target.FatBlock != null ? target.FatBlock.GetType().Name : target.GetType().Name, m_constructionBlock.ConstructionBlock.EntityId, target.Position, target.FatBlock != null ? target.FatBlock.Physics == null : false, target.CubeGrid.Physics == null, target.CubeGrid.Closed, target.FatBlock != null ? target.FatBlock.Closed : target.IsDestroyed));
-            }
         }
 
         public void CompleteTarget(IMySlimBlock obj)

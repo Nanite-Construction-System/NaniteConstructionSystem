@@ -303,9 +303,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
 
                 if (!m_targetTracker.ContainsKey(target))
-                {
                     m_constructionBlock.SendAddTarget(target);
-                }
 
                 if (m_targetTracker.ContainsKey(target))
                 {
@@ -333,13 +331,6 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             if (NaniteParticleManager.TotalParticleCount > NaniteParticleManager.MaxTotalParticles)
                 return;
-
-            m_targetTracker[target].ParticleCount++;
-            int size = (int)Math.Max(60f, NaniteParticleManager.TotalParticleCount);
-            if ((float)m_targetTracker[target].ParticleCount / size < 1f)
-                return;
-
-            m_targetTracker[target].ParticleCount = 0;
 
             // Create Particle
             Vector4 startColor = new Vector4(0.7f, 0.2f, 0.0f, 1f);

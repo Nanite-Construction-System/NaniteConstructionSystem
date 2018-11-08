@@ -258,7 +258,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
             }
 
-            CreateMiningParticles(player);
+            CreateMedicalParticles(player);
         }
 
         private bool IsTargetDamaged(IMyPlayer player)
@@ -305,20 +305,13 @@ namespace NaniteConstructionSystem.Entities.Targets
             return false;
         }
 
-        private void CreateMiningParticles(IMyPlayer target)
+        private void CreateMedicalParticles(IMyPlayer target)
         {
             if (!m_targetTracker.ContainsKey(target))
                 CreateTrackerItem(target);
 
             if (NaniteParticleManager.TotalParticleCount > NaniteParticleManager.MaxTotalParticles)
                 return;
-
-            m_targetTracker[target].ParticleCount++;
-            int size = (int)Math.Max(60f, NaniteParticleManager.TotalParticleCount);
-            if ((float)m_targetTracker[target].ParticleCount / size < 1f)
-                return;
-
-            m_targetTracker[target].ParticleCount = 0;
 
             // Create Particle
             Vector4 startColor = new Vector4(1f, 1f, 1f, 1f);

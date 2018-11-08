@@ -237,7 +237,9 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public void CancelTarget(IMySlimBlock target)
         {
-            Logging.Instance.WriteLine(string.Format("CANCELLING Projection Target: {0} - {1} (EntityID={2},Position={3})", m_constructionBlock.ConstructionBlock.EntityId, target.GetType().Name, target.FatBlock != null ? target.FatBlock.EntityId : 0, target.Position));
+            Logging.Instance.WriteLine(string.Format("CANCELLING Projection Target: {0} - {1} (EntityID={2},Position={3})", 
+              m_constructionBlock.ConstructionBlock.EntityId, target.GetType().Name, target.FatBlock != null ? target.FatBlock.EntityId : 0, target.Position));
+
             if (Sync.IsServer)
                 m_constructionBlock.SendCancelTarget(target, TargetTypes.Projection, GetProjectorByBlock(target));
 
@@ -293,12 +295,6 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (NaniteParticleManager.TotalParticleCount > NaniteParticleManager.MaxTotalParticles)
                 return;
 
-            m_targetBlocks[target].ParticleCount++;
-            int size = (int)Math.Max(60f, NaniteParticleManager.TotalParticleCount);
-            if ((float)m_targetBlocks[target].ParticleCount / size < 1f)
-                return;
-
-            m_targetBlocks[target].ParticleCount = 0;
             Vector4 startColor = new Vector4(0.95f, 0.0f, 0.95f, 0.75f);
             Vector4 endColor = new Vector4(0.035f, 0.0f, 0.35f, 0.75f);
             m_constructionBlock.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
