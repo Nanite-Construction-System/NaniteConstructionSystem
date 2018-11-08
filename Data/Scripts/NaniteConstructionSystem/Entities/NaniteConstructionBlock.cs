@@ -116,6 +116,7 @@ namespace NaniteConstructionSystem.Entities
         private StringBuilder m_missingComponentsDetails;
         private int m_potentialTargetsCount;
         private int m_targetsCount;
+        private bool m_clientEmissivesUpdate;
 
         private const int m_spoolingTime = 3000;
 
@@ -228,7 +229,10 @@ namespace NaniteConstructionSystem.Entities
                     InventoryManager.TakeRequiredComponents();
             }
 
-            DrawEmissives();
+            if (m_clientEmissivesUpdate && Sync.IsClient)
+                UpdateClientEmissives();
+
+            UpdateSpoolPosition();
             DrawParticles();
             DrawEffects();
 
@@ -745,20 +749,21 @@ namespace NaniteConstructionSystem.Entities
                 details = m_syncDetails;
         }
 
-        /// <summary>
-        /// Change color of emissives on the block model to appropriate color
-        /// </summary>
-        private void DrawEmissives()
+        
+        private void UpdateSpoolPosition()
         {
             if (m_factoryState == FactoryStates.SpoolingUp && (m_spoolPosition += (int)(1000f / 60f)) >= m_spoolingTime)
                 m_spoolPosition = m_spoolingTime;
 
             else if (m_factoryState == FactoryStates.SpoolingDown && (m_spoolPosition -= (int)(1000f / 60f)) <= 0)
                 m_spoolPosition = 0;
+        }
 
-            if (MyAPIGateway.Session.Player == null || m_updateCount % 120 != 0)
-                return;
-
+        /// <summary>
+        /// Change color of emissives on the block model to appropriate color. Client only.
+        /// </summary>
+        private void UpdateClientEmissives()
+        {
             float emissivity = 1.0f;
             IMyFunctionalBlock blockEntity = (IMyFunctionalBlock)m_constructionBlock;
             if (!blockEntity.Enabled || !blockEntity.IsFunctional)
@@ -804,6 +809,7 @@ namespace NaniteConstructionSystem.Entities
                 m_soundEmitter.StopSound(true);
                 MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.Red, Color.White);
             }
+            m_clientEmissivesUpdate = false;
         }
 
         /// <summary>
@@ -869,14 +875,17 @@ namespace NaniteConstructionSystem.Entities
                 else
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.Disabled;});
 
-                if (m_factoryState != FactoryStates.Active && m_factoryState != FactoryStates.SpoolingUp && m_factoryState != FactoryStates.SpoolingDown && m_spoolPosition > 0f)
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.SpoolingDown;});
+                MyAPIGateway.Utilities.InvokeOnGameThread(() => {
+                    if (m_factoryState != FactoryStates.Active && m_factoryState != FactoryStates.SpoolingUp && m_factoryState != FactoryStates.SpoolingDown && m_spoolPosition > 0f)
+                        m_factoryState = FactoryStates.SpoolingDown;
 
-                if (m_lastState != m_factoryState)
-                {
-                    m_lastState = m_factoryState;
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {SendStateUpdate(m_factoryState);});
-                }
+                    if (m_lastState != m_factoryState)
+                    {
+                        m_lastState = m_factoryState;
+                        SendStateUpdate(m_factoryState);
+                        m_clientEmissivesUpdate = true;
+                    }
+                });
             });
         }
 
