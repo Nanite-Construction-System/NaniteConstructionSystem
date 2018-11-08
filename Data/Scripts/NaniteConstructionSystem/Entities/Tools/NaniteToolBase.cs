@@ -86,19 +86,16 @@ namespace NaniteConstructionSystem.Entities.Tools
             int pos = 0;
             try
             {
-              /*  if (Sync.IsClient)
-                    NaniteConstructionManager.ParticleManager.RemoveParticle(m_cubeEntityId, m_position);
-                else
-                    m_constructionBlock.SendRemoveParticleEffect(m_cubeEntityId, m_position);
-                */
                 if (m_isGrinder && m_removed)
                 {
                     TransferRemainingComponents();
-                    Logging.Instance.WriteLine(string.Format("GRINDER completed.  Target block: {0} - (EntityID: {1} Elapsed: {2})", m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.GetType().Name : m_targetBlock.GetType().Name, m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.EntityId : 0, m_completeTime + m_waitTime));
+                    Logging.Instance.WriteLine(string.Format("GRINDER completed.  Target block: {0} - (EntityID: {1} Elapsed: {2})", 
+                      m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.GetType().Name : m_targetBlock.GetType().Name, m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.EntityId : 0, m_completeTime + m_waitTime));
                     return;
                 }
 
-                Logging.Instance.WriteLine(string.Format("TOOL completed.  Target block: {0} - (EntityID: {1} Elapsed: {2})", m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.GetType().Name : m_targetBlock.GetType().Name, m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.EntityId : 0, m_completeTime + m_waitTime));
+                Logging.Instance.WriteLine(string.Format("TOOL completed.  Target block: {0} - (EntityID: {1} Elapsed: {2})", 
+                  m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.GetType().Name : m_targetBlock.GetType().Name, m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.EntityId : 0, m_completeTime + m_waitTime));
             }
             catch (Exception ex)
             {
@@ -126,9 +123,7 @@ namespace NaniteConstructionSystem.Entities.Tools
                 foreach (var item in m_missingComponents)
                 {
                     if (components.ContainsKey(item.Key))
-                    {
                         components[item.Key] = new MyTuple<int, MyPhysicalItemDefinition>(components[item.Key].Item1 - item.Value, components[item.Key].Item2);
-                    }
 
                     if (components[item.Key].Item1 <= 0)
                         components.Remove(item.Key);
@@ -184,13 +179,8 @@ namespace NaniteConstructionSystem.Entities.Tools
                 return;
             }
 
-            if (m_started && m_updateCount % 240 == 0)
-            {
-                //if(m_isGrinder)
-                //GrindTarget();
-                if (!m_isGrinder)
-                    WeldTarget();
-            }
+            if (m_started && m_updateCount % 4 == 0 && !m_isGrinder)
+                WeldTarget();
         }
 
         private void Complete()
@@ -236,8 +226,6 @@ namespace NaniteConstructionSystem.Entities.Tools
             }
 
             m_targetBlock.GetMissingComponents(m_missingComponents);
-            //grid.RemoveBlock()
-            //grid.RemoveBlock((Sandbox.Game.Entities.Cube.MySlimBlock)m_targetBlock, true);
             grid.RazeBlock(m_targetBlock.Position);
             m_removed = true;
         }
@@ -256,25 +244,15 @@ namespace NaniteConstructionSystem.Entities.Tools
         private void WeldTarget()
         {
             if (m_targetBlock.HasDeformation)
-            {
                 m_targetBlock.FixBones(0f, 1f);
-            }
 
             float damage = (MyAPIGateway.Session.WelderSpeedMultiplier * MyShipGrinderConstants.GRINDER_AMOUNT_PER_SECOND) * 8f * NaniteConstructionManager.Settings.ConstructionEfficiency;
             IMyInventory inventory = ((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory();
             if (m_targetBlock.CanContinueBuild(inventory) || MyAPIGateway.Session.CreativeMode)
             {
                 var functional = m_targetBlock as IMyFunctionalBlock;
-                if (functional != null)
-                {
-                    Logging.Instance.WriteLine(string.Format("Functional block '{0}': {1}", functional.CustomName, functional.Enabled));
-                    //if (functional.IsFunctional && !functional.Enabled)
-                    if (!functional.Enabled)
-                    {
-                        Logging.Instance.WriteLine(string.Format("Requesting Enable: {0}", functional.CustomName));
-                        functional.Enabled = true;
-                    }
-                }
+                if (functional != null && !functional.Enabled)
+                    functional.Enabled = true;
 
                 m_targetBlock.MoveItemsToConstructionStockpile(inventory);
                 m_targetBlock.IncreaseMountLevel(damage, m_constructionBlock.ConstructionBlock.OwnerId, inventory, maxAllowedBoneMovement: 1.0f);
@@ -284,9 +262,14 @@ namespace NaniteConstructionSystem.Entities.Tools
         private void CreateTool()
         {
             MyCubeBlockDefinition blockDefinition = (MyCubeBlockDefinition)m_targetBlock.BlockDefinition;
-            var grindPerUpdate = (MyAPIGateway.Session.GrinderSpeedMultiplier * NaniteConstructionManager.Settings.DeconstructionEfficiency / blockDefinition.DisassembleRatio) * blockDefinition.IntegrityPointsPerSec;
+            var grindPerUpdate = (MyAPIGateway.Session.GrinderSpeedMultiplier 
+              * NaniteConstructionManager.Settings.DeconstructionEfficiency / blockDefinition.DisassembleRatio) 
+              * blockDefinition.IntegrityPointsPerSec;
+
             m_completeTime = (int)(m_targetBlock.BuildIntegrity / grindPerUpdate * 1000f);
-            Logging.Instance.WriteLine(string.Format("TOOL started.  Target block: {0} - {1}ms - {2} {3} {4}", blockDefinition.Id, m_completeTime, blockDefinition.IntegrityPointsPerSec, m_targetBlock.BuildIntegrity, grindPerUpdate));
+
+            Logging.Instance.WriteLine(string.Format("TOOL started.  Target block: {0} - {1}ms - {2} {3} {4}", 
+              blockDefinition.Id, m_completeTime, blockDefinition.IntegrityPointsPerSec, m_targetBlock.BuildIntegrity, grindPerUpdate));
         }    
     }
 }
