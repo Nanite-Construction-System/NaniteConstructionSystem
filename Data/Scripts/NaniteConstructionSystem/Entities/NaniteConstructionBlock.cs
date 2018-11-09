@@ -380,7 +380,7 @@ namespace NaniteConstructionSystem.Entities
                 return;
 
             List<IMyProductionBlock> assemblerList = new List<IMyProductionBlock>();
-            foreach (var inv in InventoryManager.connectedInventory)
+            foreach (var inv in InventoryManager.connectedInventory.ToList())
             {
                 IMyEntity entity = inv.Owner as IMyEntity;
                 if (entity == null) 
@@ -431,9 +431,9 @@ namespace NaniteConstructionSystem.Entities
                 }
 
                 bool found = false;
-                foreach (var assemblerTest in assemblerList)
+                foreach (var assemblerTest in assemblerList.ToList())
                 {
-                    foreach (var queueItem in assemblerTest.GetQueue())
+                    foreach (var queueItem in assemblerTest.GetQueue().ToList())
                     {
                         if (queueItem.Blueprint == def && (int)queueItem.Amount >= item.Value)
                         {
@@ -458,7 +458,7 @@ namespace NaniteConstructionSystem.Entities
                 var assemblers = assemblerList.Where(x => NaniteConstructionManager.AssemblerSettings.ContainsKey(x.EntityId) 
                   && NaniteConstructionManager.AssemblerSettings[x.EntityId].AllowFactoryUsage);
 
-                foreach (var target in assemblers)
+                foreach (var target in assemblers.ToList())
                 {
                     int amount = (int)Math.Max(((float)(item.Value - blueprintCount) / (float)assemblers.Count()), 1f);
 
