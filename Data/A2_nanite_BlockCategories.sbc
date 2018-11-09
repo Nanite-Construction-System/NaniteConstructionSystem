@@ -12,6 +12,7 @@
         <string>ShipWelder/LargeNaniteControlFacility</string>
         <string>UpgradeModule/LargeNaniteBeaconDeconstruct</string>
         <string>UpgradeModule/LargeNaniteBeaconConstruct</string>
+        <string>UpgradeModule/LargeNaniteBeaconProjection</string> 
         <string>OreDetector/NaniteUltrasonicHammer</string>
         <string>UpgradeModule/NaniteConstructUpgrade</string>
         <string>UpgradeModule/NaniteDeconstructUpgrade</string>
@@ -33,6 +34,7 @@
       <ItemIds>
         <string>UpgradeModule/SmallNaniteBeaconConstruct</string>
         <string>UpgradeModule/SmallNaniteBeaconDeconstruct</string>
+        <string>UpgradeModule/SmallNaniteBeaconProjection</string> 
       </ItemIds>
     </Category>
 
@@ -50,6 +52,8 @@
         <string>UpgradeModule/SmallNaniteBeaconDeconstruct</string>
         <string>UpgradeModule/LargeNaniteBeaconConstruct</string>
         <string>UpgradeModule/SmallNaniteBeaconConstruct</string>
+        <string>UpgradeModule/LargeNaniteBeaconProjection</string> 
+        <string>UpgradeModule/SmallNaniteBeaconProjection</string> 
         <string>OreDetector/NaniteUltrasonicHammer</string>
         <string>UpgradeModule/NaniteConstructUpgrade</string>
         <string>UpgradeModule/NaniteDeconstructUpgrade</string>
