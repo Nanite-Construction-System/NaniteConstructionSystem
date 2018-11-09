@@ -577,10 +577,10 @@ namespace NaniteConstructionSystem.Entities
                 List<IMyCubeGrid> grids = MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)m_constructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical);
                 List<IMySlimBlock> blocks = new List<IMySlimBlock>();
 
-                foreach (IMyCubeGrid grid in grids)
+                foreach (IMyCubeGrid grid in grids.ToList())
                     grid.GetBlocks(blocks);       
 
-                foreach (var item in m_targets)
+                foreach (var item in m_targets.ToList())
                     item.ParallelUpdate(grids, blocks);
             }
             catch (Exception ex) 
