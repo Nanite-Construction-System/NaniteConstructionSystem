@@ -229,11 +229,8 @@ namespace NaniteConstructionSystem.Entities
                 ProcessState();
                 ScanForTargets();
                 ProcessInventory();
-            }
-
-            if (m_clientEmissivesUpdate && Sync.IsClient)
-                UpdateClientEmissives();
-
+            }            
+            
             UpdateSpoolPosition();
             DrawParticles();
             DrawEffects();
@@ -244,20 +241,19 @@ namespace NaniteConstructionSystem.Entities
             if (m_updateCount % 120 == 0)
                 m_userDefinedNaniteLimit = NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].MaxNanites;
 
-            if (Sync.IsClient && m_updateCount % 180 == 0)
+            if (m_updateCount % 180 == 0)
             {
-                CleanupTargets();
-                if (MyAPIGateway.Gui?.GetCurrentScreen == MyTerminalPageEnum.ControlPanel)
+                ((IMyTerminalBlock)m_constructionBlock).RefreshCustomInfo();
+                if (Sync.IsClient)
                 {
-                    // Toggle to trigger UI update
-                    ((IMyTerminalBlock)m_constructionBlock).RefreshCustomInfo();
-                    ((IMyTerminalBlock)m_constructionBlock).ShowInToolbarConfig = false;
-                    ((IMyTerminalBlock)m_constructionBlock).ShowInToolbarConfig = true;
+                    CleanupTargets();
+                    if (MyAPIGateway.Gui?.GetCurrentScreen == MyTerminalPageEnum.ControlPanel)
+                    {                    
+                        ((IMyTerminalBlock)m_constructionBlock).ShowInToolbarConfig = false;
+                        ((IMyTerminalBlock)m_constructionBlock).ShowInToolbarConfig = true;
+                    }
                 }
             }
-
-            if (Sync.IsServer && m_updateCount % 180 == 0)
-                m_constructionBlock.RefreshCustomInfo();
         }
 
         /// <summary>
@@ -740,7 +736,7 @@ namespace NaniteConstructionSystem.Entities
                 }      
             }
             else
-                details = m_syncDetails;
+                details.Append(m_syncDetails);
         }
 
         
@@ -869,15 +865,19 @@ namespace NaniteConstructionSystem.Entities
                 else
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.Disabled;});
 
-                MyAPIGateway.Utilities.InvokeOnGameThread(() => {
+                MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                {
                     if (m_factoryState != FactoryStates.Active && m_factoryState != FactoryStates.SpoolingUp && m_factoryState != FactoryStates.SpoolingDown && m_spoolPosition > 0f)
                         m_factoryState = FactoryStates.SpoolingDown;
+
+                    SendStateUpdate(m_factoryState);
 
                     if (m_lastState != m_factoryState)
                     {
                         m_lastState = m_factoryState;
-                        SendStateUpdate(m_factoryState);
-                        m_clientEmissivesUpdate = true;
+                        
+                        if (!MyAPIGateway.Multiplayer.MultiplayerActive)
+                            UpdateClientEmissives(); //updates emissives for a singleplayer game
                     }
                 });
             });
@@ -890,12 +890,17 @@ namespace NaniteConstructionSystem.Entities
             StateData data = new StateData();
             data.EntityId = ConstructionBlock.EntityId;
             data.State = state;
-            MyAPIGateway.Multiplayer.SendMessageToOthers(8950, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
+            SendToPlayerInSyncRange(8950, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
         public void SyncUpdateState(StateData data)
         {
             m_factoryState = data.State;
+            if (m_lastState != m_factoryState)
+            {
+                UpdateClientEmissives();
+                m_lastState = m_factoryState;
+            }
         }
 
         public void SendAddTarget(IMySlimBlock target, TargetTypes targetType, long projectorId = 0)
@@ -1396,23 +1401,20 @@ namespace NaniteConstructionSystem.Entities
 
         private void SendToPlayerInSyncRange(ushort id, byte[] bytes)
         {
-            var localSteamId = MyAPIGateway.Multiplayer.MyId;
-            var distSq = MyAPIGateway.Session.SessionSettings.SyncDistance;
-            distSq += 1000; // some safety padding, avoid desync
-            distSq *= distSq;
-
-            var syncPosition = ConstructionBlock.GetPosition();
-
-            var players = new List<IMyPlayer>();
-            MyAPIGateway.Players.GetPlayers(players);
-            foreach (var p in players)
+            MyAPIGateway.Parallel.StartBackground(() =>
             {
-                var steamId = p.SteamUserId;
+                var distSq = MyAPIGateway.Session.SessionSettings.SyncDistance;
+                distSq += 1000; // some safety padding, avoid desync
+                distSq *= distSq;
 
-                if (steamId != localSteamId && Vector3D.DistanceSquared(p.GetPosition(), syncPosition) <= distSq)
-                    MyAPIGateway.Multiplayer.SendMessageTo(id, bytes, p.SteamUserId);
-            }
-            players.Clear();
+                var syncPosition = ConstructionBlock.GetPosition();
+                var players = new List<IMyPlayer>();
+                MyAPIGateway.Players.GetPlayers(players);
+
+                foreach (var p in players.ToList())
+                    if (p != null && p.SteamUserId != MyAPIGateway.Multiplayer.MyId && Vector3D.DistanceSquared(p.GetPosition(), syncPosition) <= distSq)
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() => {MyAPIGateway.Multiplayer.SendMessageTo(id, bytes, p.SteamUserId);});
+            });
         }
         #endregion
     }
