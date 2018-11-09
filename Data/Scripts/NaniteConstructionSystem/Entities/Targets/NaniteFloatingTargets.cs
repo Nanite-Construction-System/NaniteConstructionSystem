@@ -150,51 +150,51 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (floating == null)
                 return;
 
-            CreateFloatingParticle(floating);
-
-            if (!Sync.IsServer)
-                return;
-
-            if (!IsEnabled())
+            if (Sync.IsServer)
             {
-                Logging.Instance.WriteLine("CANCELLING Cleanup Target due to being disabled");
-                CancelTarget(floating);
-                return;
-            }
-
-            if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
-                return;
-
-            if (!m_constructionBlock.IsPowered())
-            {
-                Logging.Instance.WriteLine("CANCELLING Cleanup Target due to power shortage");
-                CancelTarget(floating);
-                return;
-            }
-
-            if (floating.Closed)
-            {
-                CompleteTarget(floating);
-                return;
-            }
-
-            if (!m_targetTracker.ContainsKey(floating))
-                m_constructionBlock.SendAddTarget(floating);
-
-            if (!m_targetTracker.ContainsKey(floating))
-                return;
-
-            var trackedItem = m_targetTracker[floating];
-            if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - trackedItem.StartTime >= trackedItem.CarryTime 
-                && MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - trackedItem.LastUpdate > 2000)
-            {
-                trackedItem.LastUpdate = MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds;
-                if (!TransferFromTarget((IMyEntity)target))
+                if (!IsEnabled())
                 {
-                    Logging.Instance.WriteLine("CANCELLING Cleanup Target due to insufficient storage");
+                    Logging.Instance.WriteLine("CANCELLING Cleanup Target due to being disabled");
                     CancelTarget(floating);
+                    return;
+                }
+
+                if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
+                    return;
+
+                if (!m_constructionBlock.IsPowered())
+                {
+                    Logging.Instance.WriteLine("CANCELLING Cleanup Target due to power shortage");
+                    CancelTarget(floating);
+                    return;
+                }
+
+                if (floating.Closed)
+                {
+                    CompleteTarget(floating);
+                    return;
+                }
+
+                if (!m_targetTracker.ContainsKey(floating))
+                    m_constructionBlock.SendAddTarget(floating);
+
+                if (!m_targetTracker.ContainsKey(floating))
+                    return;
+
+                var trackedItem = m_targetTracker[floating];
+                if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - trackedItem.StartTime >= trackedItem.CarryTime 
+                    && MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - trackedItem.LastUpdate > 2000)
+                {
+                    trackedItem.LastUpdate = MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds;
+                    if (!TransferFromTarget((IMyEntity)target))
+                    {
+                        Logging.Instance.WriteLine("CANCELLING Cleanup Target due to insufficient storage");
+                        CancelTarget(floating);
+                    }
                 }
             }
+            
+            CreateFloatingParticle(floating);
         }
 
         private void OpenBag(IMyEntity bagEntity)
