@@ -381,7 +381,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (!IsEnabled())
                 return;
 
-            foreach (var block in blocks)
+            foreach (var block in blocks.ToList())
                 AddPotentialBlock(block);
 
             CheckBeacons();
@@ -430,13 +430,13 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 HashSet<IMyEntity> entities = new HashSet<IMyEntity>();
                 MyAPIGateway.Entities.GetEntities(entities);
-                foreach(var entity in entities)
+                foreach(var entity in entities.ToList())
                 {
                     var grid = entity as IMyCubeGrid;
 
                     if (grid != null && (grid.GetPosition() - cubeBlock.GetPosition()).Length() < m_maxDistance)
                     {
-                        foreach(IMySlimBlock block in ((MyCubeGrid)grid).GetBlocks())
+                        foreach(IMySlimBlock block in ((MyCubeGrid)grid).GetBlocks().ToList())
                         {
                             BoundingBoxD blockbb;
                             block.GetWorldBoundingBox(out blockbb);
@@ -461,7 +461,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 return false;
 
             else if(remote)
-                foreach (var item in block.CubeGrid.BigOwners)
+                foreach (var item in block.CubeGrid.BigOwners.ToList())
                     if (!MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(m_constructionBlock.ConstructionBlock.GetUserRelationToOwner(item)))
                         return false;
 
@@ -469,7 +469,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 using (Lock.AcquireExclusiveUsing())
                 {
-                    if(beacon != null)
+                    if (beacon != null)
                     {
                         if (!m_areaTargetBlocks.ContainsKey(block))
                             m_areaTargetBlocks.Add(block, beacon);
