@@ -1,54 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <CubeBlocks>
-<!-- 
-    <Definition xsi:type="MyObjectBuilder_OxygenFarmDefinition">
-      <Id>
-        <TypeId>OxygenFarm</TypeId>
-        <SubtypeId>SmallNaniteConstructionBlock</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Control Factory</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\container.dds</Icon>
-      <CubeSize>Small</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="3" y="3" z="3" />
-      <ModelOffset x="0" y="0" z="0" />
-      <Model>Models\Cubes\Small\NanoRepairModuleSmall.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="20" />
-        <Component Subtype="Construction" Count="10" />
-        <Component Subtype="Computer" Count="4" />
-        <Component Subtype="Motor" Count="4" />
-        <Component Subtype="Display" Count="1" />
-        <Component Subtype="InteriorPlate" Count="10" />
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0" />
-	  <MountPoints>
-        <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="3" EndY="3" />
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="3" EndY="1" />
-        <MountPoint Side="Right" StartX="0" StartY="0" EndX="3" EndY="1" />
-        <MountPoint Side="Front" StartX="0" StartY="0" EndX="3" EndY="1" />
-        <MountPoint Side="Back" StartX="0" StartY="0" EndX="3" EndY="1" />
-      </MountPoints>	  
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Small\CargoContainerMediumConstruction_1.mwm" />
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\CargoContainerMediumConstruction_2.mwm" />
-      </BuildProgressModels>
-      <BlockPairName>NaniteControlFactory</BlockPairName>
-      <MirroringY>Z</MirroringY>
-      <MirroringZ>Y</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>14</BuildTimeSeconds>
-      <DamageEffectId>212</DamageEffectId>
-      <DamagedSound>ParticleHeavyMech</DamagedSound>
-	  <Public>false</Public>	  
-      <InventorySize>
-        <X>2.5</X>
-        <Y>2.5</Y>
-        <Z>2.5</Z>
-      </InventorySize>	  	  
-    </Definition>
--->	
+
     <Definition xsi:type="MyObjectBuilder_OxygenFarmDefinition">
       <Id>
         <TypeId>OxygenFarm</TypeId>
