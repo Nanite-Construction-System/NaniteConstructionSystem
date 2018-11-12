@@ -117,6 +117,7 @@ namespace NaniteConstructionSystem.Entities
         private int m_potentialTargetsCount;
         private int m_targetsCount;
         private bool m_clientEmissivesUpdate;
+        private bool m_forceProcessState;
 
         private const int m_spoolingTime = 3000;
 
@@ -732,7 +733,10 @@ namespace NaniteConstructionSystem.Entities
         private void UpdateSpoolPosition()
         {
             if (m_factoryState == FactoryStates.SpoolingUp && (m_spoolPosition += (int)(1000f / 60f)) >= m_spoolingTime)
+            {
                 m_spoolPosition = m_spoolingTime;
+                m_forceProcessState = true;
+            }
 
             else if (m_factoryState == FactoryStates.SpoolingDown && (m_spoolPosition -= (int)(1000f / 60f)) <= 0)
                 m_spoolPosition = 0;
@@ -801,7 +805,9 @@ namespace NaniteConstructionSystem.Entities
         /// </summary>
         private void ProcessState()
         {
-            if (m_updateCount % 120 != 0)
+            if (m_forceProcessState)
+                m_forceProcessState = false;
+            else if (m_updateCount % 120 != 0)
                 return;
 
             UpdatePower();
