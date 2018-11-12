@@ -210,12 +210,15 @@ namespace NaniteConstructionSystem.Entities
                 if (m_factoryState != FactoryStates.Disabled && m_factoryState != FactoryStates.MissingPower)
                     BuildConnectedInventory();
 
-                string upgrades = "";
-                foreach(var item in ((MyCubeBlock)m_constructionBlock).UpgradeValues)
-                    upgrades += string.Format("({0} - {1}) ", item.Key, item.Value);
+                MyAPIGateway.Parallel.Start(() =>
+                {
+                    string upgrades = "";
+                    foreach (var item in ((MyCubeBlock)m_constructionBlock).UpgradeValues)
+                        upgrades += string.Format("({0} - {1}) ", item.Key, item.Value);
 
-                Logging.Instance.WriteLine(string.Format("STATUS Nanite Factory: {0} - (t: {1}  pt: {2}  pw: {3} st: {4}) - {5}", 
-                  ConstructionBlock.EntityId, m_targetsCount, m_potentialTargetsCount, _power, m_factoryState, upgrades));
+                    Logging.Instance.WriteLine(string.Format("STATUS Nanite Factory: {0} - (t: {1}  pt: {2}  pw: {3} st: {4}) - {5}", 
+                      ConstructionBlock.EntityId, m_targetsCount, m_potentialTargetsCount, _power, m_factoryState, upgrades));
+                });
             }
 
             if (Sync.IsServer && ConstructionBlock.IsFunctional)
@@ -280,7 +283,7 @@ namespace NaniteConstructionSystem.Entities
 
         private void UpdatePower()
         {
-            MyAPIGateway.Parallel.StartBackground(() =>
+            MyAPIGateway.Parallel.Start(() =>
             {
                 if (!m_constructionBlock.Enabled || !m_constructionBlock.IsFunctional)
                 {
@@ -618,9 +621,7 @@ namespace NaniteConstructionSystem.Entities
                         InventoryManager.SubtractAvailableComponents(item.TargetList.Cast<IMySlimBlock>().ToList(), ref availableComponents, item is NaniteProjectionTargets);
 
                 MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                {
-                    InventoryManager.ComponentsRequired.Clear();
-                });
+                    {InventoryManager.ComponentsRequired.Clear();});
                 
                 pos = 5;
                 foreach (var item in m_targets.ToList())
@@ -649,7 +650,7 @@ namespace NaniteConstructionSystem.Entities
 
             if (Sync.IsServer)
             {   
-                MyAPIGateway.Parallel.StartBackground(() =>
+                MyAPIGateway.Parallel.Start(() =>
                 {
                     StringBuilder targetDetailsParallel = new StringBuilder();
                     StringBuilder invalidTargetDetailsParallel = new StringBuilder();
@@ -659,15 +660,15 @@ namespace NaniteConstructionSystem.Entities
 
                     foreach (var item in m_targets.ToList())
                     {
-                        targetDetailsParallel.Append("-----\r\n");
-                        targetDetailsParallel.Append($"{item.TargetName} Nanites\r\n");
-                        targetDetailsParallel.Append("-----\r\n");
-                        targetDetailsParallel.Append($"Possible {item.TargetName} Targets: {item.PotentialTargetList.Count}\r\n");
-                        targetDetailsParallel.Append($"Current {item.TargetName} Targets: {item.TargetList.Count}\r\n");
-                        targetDetailsParallel.Append($"Max {item.TargetName} Streams: {item.GetMaximumTargets()}\r\n");
-                        targetDetailsParallel.Append($"{item.TargetName} MW/Stream: {item.GetPowerUsage()} MW\r\n");
-                        targetDetailsParallel.Append($"{item.TargetName} Min. Travel Time: {item.GetMinTravelTime()} s\r\n");
-                        targetDetailsParallel.Append($"{item.TargetName} Travel Speed: {item.GetSpeed()} m/s\r\n");
+                        targetDetailsParallel.Append("-----\r\n"
+                          + $"{item.TargetName} Nanites\r\n"
+                          + "-----\r\n"
+                          + $"Possible Targets: {item.PotentialTargetList.Count}\r\n"
+                          + $"Current Targets: {item.TargetList.Count}\r\n"
+                          + $"Max Streams: {item.GetMaximumTargets()}\r\n"
+                          + $"MW/Stream: {item.GetPowerUsage()} MW\r\n"
+                          + $"Min. Travel Time: {item.GetMinTravelTime()} s\r\n"
+                          + $"Travel Speed: {item.GetSpeed()} m/s\r\n");
 
                         if (item.LastInvalidTargetReason != null && item.LastInvalidTargetReason != "")
                         {
@@ -704,12 +705,11 @@ namespace NaniteConstructionSystem.Entities
                     });
                 });
 
-                details.Append(m_targetDetails);
-                details.Append("-----\r\n");
-
-                details.Append($"Current Power Required: {_power} MW\r\n");
-                details.Append($"Status: {m_factoryState.ToString()}\r\n");
-                details.Append($"Active Nanites: {m_particleManager.Particles.Count}\r\n");
+                details.Append(m_targetDetails
+                  + "-----\r\n"
+                  + $"Current Power Required: {_power} MW\r\n"
+                  + $"Status: {m_factoryState.ToString()}\r\n"
+                  + $"Active Nanites: {m_particleManager.Particles.Count}\r\n");
 
                 if (m_userDefinedNaniteLimit > 0)
                     details.Append($"Maximum Nanites: {m_userDefinedNaniteLimit}\r\n");
@@ -751,19 +751,25 @@ namespace NaniteConstructionSystem.Entities
                 MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.Red, Color.White);
             }
             else if (m_factoryState == FactoryStates.Active)
-                MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.FromNonPremultiplied(new Vector4(0.05f, 0.05f, 0.35f, 0.75f)) * (((float)m_spoolPosition / m_spoolingTime) + 0.1f), Color.White);
+                MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, 
+                  Color.FromNonPremultiplied(new Vector4(0.05f, 0.05f, 0.35f, 0.75f)) 
+                  * (((float)m_spoolPosition / m_spoolingTime) + 0.1f), Color.White);
 
             else if (m_factoryState == FactoryStates.SpoolingUp)
             {
                 if (m_spoolPosition >= m_spoolingTime)
                     m_soundEmitter.PlaySound(m_soundPair, true);
 
-                MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.FromNonPremultiplied(new Vector4(0.05f, 0.05f, 0.35f, 0.75f)) * (((float)m_spoolPosition / m_spoolingTime) + 0.1f), Color.White);
+                MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, 
+                  Color.FromNonPremultiplied(new Vector4(0.05f, 0.05f, 0.35f, 0.75f)) 
+                  * (((float)m_spoolPosition / m_spoolingTime) + 0.1f), Color.White);
             }
             else if (m_factoryState == FactoryStates.SpoolingDown)
             {
                 m_soundEmitter.StopSound(true);
-                MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.FromNonPremultiplied(new Vector4(0.05f, 0.05f, 0.35f, 0.75f)) * (((float)m_spoolPosition / m_spoolingTime) + 0.1f), Color.White);
+                MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, 
+                  Color.FromNonPremultiplied(new Vector4(0.05f, 0.05f, 0.35f, 0.75f)) 
+                  * (((float)m_spoolPosition / m_spoolingTime) + 0.1f), Color.White);
             }
             else if (m_factoryState == FactoryStates.MissingPower)
             {
@@ -782,7 +788,6 @@ namespace NaniteConstructionSystem.Entities
             }
             else if (m_factoryState == FactoryStates.Enabled)
                 MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.Green, Color.White);
-
             else
             {
                 m_soundEmitter.StopSound(true);
@@ -801,7 +806,7 @@ namespace NaniteConstructionSystem.Entities
 
             UpdatePower();
 
-            MyAPIGateway.Parallel.StartBackground(() =>
+            MyAPIGateway.Parallel.Start(() =>
             {
                 IMyFunctionalBlock blockEntity = (IMyFunctionalBlock)ConstructionBlock;
                 int targetsCount = m_targets.Sum(x => x.TargetList.Count);
@@ -814,21 +819,26 @@ namespace NaniteConstructionSystem.Entities
                 });
 
                 if (!blockEntity.Enabled || !blockEntity.IsFunctional)
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.Disabled;});
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                        {m_factoryState = FactoryStates.Disabled;});
 
                 if ((targetsCount > 0) && IsPowered() || m_particleManager.Particles.Count > 0)
                 {
                     if (m_spoolPosition == m_spoolingTime)
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.Active;});
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                            {m_factoryState = FactoryStates.Active;});
                     else
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.SpoolingUp;});
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                            {m_factoryState = FactoryStates.SpoolingUp;});
                 }
                 else if (targetsCount == 0 && potentialTargetsCount > 0 && !IsPowered())
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.MissingPower;});
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                        {m_factoryState = FactoryStates.MissingPower;});
 
                 else if (targetsCount == 0 && potentialTargetsCount > 0)
                 {
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.InvalidTargets;});
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                        {m_factoryState = FactoryStates.InvalidTargets;});
 
                     foreach(var item in InventoryManager.ComponentsRequired.ToList())
                         if (item.Value <= 0)
@@ -845,18 +855,24 @@ namespace NaniteConstructionSystem.Entities
                 { 
                     if (m_spoolPosition <= 0)
                     {
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_spoolPosition = 0;});
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.Enabled;});
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                        {
+                            m_spoolPosition = 0;
+                            m_factoryState = FactoryStates.Enabled;
+                        });
                     }
                     else
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.SpoolingDown;});
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                            {m_factoryState = FactoryStates.SpoolingDown;});
                 }
                 else
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {m_factoryState = FactoryStates.Disabled;});
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                        {m_factoryState = FactoryStates.Disabled;});
 
                 MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                 {
-                    if (m_factoryState != FactoryStates.Active && m_factoryState != FactoryStates.SpoolingUp && m_factoryState != FactoryStates.SpoolingDown && m_spoolPosition > 0f)
+                    if (m_factoryState != FactoryStates.Active && m_factoryState != FactoryStates.SpoolingUp 
+                      && m_factoryState != FactoryStates.SpoolingDown && m_spoolPosition > 0f)
                         m_factoryState = FactoryStates.SpoolingDown;
 
                     SendStateUpdate(m_factoryState);
@@ -1332,7 +1348,7 @@ namespace NaniteConstructionSystem.Entities
         {
             try
             {
-                MyAPIGateway.Parallel.StartBackground(() =>
+                MyAPIGateway.Parallel.Start(() =>
                 {
                     foreach (var item in m_targets.ToList())
                     {
@@ -1390,7 +1406,7 @@ namespace NaniteConstructionSystem.Entities
 
         private void SendToPlayerInSyncRange(ushort id, byte[] bytes)
         {
-            MyAPIGateway.Parallel.StartBackground(() =>
+            MyAPIGateway.Parallel.Start(() =>
             {
                 var distSq = MyAPIGateway.Session.SessionSettings.SyncDistance;
                 distSq += 1000; // some safety padding, avoid desync
