@@ -110,18 +110,6 @@ namespace NaniteConstructionSystem
             }
         }
 
-        private static Dictionary<long, NaniteHammerTerminalSettings> m_hammerTerminalSettings;
-        public static Dictionary<long, NaniteHammerTerminalSettings> HammerTerminalSettings
-        {
-            get
-            {
-                if (m_hammerTerminalSettings == null)
-                    m_hammerTerminalSettings = new Dictionary<long, NaniteHammerTerminalSettings>();
-
-                return m_hammerTerminalSettings;
-            }
-        }
-
         private static Dictionary<long, NaniteBeaconTerminalSettings> m_beaconTerminalSettings;
         public static Dictionary<long, NaniteBeaconTerminalSettings> BeaconTerminalSettings
         {
