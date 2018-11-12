@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,31 +59,6 @@ namespace NaniteConstructionSystem.Settings
             UseAssemblers = false;
         }
     }
-  
-    public class NaniteHammerTerminalSettings
-    {
-        public List<string> SelectedOres { get; set; }
-
-        public NaniteHammerTerminalSettings()
-        {
-            SelectedOres = new List<string>();
-        }
-
-        public NaniteHammerTerminalSettings(bool defaultAll = true)
-        {
-            SelectedOres = new List<string>();
-            if (defaultAll)
-            {
-                foreach (var item in MyDefinitionManager.Static.GetVoxelMaterialDefinitions().Select(x => x.MinedOre).Distinct())
-                {
-                    if (item == "Stone")
-                        continue;
-
-                    SelectedOres.Add(item);
-                }
-            }
-        }
-    }
 
     public class NaniteBeaconTerminalSettings
     {
@@ -139,14 +114,6 @@ namespace NaniteConstructionSystem.Settings
             }
             SaveTerminalSettings("AssemblerTerminalSettings.dat", assemblerResult);
 
-            List<SerializableKeyValuePair<long, NaniteHammerTerminalSettings>> hammerResult = new List<SerializableKeyValuePair<long, NaniteHammerTerminalSettings>>();
-            foreach (var item in NaniteConstructionManager.HammerTerminalSettings)
-            {
-                SerializableKeyValuePair<long, NaniteHammerTerminalSettings> pair = new SerializableKeyValuePair<long, NaniteHammerTerminalSettings>(item.Key, item.Value);
-                hammerResult.Add(pair);
-            }
-            SaveTerminalSettings("HammerTerminalSettings.dat", hammerResult);
-
             List<SerializableKeyValuePair<long, NaniteBeaconTerminalSettings>> beaconResult = new List<SerializableKeyValuePair<long, NaniteBeaconTerminalSettings>>();
             foreach (var item in NaniteConstructionManager.BeaconTerminalSettings)
             {
@@ -191,24 +158,6 @@ namespace NaniteConstructionSystem.Settings
 
                     if (!NaniteConstructionManager.AssemblerSettings.ContainsKey(block.EntityId))
                         NaniteConstructionManager.AssemblerSettings.Add(block.EntityId, item.Value);
-                }
-            }
-
-            var hammerResult = LoadTerminalSettings<List<SerializableKeyValuePair<long, NaniteHammerTerminalSettings>>>("HammerTerminalSettings.dat");
-            if(hammerResult != null)
-            {
-                foreach(var item in hammerResult)
-                {
-                    IMyEntity entity;
-                    if (!MyAPIGateway.Entities.TryGetEntityById(item.Key, out entity))
-                        continue;
-
-                    IMyTerminalBlock block = entity as IMyTerminalBlock;
-                    if (block == null)
-                        continue;
-
-                    if (!NaniteConstructionManager.HammerTerminalSettings.ContainsKey(block.EntityId))
-                        NaniteConstructionManager.HammerTerminalSettings.Add(block.EntityId, item.Value);
                 }
             }
 
