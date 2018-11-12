@@ -118,6 +118,7 @@ namespace NaniteConstructionSystem.Entities
         private int m_targetsCount;
         private bool m_clientEmissivesUpdate;
         private bool m_forceProcessState;
+        private int m_itemIsAlreadyQueuedInAssemblerRetryCounter;
 
         private const int m_spoolingTime = 3000;
 
@@ -438,21 +439,11 @@ namespace NaniteConstructionSystem.Entities
                     }
                 }
 
-                bool found = false;
-                foreach (var assemblerTest in assemblerList.ToList())
+                if (ItemIsAlreadyQueuedInAssembler(def, item.Value, assemblerList))
                 {
-                    foreach (var queueItem in assemblerTest.GetQueue().ToList())
-                    {
-                        if (queueItem.Blueprint == def && (int)queueItem.Amount >= item.Value)
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (found) 
+                    m_itemIsAlreadyQueuedInAssemblerRetryCounter = 0;
                     continue;
+                }
 
                 int blueprintCount = assemblerList.Sum(x => x.GetQueue().Sum(y => y.Blueprint == def ? (int)y.Amount : 0));
                 int availableCount = 0;
@@ -477,6 +468,30 @@ namespace NaniteConstructionSystem.Entities
                         {target.InsertQueueItem(0, def, amount);});
                 }
             }
+        }
+
+        private bool ItemIsAlreadyQueuedInAssembler(object def, int amountNeeded, List<IMyProductionBlock> assemblerList)
+        {
+            try
+            {
+                foreach (var assembler in assemblerList)
+                    foreach (var queueItem in assembler.GetQueue())
+                        if (queueItem.Blueprint == def && (int)queueItem.Amount >= amountNeeded)
+                            return true;
+
+                m_itemIsAlreadyQueuedInAssemblerRetryCounter = 0;
+                return false;
+            }
+            catch (InvalidOperationException ex)
+            {
+                if (m_itemIsAlreadyQueuedInAssemblerRetryCounter++ > 60)
+                {
+                    VRage.Utils.MyLog.Default.WriteLineAndConsole("NaniteConstructionBlock.ItemIsAlreadyQueuedInAssembler caused an infinite loop. Aborting.");
+                    return true;
+                }
+                Logging.Instance.WriteLine("NaniteConstructionBlock.ItemIsAlreadyQueuedInAssembler: A list was modified. Retrying.");
+                return ItemIsAlreadyQueuedInAssembler(def, amountNeeded, assemblerList);
+            }           
         }
 
         private void GetMissingComponentsPotentialTargets<T>(Dictionary<string, int> addToDictionary, Dictionary<string, int> available) where T : NaniteTargetBlocksBase
