@@ -232,7 +232,7 @@ namespace NaniteConstructionSystem.Entities
             }            
             
             UpdateSpoolPosition();
-            DrawParticles();
+            ParticleManager.Update();
             DrawEffects();
 
             if (m_updateCount % 60 == 0)
@@ -335,11 +335,12 @@ namespace NaniteConstructionSystem.Entities
         /// </summary>
         public void BuildConnectedInventory()
         {
-            InventoryManager.connectedInventory.Clear();
             MyAPIGateway.Parallel.StartBackground(() =>
             {
                 try
                 {
+                    List<IMyInventory> newConnectedInventory = new List<IMyInventory>();
+
                     foreach (IMyCubeGrid grid in MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)m_constructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical).ToList())
                     {
                         foreach (IMySlimBlock SlimBlock in ((MyCubeGrid)grid).GetBlocks().ToList())
@@ -358,17 +359,17 @@ namespace NaniteConstructionSystem.Entities
                               || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(SlimBlock.FatBlock.GetUserRelationToOwner(ConstructionBlock.OwnerId))) 
                                 continue;
 
-                            MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                            {
-                                InventoryManager.connectedInventory.Add(inv);
-                            });
+                            newConnectedInventory.Add(inv);
                         }
                     }
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                    {
+                        lock (InventoryManager.connectedInventory)
+                            InventoryManager.connectedInventory = newConnectedInventory;
+                    });
                 }
                 catch (Exception ex)
-                {
-                    VRage.Utils.MyLog.Default.WriteLineAndConsole($"BuildConnectedInventory() Error: {ex.ToString()}");
-                }
+                    {VRage.Utils.MyLog.Default.WriteLineAndConsole($"BuildConnectedInventory() Error: {ex.ToString()}");}
             });
         }
 
@@ -380,7 +381,12 @@ namespace NaniteConstructionSystem.Entities
                 return;
 
             List<IMyProductionBlock> assemblerList = new List<IMyProductionBlock>();
-            foreach (var inv in InventoryManager.connectedInventory.ToList())
+
+            List<IMyInventory> ThreadSafeConnectedInventory = new List<IMyInventory>();
+            lock (InventoryManager.connectedInventory)
+                ThreadSafeConnectedInventory = InventoryManager.connectedInventory.ToList();
+
+            foreach (var inv in ThreadSafeConnectedInventory)
             {
                 IMyEntity entity = inv.Owner as IMyEntity;
                 if (entity == null) 
@@ -421,9 +427,7 @@ namespace NaniteConstructionSystem.Entities
                             if (defTest.Results != null && defTest.Results[0].Amount == 1 && defTest.Results[0].Id == new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key))
                             {
                                 MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                                {
-                                    m_defCache.Add(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key), defTest);
-                                });
+                                    {m_defCache.Add(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key), defTest);});
                                 break;
                             }
                         }
@@ -466,42 +470,37 @@ namespace NaniteConstructionSystem.Entities
                       amount, def.Id, m_constructionBlock.CustomName, blueprintCount));
 
                     MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                    {
-                        target.InsertQueueItem(0, def, amount);
-                    });
+                        {target.InsertQueueItem(0, def, amount);});
                 }
             }
         }
 
         private void GetMissingComponentsPotentialTargets<T>(Dictionary<string, int> addToDictionary, Dictionary<string, int> available) where T : NaniteTargetBlocksBase
         {
-            using (GetTarget<T>().Lock.AcquireExclusiveUsing())
+            int count = 0;
+            foreach (var item in GetTarget<T>().PotentialTargetList)
             {
-                int count = 0;
-                foreach (var item in GetTarget<T>().PotentialTargetList)
+                var target = item as IMySlimBlock;
+                if (target == null)
+                    continue;
+
+                if (typeof(T) == typeof(NaniteProjectionTargets))
                 {
-                    var target = item as IMySlimBlock;
-                    if (target == null)
+                    var def = target.BlockDefinition as MyCubeBlockDefinition;
+                    var compDefName = def.Components[0].Definition.Id.SubtypeName;
+                    if (available.ContainsKey(compDefName))
                         continue;
 
-                    if (typeof(T) == typeof(NaniteProjectionTargets))
-                    {
-                        var def = target.BlockDefinition as MyCubeBlockDefinition;
-                        var compDefName = def.Components[0].Definition.Id.SubtypeName;
-                        if (available.ContainsKey(compDefName))
-                            continue;
-
-                        if (addToDictionary.ContainsKey(compDefName))
-                            addToDictionary[compDefName] += 1;
-                        else
-                            addToDictionary.Add(compDefName, 1);
-                    }
+                    if (addToDictionary.ContainsKey(compDefName))
+                        addToDictionary[compDefName] += 1;
                     else
-                        target.GetMissingComponents(addToDictionary);
-
-                    if (count++ > GetTarget<T>().GetMaximumTargets())
-                        break;
+                        addToDictionary.Add(compDefName, 1);
                 }
+                else
+                    target.GetMissingComponents(addToDictionary);
+
+                if (count++ > GetTarget<T>().GetMaximumTargets())
+                    break;
             }
         }
 
@@ -584,17 +583,7 @@ namespace NaniteConstructionSystem.Entities
                     item.ParallelUpdate(grids, blocks);
             }
             catch (Exception ex) 
-            {
-                VRage.Utils.MyLog.Default.WriteLineAndConsole($"ProcessTargetsParallel() Error {ex.ToString()}");
-            }
-        }
-                
-        /// <summary>
-        /// Process and draw the particle effects of nanites
-        /// </summary>
-        private void DrawParticles()
-        {
-            ParticleManager.Update();
+                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"ProcessTargetsParallel() Error {ex.ToString()}");}
         }
 
         /// <summary>
