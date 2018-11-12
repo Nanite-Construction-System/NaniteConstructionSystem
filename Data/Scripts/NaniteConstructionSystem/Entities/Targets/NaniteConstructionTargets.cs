@@ -34,6 +34,8 @@ namespace NaniteConstructionSystem.Entities.Targets
         private float m_maxDistance = 300f;
         private HashSet<IMySlimBlock> m_remoteTargets;
         private FastResourceLock m_remoteLock;
+        private List<IMySlimBlock> beaconBlocks = new List<IMySlimBlock>();
+        private int GetBeaconBlocksRetryCounter;
 
         public NaniteConstructionTargets(NaniteConstructionBlock constructionBlock) : base(constructionBlock)
         {
@@ -178,7 +180,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void Update()
         {
-            MyAPIGateway.Parallel.StartBackground(() =>
+            MyAPIGateway.Parallel.Start(() =>
             {
                 foreach (var item in m_targetList.ToList())
                 {
@@ -278,9 +280,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 {
                     Logging.Instance.WriteLine("CANCELLING Repair Target due to target being out of range");
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                    {
-                        CancelTarget(target);
-                    });
+                        {CancelTarget(target);});
                     return;
                 }
             }
@@ -316,9 +316,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_constructionBlock.ToolManager.Remove(obj);
             Remove(obj);
             m_remoteTargets.Remove(obj);
-
-            if (m_areaTargetBlocks.ContainsKey(obj))
-                m_areaTargetBlocks.Remove(obj);
+            m_areaTargetBlocks.Remove(obj);
         }
 
         public void CancelTarget(IMySlimBlock obj)
@@ -333,9 +331,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_constructionBlock.ToolManager.Remove(obj);
             Remove(obj);
             m_remoteTargets.Remove(obj);
-
-            if (m_areaTargetBlocks.ContainsKey(obj))
-                m_areaTargetBlocks.Remove(obj);
+            m_areaTargetBlocks.Remove(obj);
         }
 
         public override void CancelTarget(object obj)
@@ -384,10 +380,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                   || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
                     continue;
 
-                List<IMySlimBlock> beaconBlocks = new List<IMySlimBlock>();
-
-                foreach (var grid in MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)item.CubeGrid, GridLinkTypeEnum.Physical).ToList())
-                    grid.GetBlocks(beaconBlocks);
+                GetBeaconBlocks((IMyCubeGrid)item.CubeGrid);
+                GetBeaconBlocksRetryCounter = 0;
 
                 foreach (var block in beaconBlocks.ToList())
                     if (block != null && AddPotentialBlock(block, true))
@@ -395,6 +389,28 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
 
             m_remoteTargets = remoteList;
+        }
+
+        private void GetBeaconBlocks(IMyCubeGrid BeaconBlockGrid)
+        {
+            try
+            {
+                beaconBlocks.Clear();
+                foreach (var grid in MyAPIGateway.GridGroups.GetGroup(BeaconBlockGrid, GridLinkTypeEnum.Physical))
+                    grid.GetBlocks(beaconBlocks);
+            }
+            catch (InvalidOperationException ex)
+            {
+                if (GetBeaconBlocksRetryCounter++ > 60)
+                {
+                    VRage.Utils.MyLog.Default.WriteLineAndConsole("NaniteConstructionTargets.GetBeaconBlocks caused an infinite loop. Aborting.");
+                    return;
+                }
+                Logging.Instance.WriteLine("NaniteConstructionTargets.GetBeaconBlocks: Grid group was modified. Retrying.");
+                GetBeaconBlocks(BeaconBlockGrid);
+            }
+            catch (Exception ex)
+                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionTargets.GetBeaconBlocks: {ex.ToString()}");}
         }
 
         private void CheckAreaBeacons()
