@@ -62,38 +62,35 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             int TargetListCount = TargetList.Count;
 
-            lock (m_potentialTargetList)
+            foreach (IMyEntity item in m_potentialTargetList.ToList())
             {
-                foreach (IMyEntity item in m_potentialTargetList.ToList())
+                if (item == null || TargetList.Contains(item) || item.Closed) 
+                    continue;
+
+                bool found = false;
+                foreach (var block in blockList.ToList())
                 {
-                    if (item == null || TargetList.Contains(item) || item.Closed) 
-                        continue;
-
-                    bool found = false;
-                    foreach (var block in blockList.ToList())
+                    if (block != null && block.Targets.First(x => x is NaniteFloatingTargets).TargetList.Contains(item))
                     {
-                        if (block != null && block.Targets.First(x => x is NaniteFloatingTargets).TargetList.Contains(item))
-                        {
-                            InvalidTargetReason("Another factory has this block as a target");
-                            found = true;
-                            break;
-                        }
+                        InvalidTargetReason("Another factory has this block as a target");
+                        found = true;
+                        break;
                     }
+                }
 
-                    if (found) 
-                        continue;
+                if (found) 
+                    continue;
 
-                    if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), item.GetPosition()) < m_maxDistance * m_maxDistance 
-                      && m_constructionBlock.HasRequiredPowerForNewTarget(this))
-                    {
-                        AddTarget(item);
-                        
-                        Logging.Instance.WriteLine(string.Format("ADDING Floating Object Target: conid={0} type={1} entityID={2} position={3}", 
-                          m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.EntityId, item.GetPosition()));
+                if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), item.GetPosition()) < m_maxDistance * m_maxDistance 
+                    && m_constructionBlock.HasRequiredPowerForNewTarget(this))
+                {
+                    AddTarget(item);
+                    
+                    Logging.Instance.WriteLine(string.Format("ADDING Floating Object Target: conid={0} type={1} entityID={2} position={3}", 
+                        m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.EntityId, item.GetPosition()));
 
-                        if (++TargetListCount >= GetMaximumTargets()) 
-                            break;
-                    }
+                    if (++TargetListCount >= GetMaximumTargets()) 
+                        break;
                 }
             }
         }
@@ -178,18 +175,18 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (!m_targetTracker.ContainsKey(floating))
                     m_constructionBlock.SendAddTarget(floating);
 
-                if (!m_targetTracker.ContainsKey(floating))
-                    return;
-
-                var trackedItem = m_targetTracker[floating];
-                if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - trackedItem.StartTime >= trackedItem.CarryTime 
-                    && MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - trackedItem.LastUpdate > 2000)
+                if (m_targetTracker.ContainsKey(floating))
                 {
-                    trackedItem.LastUpdate = MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds;
-                    if (!TransferFromTarget((IMyEntity)target))
+                    var trackedItem = m_targetTracker[floating];
+                    if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - trackedItem.StartTime >= trackedItem.CarryTime 
+                        && MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - trackedItem.LastUpdate > 2000)
                     {
-                        Logging.Instance.WriteLine("CANCELLING Cleanup Target due to insufficient storage");
-                        CancelTarget(floating);
+                        trackedItem.LastUpdate = MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds;
+                        if (!TransferFromTarget((IMyEntity)target))
+                        {
+                            Logging.Instance.WriteLine("CANCELLING Cleanup Target due to insufficient storage");
+                            CancelTarget(floating);
+                        }
                     }
                 }
             }
@@ -211,9 +208,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 bagEntity.Close();
             }
             catch (Exception ex)
-            {
-                Logging.Instance.WriteLine(string.Format("OpenBag Error(): {0}", ex.ToString()));
-            }
+                {Logging.Instance.WriteLine(string.Format("OpenBag Error(): {0}", ex.ToString()));}
         }
 
         private void OpenCharacter(IMyEntity charEntity)
@@ -224,9 +219,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 charEntity.Close();
             }
             catch(Exception ex)
-            {
-                Logging.Instance.WriteLine(string.Format("OpenCharacter() Error: {0}", ex.ToString()));
-            }
+                {Logging.Instance.WriteLine(string.Format("OpenCharacter() Error: {0}", ex.ToString()));}
         }
 
         private bool TransferFromTarget(IMyEntity target, bool transfer=true)
@@ -234,32 +227,24 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (target is IMyCharacter)
             {
                 if (transfer)
-                {
                     MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                    {
-                        OpenCharacter(target);
-                    });
-                }
+                        {OpenCharacter(target);});
 
                 return true;
             }
 
-            if(target is MyInventoryBagEntity)
+            if (target is MyInventoryBagEntity)
             {
                 if (transfer)
-                {
                     MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                    {
-                        OpenBag(target);
-                    });
-                }
+                        {OpenBag(target);});
 
                 return true;
             }
 
-            MyFloatingObject floating = (MyFloatingObject)target;
             MyInventory targetInventory = ((MyCubeBlock)m_constructionBlock.ConstructionBlock).GetInventory();
-            var def = MyDefinitionManager.Static.GetPhysicalItemDefinition(new VRage.Game.MyDefinitionId(floating.Item.Content.TypeId, floating.Item.Content.SubtypeId));
+            var def = MyDefinitionManager.Static.GetPhysicalItemDefinition
+              (new VRage.Game.MyDefinitionId(((MyFloatingObject)target).Item.Content.TypeId, ((MyFloatingObject)target).Item.Content.SubtypeId));
             float amount = GetNaniteInventoryAmountThatFits(target, (MyCubeBlock)m_constructionBlock.ConstructionBlock);
             if ((int)amount > 0 || MyAPIGateway.Session.CreativeMode)
             {
@@ -273,7 +258,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     amount = 1f;
 
                 if (transfer)
-                    targetInventory.PickupItem(floating, (int)amount);
+                    targetInventory.PickupItem(((MyFloatingObject)target), (int)amount);
 
                 return true;
             }
@@ -286,11 +271,11 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (!block.HasInventory)
                 return 0f;
 
-            MyFloatingObject floating = (MyFloatingObject)target;
-
-            var def = MyDefinitionManager.Static.GetPhysicalItemDefinition(new VRage.Game.MyDefinitionId(floating.Item.Content.TypeId, floating.Item.Content.SubtypeId));
+            var def = MyDefinitionManager.Static.GetPhysicalItemDefinition
+              (new VRage.Game.MyDefinitionId(((MyFloatingObject)target).Item.Content.TypeId, ((MyFloatingObject)target).Item.Content.SubtypeId));
             MyInventory inventory = block.GetInventory();
-            MyFixedPoint amountFits = inventory.ComputeAmountThatFits(new VRage.Game.MyDefinitionId(floating.Item.Content.TypeId, floating.Item.Content.SubtypeId));
+            MyFixedPoint amountFits = inventory.ComputeAmountThatFits
+              (new VRage.Game.MyDefinitionId(((MyFloatingObject)target).Item.Content.TypeId, ((MyFloatingObject)target).Item.Content.SubtypeId));
 
             return (float)amountFits;
         }
@@ -329,19 +314,15 @@ namespace NaniteConstructionSystem.Entities.Targets
         public override void CancelTarget(object obj)
         {
             var target = obj as IMyEntity;
-            if (target == null)
-                return;
-
-            CancelTarget(target);
+            if (target != null)
+                CancelTarget(target);
         }
 
         public override void CompleteTarget(object obj)
         {
             var target = obj as IMyEntity;
-            if (target == null)
-                return;
-
-            CompleteTarget(target);
+            if (target != null)
+                CompleteTarget(target);
         }
 
         public void CompleteTarget(IMyEntity obj)
@@ -354,7 +335,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             m_constructionBlock.ParticleManager.CompleteTarget(obj);
 
-            if(m_targetTracker.ContainsKey(obj))
+            if (m_targetTracker.ContainsKey(obj))
                 m_targetTracker.Remove(obj);
 
             Remove(obj);
@@ -377,6 +358,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void CreateFloatingParticle(IMyEntity target)
         {
+            Logging.Instance.WriteLine("COMPLETING Floating Object Target: CreateFloatingParticle");
             double distance = Vector3D.Distance(m_constructionBlock.ConstructionBlock.GetPosition(), target.GetPosition());
             int time = (int)Math.Max(GetMinTravelTime() * 1000f, (distance / GetSpeed()) * 1000f);
 
@@ -394,7 +376,6 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (NaniteParticleManager.TotalParticleCount > NaniteParticleManager.MaxTotalParticles)
                 return;
 
-            // Create Particle
             Vector4 startColor = new Vector4(0.75f, 0.75f, 0.0f, 0.75f);
             Vector4 endColor = new Vector4(0.20f, 0.20f, 0.0f, 0.75f);
             m_constructionBlock.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
@@ -402,8 +383,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<IMySlimBlock> blocks)
         {
-            using (m_lock.AcquireExclusiveUsing())
-                PotentialTargetList.Clear();
+            PotentialTargetList.Clear();
 
             m_entities.Clear();
             try
@@ -413,7 +393,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             catch
             {
                 Logging.Instance.WriteLine(string.Format("Error getting entities, skipping"));
-                return;
+                return; 
             }
 
             if (!IsEnabled())
@@ -430,8 +410,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), item.GetPosition()) < m_maxDistance * m_maxDistance 
                   && TransferFromTarget(item, false))
-                    using (m_lock.AcquireExclusiveUsing())
-                        PotentialTargetList.Add(item);
+                    PotentialTargetList.Add(item);
             }
         }
     }
