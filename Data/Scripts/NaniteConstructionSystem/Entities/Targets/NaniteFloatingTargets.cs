@@ -399,8 +399,11 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (!IsEnabled())
                 return;
 
-            foreach (var item in m_entities)
+            foreach (var item in m_entities.ToList())
             {
+                if (item == null)
+                    continue;
+
                 if (item is IMyCharacter)
                 {
                     var charBuilder = (MyObjectBuilder_Character)item.GetObjectBuilder();
