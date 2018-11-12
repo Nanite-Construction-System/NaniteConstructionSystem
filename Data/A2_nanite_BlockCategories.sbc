@@ -9,11 +9,13 @@
       <DisplayName>DisplayName_Category_LargeBlocks</DisplayName>
       <Name>LargeBlocks</Name>
       <ItemIds>
+        <string>OreDetector/LargeNaniteOreDetector</string>
+        <string>OreDetector/NaniteMiningStation</string>
+        <string>Projector/LargeNaniteAreaBeacon</string>
         <string>ShipWelder/LargeNaniteControlFacility</string>
         <string>UpgradeModule/LargeNaniteBeaconDeconstruct</string>
         <string>UpgradeModule/LargeNaniteBeaconConstruct</string>
         <string>UpgradeModule/LargeNaniteBeaconProjection</string> 
-        <string>OreDetector/NaniteUltrasonicHammer</string>
         <string>UpgradeModule/NaniteConstructUpgrade</string>
         <string>UpgradeModule/NaniteDeconstructUpgrade</string>
         <string>UpgradeModule/NaniteCleanupUpgrade</string>
@@ -21,7 +23,10 @@
         <string>UpgradeModule/NaniteMedicalUpgrade</string>
         <string>UpgradeModule/NaniteSpeedUpgrade</string>
         <string>UpgradeModule/NanitePowerUpgrade</string>
-		<string>UpgradeModule/NaniteMiningStation</string>
+        <string>UpgradeModule/NaniteOreDetectorUpgradeRange</string>
+        <string>UpgradeModule/NaniteOreDetectorUpgradeScanning</string>
+        <string>UpgradeModule/NaniteOreDetectorUpgradeFilter</string>
+        <string>UpgradeModule/NaniteOreDetectorUpgradePowerEfficiency</string>
       </ItemIds>
     </Category>
     <Category xsi:type="MyObjectBuilder_GuiBlockCategoryDefinition">
@@ -47,6 +52,9 @@
       <Name>NaniteBlocks</Name>
       <Public>true</Public>
       <ItemIds>
+        <string>OreDetector/LargeNaniteOreDetector</string>
+        <string>OreDetector/NaniteMiningStation</string>
+        <string>Projector/LargeNaniteAreaBeacon</string>
         <string>ShipWelder/LargeNaniteControlFacility</string>
         <string>UpgradeModule/LargeNaniteBeaconDeconstruct</string>
         <string>UpgradeModule/SmallNaniteBeaconDeconstruct</string>
@@ -54,7 +62,6 @@
         <string>UpgradeModule/SmallNaniteBeaconConstruct</string>
         <string>UpgradeModule/LargeNaniteBeaconProjection</string> 
         <string>UpgradeModule/SmallNaniteBeaconProjection</string> 
-        <string>OreDetector/NaniteUltrasonicHammer</string>
         <string>UpgradeModule/NaniteConstructUpgrade</string>
         <string>UpgradeModule/NaniteDeconstructUpgrade</string>
         <string>UpgradeModule/NaniteCleanupUpgrade</string>
@@ -62,7 +69,10 @@
         <string>UpgradeModule/NaniteMedicalUpgrade</string>
         <string>UpgradeModule/NaniteSpeedUpgrade</string>
         <string>UpgradeModule/NanitePowerUpgrade</string>
-		<string>UpgradeModule/NaniteMiningStation</string>
+        <string>UpgradeModule/NaniteOreDetectorUpgradeRange</string>
+        <string>UpgradeModule/NaniteOreDetectorUpgradeScanning</string>
+        <string>UpgradeModule/NaniteOreDetectorUpgradeFilter</string>
+        <string>UpgradeModule/NaniteOreDetectorUpgradePowerEfficiency</string>
       </ItemIds>
     </Category>
   </CategoryClasses>
