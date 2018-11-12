@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using VRageMath;
 using Sandbox.ModAPI;
 using VRage.ModAPI;
@@ -75,16 +75,23 @@ namespace NaniteConstructionSystem.Entities.Effects
             if (block == null)
                 return;
 
-            m_centerSphere = new MyEntity();
-            m_centerSphere.Init(null, m_modelsFolder + "sphere.mwm", block, null, null);
-            m_centerSphere.Render.EnableColorMaskHsv = true;
-            m_centerSphere.Render.ColorMaskHsv = block.Render.ColorMaskHsv;
-            m_centerSphere.Render.PersistentFlags = MyPersistentEntityFlags2.CastShadows;
-            m_centerSphere.PositionComp.LocalMatrix = Matrix.CreateFromTransformScale(Quaternion.Identity, new Vector3(0f, -1.0f, 0f), Vector3.One);
-            m_centerSphere.Flags = EntityFlags.Visible | EntityFlags.NeedsDraw | EntityFlags.NeedsDrawFromParent | EntityFlags.InvalidateOnMove;
-            m_centerSphere.OnAddedToScene(block);
+            MyEntitySubpart centerSphereSubpart;
+            
+            if (block.TryGetSubpart("sphere", out centerSphereSubpart))
+            {
+                m_centerSphere = centerSphereSubpart as MyEntity;
+                if (m_centerSphere == null)
+                    return;                    
 
-            MyCubeBlockEmissive.SetEmissiveParts(m_centerSphere, 0.0f, Color.FromNonPremultiplied(new Vector4(0.35f, 0.05f, 0.35f, 0.75f)), Color.White);
+                m_centerSphere.Render.EnableColorMaskHsv = true;
+                m_centerSphere.Render.ColorMaskHsv = block.Render.ColorMaskHsv;
+                m_centerSphere.Render.PersistentFlags = MyPersistentEntityFlags2.CastShadows;
+                m_centerSphere.PositionComp.LocalMatrix = Matrix.CreateFromTransformScale(Quaternion.Identity, new Vector3(0f, -1.0f, 0f), Vector3.One);
+                m_centerSphere.Flags = EntityFlags.Visible | EntityFlags.NeedsDraw | EntityFlags.NeedsDrawFromParent | EntityFlags.InvalidateOnMove;
+                m_centerSphere.OnAddedToScene(block);
+
+                MyCubeBlockEmissive.SetEmissiveParts(m_centerSphere, 0.0f, Color.FromNonPremultiplied(new Vector4(0.35f, 0.05f, 0.35f, 0.75f)), Color.White);
+            }
         }
 
         private void UpdateBolts(bool active = false)
