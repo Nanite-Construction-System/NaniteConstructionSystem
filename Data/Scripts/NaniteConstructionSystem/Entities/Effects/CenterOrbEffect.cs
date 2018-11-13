@@ -60,7 +60,8 @@ namespace NaniteConstructionSystem.Entities.Effects
 
         public override void Unload()
         {
-            m_centerSphere.Close();
+            if (m_centerSphere != null)
+                m_centerSphere.Close();
         }
 
         private void UpdatePosition(int position, int maxPosition)
