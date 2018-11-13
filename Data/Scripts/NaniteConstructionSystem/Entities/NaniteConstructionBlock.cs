@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Text;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -118,7 +119,6 @@ namespace NaniteConstructionSystem.Entities
         private int m_targetsCount;
         private bool m_clientEmissivesUpdate;
         private bool m_forceProcessState;
-        private int m_itemIsAlreadyQueuedInAssemblerRetryCounter;
 
         private const int m_spoolingTime = 3000;
 
@@ -191,7 +191,6 @@ namespace NaniteConstructionSystem.Entities
             Sink = ((MyEntity)m_constructionBlock).Components.Get<MyResourceSinkComponent>();
 
             BuildConnectedInventory();
-            UpdatePower();
         }
 
         /// <summary>
@@ -233,7 +232,6 @@ namespace NaniteConstructionSystem.Entities
                 
                 ProcessState();
                 ScanForTargets();
-                ProcessInventory();
             }            
             
             UpdateSpoolPosition();
@@ -285,29 +283,26 @@ namespace NaniteConstructionSystem.Entities
 
         private void UpdatePower()
         {
-            MyAPIGateway.Parallel.Start(() =>
+            if (!m_constructionBlock.Enabled || !m_constructionBlock.IsFunctional)
             {
-                if (!m_constructionBlock.Enabled || !m_constructionBlock.IsFunctional)
-                {
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                        {Sink.SetRequiredInputByType(MyResourceDistributorComponent.ElectricityId, 0.0001f);});
-
-                    return;
-                }
-
-                float totalPowerRequired = m_targets.Sum(x => (x.TargetList.Count) * x.GetPowerUsage());
-
-                if (_power == totalPowerRequired)
-                    return;
-
                 MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                {
-                    _power = (totalPowerRequired > 0f) ? totalPowerRequired : 0.0001f;
-                    Sink.SetRequiredInputByType(MyResourceDistributorComponent.ElectricityId, _power);
-                });
+                    {Sink.SetRequiredInputByType(MyResourceDistributorComponent.ElectricityId, 0.0001f);});
 
-                Logging.Instance.WriteLine($"Factory {ConstructionBlock.EntityId} updated power usage to {_power} MegaWatts");
+                return;
+            }
+
+            float totalPowerRequired = m_targets.Sum(x => (x.TargetList.Count) * x.GetPowerUsage());
+
+            if (_power == totalPowerRequired)
+                return;
+
+            MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+            {
+                _power = (totalPowerRequired > 0f) ? totalPowerRequired : 0.0001f;
+                Sink.SetRequiredInputByType(MyResourceDistributorComponent.ElectricityId, _power);
             });
+
+            Logging.Instance.WriteLine($"Factory {ConstructionBlock.EntityId} updated power usage to {_power} MegaWatts");
         }
 
         internal bool HasRequiredPowerForNewTarget(NaniteTargetBlocksBase target)
@@ -322,9 +317,6 @@ namespace NaniteConstructionSystem.Entities
 
         private void ProcessInventory()
         {
-            if (m_updateCount % 120 != 0)
-                return;
-
             var inventory = ((MyCubeBlock)m_constructionBlock).GetInventory();
             if(inventory.VolumeFillFactor > 0.75f && (GetTarget<NaniteDeconstructionTargets>().TargetList.Count > 0 
               || GetTarget<NaniteFloatingTargets>().TargetList.Count > 0 || GetTarget<NaniteMiningTargets>().TargetList.Count > 0))
@@ -344,11 +336,15 @@ namespace NaniteConstructionSystem.Entities
             {
                 try
                 {
-                    List<IMyInventory> newConnectedInventory = new List<IMyInventory>();
+                    IMyInventory BagItem;
+                    while (!InventoryManager.connectedInventory.IsEmpty)
+                        InventoryManager.connectedInventory.TryTake(out BagItem);
 
-                    foreach (IMyCubeGrid grid in MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)m_constructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical).ToList())
+                    ConcurrentBag<IMyCubeGrid> gridGroup = new ConcurrentBag<IMyCubeGrid>(MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)m_constructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical));
+                    foreach (IMyCubeGrid grid in gridGroup)
                     {
-                        foreach (IMySlimBlock SlimBlock in ((MyCubeGrid)grid).GetBlocks().ToList())
+                        ConcurrentBag<IMySlimBlock> slimBlocks = new ConcurrentBag<IMySlimBlock>(((MyCubeGrid)grid).GetBlocks());
+                        foreach (IMySlimBlock SlimBlock in slimBlocks)
                         {
                             IMyEntity entity = SlimBlock.FatBlock as IMyEntity;
                             if (entity == null || entity.EntityId == ConstructionBlock.EntityId || entity is Sandbox.ModAPI.Ingame.IMyReactor 
@@ -364,14 +360,9 @@ namespace NaniteConstructionSystem.Entities
                               || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(SlimBlock.FatBlock.GetUserRelationToOwner(ConstructionBlock.OwnerId))) 
                                 continue;
 
-                            newConnectedInventory.Add(inv);
+                            InventoryManager.connectedInventory.Add(inv);
                         }
                     }
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                    {
-                        lock (InventoryManager.connectedInventory)
-                            InventoryManager.connectedInventory = newConnectedInventory;
-                    });
                 }
                 catch (Exception ex)
                     {VRage.Utils.MyLog.Default.WriteLineAndConsole($"BuildConnectedInventory() Error: {ex.ToString()}");}
@@ -387,11 +378,7 @@ namespace NaniteConstructionSystem.Entities
 
             List<IMyProductionBlock> assemblerList = new List<IMyProductionBlock>();
 
-            List<IMyInventory> ThreadSafeConnectedInventory = new List<IMyInventory>();
-            lock (InventoryManager.connectedInventory)
-                ThreadSafeConnectedInventory = InventoryManager.connectedInventory.ToList();
-
-            foreach (var inv in ThreadSafeConnectedInventory)
+            foreach (var inv in InventoryManager.connectedInventory)
             {
                 IMyEntity entity = inv.Owner as IMyEntity;
                 if (entity == null) 
@@ -440,10 +427,7 @@ namespace NaniteConstructionSystem.Entities
                 }
 
                 if (ItemIsAlreadyQueuedInAssembler(def, item.Value, assemblerList))
-                {
-                    m_itemIsAlreadyQueuedInAssemblerRetryCounter = 0;
                     continue;
-                }
 
                 int blueprintCount = assemblerList.Sum(x => x.GetQueue().Sum(y => y.Blueprint == def ? (int)y.Amount : 0));
                 int availableCount = 0;
@@ -478,17 +462,10 @@ namespace NaniteConstructionSystem.Entities
                     foreach (var queueItem in assembler.GetQueue())
                         if (queueItem.Blueprint == def && (int)queueItem.Amount >= amountNeeded)
                             return true;
-
-                m_itemIsAlreadyQueuedInAssemblerRetryCounter = 0;
                 return false;
             }
             catch (InvalidOperationException ex)
             {
-                if (m_itemIsAlreadyQueuedInAssemblerRetryCounter++ > 60)
-                {
-                    VRage.Utils.MyLog.Default.WriteLineAndConsole("NaniteConstructionBlock.ItemIsAlreadyQueuedInAssembler caused an infinite loop. Aborting.");
-                    return true;
-                }
                 Logging.Instance.WriteLine("NaniteConstructionBlock.ItemIsAlreadyQueuedInAssembler: A list was modified. Retrying.");
                 return ItemIsAlreadyQueuedInAssembler(def, amountNeeded, assemblerList);
             }           
@@ -539,6 +516,12 @@ namespace NaniteConstructionSystem.Entities
                         ProcessAssemblerQueue();
                         ProcessTargets();
                         Logging.Instance.WriteLine($"ScanForTargets {ConstructionBlock.EntityId}: {(DateTime.Now - start).TotalMilliseconds}ms");
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        Logging.Instance.WriteLine("ScanForTargets InvalidOperationException: "
+                          + "This is likely due to a list being modified during enumeration in a parallel thread, "
+                          + $"which is probably harmless.\n{ex.ToString()}");
                     }
                     catch (Exception ex)
                     {
@@ -825,10 +808,10 @@ namespace NaniteConstructionSystem.Entities
             else if (m_updateCount % 120 != 0)
                 return;
 
-            UpdatePower();
-
             MyAPIGateway.Parallel.Start(() =>
             {
+                ProcessInventory();
+                UpdatePower();
                 IMyFunctionalBlock blockEntity = (IMyFunctionalBlock)ConstructionBlock;
                 int targetsCount = m_targets.Sum(x => x.TargetList.Count);
                 int potentialTargetsCount = m_targets.Sum(x => x.PotentialTargetList.Count);
@@ -1340,27 +1323,6 @@ namespace NaniteConstructionSystem.Entities
             MyAPIGateway.Multiplayer.SendMessageToOthers(8958, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
-       /* public void SyncStartParticleEffect(ParticleData data)
-        {
-            NaniteConstructionManager.ParticleManager.AddParticle(data.TargetId, new Vector3I(data.PositionX, data.PositionY, data.PositionZ), data.EffectId);
-        }
-
-        public void SendRemoveParticleEffect(long entityId, Vector3I position)
-        {
-            ParticleData data = new ParticleData();
-            data.EntityId = ConstructionBlock.EntityId;
-            data.TargetId = entityId;
-            data.PositionX = position.X;
-            data.PositionY = position.Y;
-            data.PositionZ = position.Z;
-            MyAPIGateway.Multiplayer.SendMessageToOthers(8959, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
-        }
-
-        public void SyncRemoveParticleEffect(ParticleData data)
-        {
-            NaniteConstructionManager.ParticleManager.RemoveParticle(data.TargetId, new Vector3I(data.PositionX, data.PositionY, data.PositionZ));
-        }
-        */
         /// <summary>
         /// When splits happen, targets grid and position change, which isn't updating properly ?  This will just remove the target on the client.  It's hacky
         /// but it works
