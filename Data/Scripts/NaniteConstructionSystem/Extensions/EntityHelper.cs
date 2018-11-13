@@ -55,6 +55,8 @@ namespace NaniteConstructionSystem.Extensions
         {
             try
             {
+                if (source == null)
+                    return;
                 MyInventory sourceInventory = source.GetInventory();
                 foreach (IMyInventory inv in connectedInventory.OrderByDescending(x => (float)x.MaxVolume - (float)x.CurrentVolume))
                 {
