@@ -3,12 +3,12 @@ using VRageMath;
 using VRage.Game.ModAPI;
 using VRage.Game;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using Sandbox.ModAPI;
 using Ingame = Sandbox.ModAPI.Ingame;
 using Sandbox.Game;
 using System.Linq;
 using VRage.ModAPI;
-//using Ingame = VRage.Game.ModAPI.Ingame;
 using Sandbox.Game.Entities;
 using VRage.ObjectBuilders;
 
@@ -51,30 +51,46 @@ namespace NaniteConstructionSystem.Extensions
 
     public static class GridHelper
     {
-        public static void TryMoveToFreeCargo(MyCubeBlock target, List<IMyInventory> connectedInventory, bool ignoreOtherFactories = false)
+        public static void TryMoveToFreeCargo(MyCubeBlock source, ConcurrentBag<IMyInventory> connectedInventory, bool ignoreOtherFactories = false)
         {
-            MyInventory sourceInventory = target.GetInventory();
-            foreach (IMyInventory inv in connectedInventory.OrderByDescending(x => (float)x.MaxVolume - (float)x.CurrentVolume))
+            try
             {
-                MyInventory targetInventory = inv as MyInventory;
-                List<VRage.Game.Entity.MyPhysicalInventoryItem> items = sourceInventory.GetItems();
-                for (int i = 0; i < items.Count; i++)
+                MyInventory sourceInventory = source.GetInventory();
+                foreach (IMyInventory inv in connectedInventory.OrderByDescending(x => (float)x.MaxVolume - (float)x.CurrentVolume))
                 {
-                    IMyInventoryItem subItem = items[i] as IMyInventoryItem;
-                    if (subItem == null) 
+                    MyInventory targetInventory = inv as MyInventory;
+                    List<VRage.Game.Entity.MyPhysicalInventoryItem> items = sourceInventory.GetItems();
+                    for (int i = 0; i < items.Count; i++)
                     {
-                        VRage.Utils.MyLog.Default.WriteLineAndConsole("WARNING: IMyInventoryItem subItem was NULL: NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo");
-                        continue;
-                    }
-                    if (targetInventory.ItemsCanBeAdded(subItem.Amount, subItem)) 
-                        targetInventory.TransferItemFrom(sourceInventory, i, null, null, subItem.Amount);
-                    else
-                    {
-                        int amountFits = (int)targetInventory.ComputeAmountThatFits(new MyDefinitionId(subItem.Content.TypeId, subItem.Content.SubtypeId));
-                        if(amountFits > 0f) 
-                            targetInventory.TransferItemFrom(sourceInventory, i, null, null, amountFits);
+                        IMyInventoryItem subItem = items[i] as IMyInventoryItem;
+                        if (subItem == null) 
+                            continue;
+
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {
+                            if (subItem == null)
+                                return;
+                            if (targetInventory.ItemsCanBeAdded(subItem.Amount, subItem)) 
+                                targetInventory.TransferItemFrom(sourceInventory, i, null, null, subItem.Amount);
+                            else
+                            {
+                                int amountFits = (int)targetInventory.ComputeAmountThatFits(new MyDefinitionId(subItem.Content.TypeId, subItem.Content.SubtypeId));
+                                if (amountFits > 0f) 
+                                    targetInventory.TransferItemFrom(sourceInventory, i, null, null, amountFits);
+                            }
+                        });
                     }
                 }
+            }
+            catch (InvalidOperationException ex)
+            {
+                Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Retrying.");
+                TryMoveToFreeCargo(source, connectedInventory, ignoreOtherFactories);
+            }
+            catch (Exception ex) when (ex.ToString().Contains("IndexOutOfRangeException")) //because Keen thinks we shouldn't have access to this exception ...
+            {
+                Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Retrying.");
+                TryMoveToFreeCargo(source, connectedInventory, ignoreOtherFactories);
             }
         }
     }
