@@ -76,16 +76,17 @@ namespace NaniteConstructionSystem.Extensions
 
                             if (targetInventory.ItemsCanBeAdded(subItem.Amount, subItem))
                             {
-                                targetInventory.Add(subItem, subItem.Amount);
-                                sourceInventory.Remove(subItem, subItem.Amount);
+                                if (sourceInventory.Remove(subItem, subItem.Amount))
+                                    targetInventory.Add(subItem, subItem.Amount);
                             }
                             else
                             {
                                 int amountFits = (int)targetInventory.ComputeAmountThatFits(new MyDefinitionId(subItem.Content.TypeId, subItem.Content.SubtypeId));
                                 if (amountFits > 0f) 
                                 {
-                                    targetInventory.Add(subItem, (MyFixedPoint)amountFits);
-                                    sourceInventory.Remove(subItem, (MyFixedPoint)amountFits);
+                                    if (sourceInventory.Remove(subItem, (MyFixedPoint)amountFits))
+                                        targetInventory.Add(subItem, (MyFixedPoint)amountFits);
+                                    
                                 }
                             }
                         });
