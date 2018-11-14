@@ -5,6 +5,7 @@ using Sandbox.ModAPI;
 using VRage;
 using VRage.Game.ModAPI;
 using VRageMath;
+using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.Definitions;
 using VRage.Game;
@@ -124,61 +125,19 @@ namespace NaniteConstructionSystem.Entities.Targets
                         miningItem.VoxelMaterial = material.Material;
                         miningItem.VoxelId = material.EntityId;
                         miningItem.Amount = 1f; // * 3.9f;
-                        //miningItem.MiningHammer = this;
                         finalAddList.Add(miningItem);
                     }
                 }
-
-                //int sum = miningBlock.OreList.Sum(x => x.Value.Count);
-                //Dictionary<MyVoxelMaterialDefinition, List<NaniteMiningItem>> lookup = null;
-                //using (miningBlock.Lock.AcquireExclusiveUsing())
-                //{
-                //    lookup = miningBlock.OreList.ToDictionary(x => x.Key, x => x.Value);
-                //}
-
-                //List<object> addList = new List<object>();
-                //int count = 0;
-                //int pos = 0;
-
-                //while (true)
-                //{
-                //    var group = lookup.ElementAt(count % miningBlock.OreList.Count);
-                //    if (pos < group.Value.Count)
-                //    {
-                //        addList.Insert(0, group.Value[pos]);
-                //    }
-
-                //    count++;
-                //    if (count % miningBlock.OreList.Count == 0)
-                //        pos++;
-
-                //    if (count >= 1000)
-                //        break;
-
-                //    if (count >= sum)
-                //        break;
-                //}
-
-                //DistributeList(addList, finalAddList, listCount);
-                //listCount++;
-
-                //if (listCount > 5)
-                //    break;
             }
 
             var listToAdd = finalAddList.Take(1000).ToList();
             listToAdd.Reverse();
-            using (Lock.AcquireExclusiveUsing())
-            {
-                PotentialTargetList.AddRange(listToAdd);
-            }
-
-            //Logging.Instance.WriteLine(string.Format("ParallelUpdate() took {0} ms", (DateTime.Now - start).TotalMilliseconds));
+            PotentialTargetList.AddRange(listToAdd);
         }
 
         private void DistributeList(List<object> listToAdd, List<object> finalList, int count)
         {
-            if(count < 1)
+            if (count < 1)
             {
                 finalList.AddRange(listToAdd);
                 return;
@@ -203,7 +162,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (TargetList.Count >= GetMaximumTargets())
             {
                 if (PotentialTargetList.Count > 0)
-                    InvalidTargetReason("Maximum targets reached.  Add more upgrades!");
+                    InvalidTargetReason("Maximum targets reached. Add more upgrades!");
 
                 return;
             }
@@ -288,13 +247,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
                     return;
 
-                //if(!target.MiningHammer.IsWorking)
-                //{
-                //    Logging.Instance.WriteLine("CANCELLING Mining Target due to hammer functionality change");
-                //    CancelTarget(target);
-                //    return;
-                //}
-
                 if (!m_constructionBlock.IsPowered())
                 {
                     Logging.Instance.WriteLine("CANCELLING Mining Target due to power shortage");
@@ -355,16 +307,58 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             byte material = 0;
             float amount = 0;
-            // TODO: process voxel removal, by cutting sphere
-            //gging.Instance.WriteLine($"Removing: {target.Position} ({material} {amount})");
 
-            /*
+            IMyEntity entity;
+            if (!MyAPIGateway.Entities.TryGetEntityById(target.VoxelId, out entity))
+                return false;
+
+            IMyVoxelBase voxel = entity as IMyVoxelBase;
+            Vector3D targetMin = target.Position;
+            Vector3D targetMax = target.Position;
+            Vector3I minVoxel, maxVoxel;
+            MyVoxelCoordSystems.WorldPositionToVoxelCoord(voxel.PositionLeftBottomCorner, ref targetMin, out minVoxel);
+            MyVoxelCoordSystems.WorldPositionToVoxelCoord(voxel.PositionLeftBottomCorner, ref targetMax, out maxVoxel);
+
+            MyVoxelBase voxelBase = voxel as MyVoxelBase;
+
+            minVoxel += voxelBase.StorageMin;
+            maxVoxel += voxelBase.StorageMin + 1;
+
+            voxel.Storage.ClampVoxel(ref minVoxel);
+            voxel.Storage.ClampVoxel(ref maxVoxel);
+
+            MyStorageData cache = new MyStorageData();
+            cache.Resize(minVoxel, maxVoxel);
+            var flag = MyVoxelRequestFlags.AdviseCache;
+            cache.ClearContent(0);
+            cache.ClearMaterials(0);
+
+            byte original = 0;
+
+            voxel.Storage.ReadRange(cache, MyStorageDataTypeFlags.ContentAndMaterial, 0, minVoxel, maxVoxel, ref flag);
+
+            original = cache.Content(0);
+            material = cache.Material(0);
+
+            if (original == MyVoxelConstants.VOXEL_CONTENT_EMPTY)
+            {
+                Logging.Instance.WriteLine(string.Format("Content is empty"));
+                return false;
+            }
+
+            Logging.Instance.WriteLine($"Material: SizeLinear: {cache.SizeLinear}, Size3D: {cache.Size3D}, AboveISO: {cache.ContainsVoxelsAboveIsoLevel()}");
+            cache.Content(0, 0);
+
+            var voxelMat = MyDefinitionManager.Static.GetVoxelMaterialDefinition(material);
+            amount = CalculateAmount(voxelMat, original * 3.9f);
+
+            Logging.Instance.WriteLine($"Removing: {target.Position} ({material} {amount})");
+
             if (material == 0)
             {
                 Logging.Instance.WriteLine(string.Format("Material is 0", target.VoxelId));
                 return false;
             }
-            */
 
             if (amount == 0f)
             {
@@ -373,15 +367,33 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
 
             var def = MyDefinitionManager.Static.GetVoxelMaterialDefinition(target.VoxelMaterial);
-            var builder = MyObjectBuilderSerializer.CreateNewObject<MyObjectBuilder_Ore>(def.MinedOre);
+            var item = MyObjectBuilderSerializer.CreateNewObject<MyObjectBuilder_Ore>(def.MinedOre);
             var inventory = ((MyCubeBlock)m_constructionBlock.ConstructionBlock).GetInventory();
-            if (inventory.MaxVolume - inventory.CurrentVolume < (MyFixedPoint)amount)
-            {
-                Logging.Instance.WriteLine(string.Format("Can not find free cargo space!"));
-                return false;
-            }
+            MyInventory targetInventory = ((MyCubeBlock)m_constructionBlock.ConstructionBlock).GetInventory();
 
-            return true;
+            if (targetInventory != null && targetInventory.CanItemsBeAdded((MyFixedPoint)amount, item.GetId()))
+            {
+                var ownerName = targetInventory.Owner as IMyTerminalBlock;
+                if (ownerName != null)
+                    Logging.Instance.WriteLine($"TRANSFER Adding {amount} {item.GetId().SubtypeName} to {ownerName.CustomName}");
+
+                targetInventory.AddItems((MyFixedPoint)amount, item);
+                voxelBase.PerformCutOutSphereFast(target.Position, 1f, true);
+                return true;
+            }
+            Logging.Instance.WriteLine(string.Format("Mined materials could not be moved. No free cargo space!"));
+            return false;
+        }
+
+        private static float CalculateAmount(MyVoxelMaterialDefinition material, float amount)
+        {
+            var oreObjBuilder = VRage.ObjectBuilders.MyObjectBuilderSerializer.CreateNewObject<MyObjectBuilder_Ore>(material.MinedOre);
+            oreObjBuilder.MaterialTypeName = material.Id.SubtypeId;
+            float amountCubicMeters = (float)(((float)amount / (float)MyVoxelConstants.VOXEL_CONTENT_FULL) * MyVoxelConstants.VOXEL_VOLUME_IN_METERS * Sandbox.Game.MyDrillConstants.VOXEL_HARVEST_RATIO);
+            amountCubicMeters *= (float)material.MinedOreRatio;
+            var physItem = MyDefinitionManager.Static.GetPhysicalItemDefinition(oreObjBuilder);
+            MyFixedPoint amountInItemCount = (MyFixedPoint)(amountCubicMeters / physItem.Volume);
+            return (float)amountInItemCount;
         }
 
         public override void CancelTarget(object obj)
