@@ -7,6 +7,7 @@ using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using VRage;
@@ -68,12 +69,6 @@ namespace NaniteConstructionSystem.Entities.Detectors
             }
         }
 
-        private MyConcurrentDictionary<MyVoxelMaterialDefinition, List<NaniteMiningItem>> m_oreList;
-        public MyConcurrentDictionary<MyVoxelMaterialDefinition, List<NaniteMiningItem>> OreList
-        {
-            get { return m_oreList; }
-        }
-
         private StringBuilder m_oreListCache;
         public StringBuilder OreListCache
         {
@@ -125,7 +120,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
             get { return supportFilter && m_block.UpgradeValues["Filter"] > 0f; }
         }
 
-        protected bool supportFilter = false;
+        protected bool supportFilter = true;
         protected int maxScanningLevel = 0;
         protected float minRange = 0f;
         protected float basePower = 0f;
@@ -133,11 +128,17 @@ namespace NaniteConstructionSystem.Entities.Detectors
         internal float m_scanProgress;
         private DetectorStates m_lastDetectorState;
         internal DetectorStates m_detectorState;
+        public DetectorStates DetectorState
+        {
+            get { return m_detectorState; }
+        }
+
+        public ConcurrentBag<Vector3D> minedPositions = new ConcurrentBag<Vector3D>();
 
         private static readonly List<MyVoxelBase> m_inRangeCache = new List<MyVoxelBase>();
         private static readonly List<MyVoxelBase> m_notInRangeCache = new List<MyVoxelBase>();
-        private readonly Dictionary<MyVoxelBase, OreDeposit> m_depositGroupsByEntity = new Dictionary<MyVoxelBase, OreDeposit>();
-        public Dictionary<MyVoxelBase, OreDeposit> DepositGroup
+        private ConcurrentDictionary<MyVoxelBase, OreDeposit> m_depositGroupsByEntity = new ConcurrentDictionary<MyVoxelBase, OreDeposit>();
+        public ConcurrentDictionary<MyVoxelBase, OreDeposit> DepositGroup
         {
             get { return m_depositGroupsByEntity; }
         }
@@ -169,6 +170,13 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
             if (!NaniteConstructionManager.OreDetectors.ContainsKey(entity.EntityId))
                 NaniteConstructionManager.OreDetectors.Add(entity.EntityId, this);
+        }
+
+        public void ClearMinedPositions()
+        {
+            Vector3D removedItem = new Vector3D(1.0, 1.0, 1.0);
+            while (!minedPositions.IsEmpty)
+                minedPositions.TryTake(out removedItem);
         }
 
         public void Init()
@@ -209,7 +217,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
             // TODO remove debug only
             sb.Append($"Range: {Range}\n"); 
-            sb.Append($"Scan: {(m_scanProgress * 100).ToString("0.0")}%\n");
+            sb.Append($"Scan: {(m_scanProgress * 100).ToString("0.0000")}%\n");
             sb.Append($"Ores:\n");
             sb.Append(m_oreListCache);
         }
@@ -438,10 +446,10 @@ namespace NaniteConstructionSystem.Entities.Detectors
         {
             foreach (MyVoxelBase item in m_inRangeCache)
             {
-                if (!m_depositGroupsByEntity.ContainsKey(item.GetTopMostParent() as MyVoxelBase))
-                {
-                    m_depositGroupsByEntity.Add(item, new OreDeposit(item));
-                }
+                //if (!m_depositGroupsByEntity.ContainsKey(item.GetTopMostParent() as MyVoxelBase))
+                //{
+                    m_depositGroupsByEntity.TryAdd(item, new OreDeposit(item));
+                //}
             }
             m_inRangeCache.Clear();
         }
@@ -482,6 +490,10 @@ namespace NaniteConstructionSystem.Entities.Detectors
         private int m_processedTasks;
         public int ProcessedTasks { get { return m_processedTasks; } }
         private MyConcurrentQueue<Vector3I> m_taskQueue;
+        private bool HasFilterUpgrade;
+        private List<string> OreListSelected;
+        private int m_tasksTimeout;
+        private int m_OldprocessedTasks;
 
         public readonly OreDepositMaterials Materials;
 
@@ -494,9 +506,27 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
         public void UpdateDeposits(ref BoundingSphereD sphere, long detectorId, NaniteOreDetector detectorComponent)
         {
-            Logging.Instance.WriteLine($"UpdateDeposits Tasks: {m_tasksRunning} {m_initialTasks} {m_processedTasks}");
+            Logging.Instance.WriteLine($"UpdateDeposits Tasks: Running:{m_tasksRunning} Initial tasks:{m_initialTasks} Processed tasks:{m_processedTasks} Timeout:{m_tasksTimeout}");
             if (m_tasksRunning > 0)
+            {
+                if (m_OldprocessedTasks == m_processedTasks && m_processedTasks != m_initialTasks)
+                    if (m_tasksTimeout++ > 5)
+                    {
+                        Logging.Instance.WriteLine($"Mining scan task timeout. Clearing ore deposits and restarting.");
+                        detectorComponent.DepositGroup.Clear();
+                        m_tasksTimeout = 0;
+                    }
+                else
+                {
+                    m_OldprocessedTasks = m_processedTasks;
+                    m_tasksTimeout = 0;
+                }
                 return;
+            }
+            m_tasksTimeout = 0;
+            
+            HasFilterUpgrade = detectorComponent.HasFilterUpgrade;
+            OreListSelected = detectorComponent.OreListSelected;
 
             Vector3I minCorner, maxCorner;
             {
@@ -516,6 +546,9 @@ namespace NaniteConstructionSystem.Entities.Detectors
             if (m_lastDetectionMin == null || m_lastDetectionMax == null)
             {
                 Logging.Instance.WriteLine($"UpdateDeposits First scan");
+                MyAPIGateway.Parallel.Start(() =>
+                    {detectorComponent.ClearMinedPositions();});
+                
                 m_lastDetectionMax = minCorner;
                 m_lastDetectionMin = maxCorner;
             }
@@ -604,7 +637,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 if (!m_taskQueue.TryDequeue(out vector))
                     return;
 
-                OreDepositWork.Start(vector, vector + 1, m_voxelMap, Materials, QueueWorkerDone);
+                OreDepositWork.Start(vector, vector + 1, m_voxelMap, Materials, QueueWorkerDone, HasFilterUpgrade, OreListSelected);
 
                 using (m_lock.AcquireExclusiveUsing())
                     m_tasksRunning++;
@@ -633,6 +666,8 @@ namespace NaniteConstructionSystem.Entities.Detectors
         public Vector3I Max { get; set; }
         public OreDepositMaterials Materials { get; set; }
         public Action Callback { get; set; }
+        private bool HasFilterUpgrade;
+        private List<string> OreListSelected;
 
         private static MyStorageData m_cache;
         private static MyStorageData Cache
@@ -647,10 +682,13 @@ namespace NaniteConstructionSystem.Entities.Detectors
             }
         }
 
-        public static void Start(Vector3I min, Vector3I max, MyVoxelBase voxelMap, OreDepositMaterials materials, Action completionCallback)
+        public static void Start(Vector3I min, Vector3I max, MyVoxelBase voxelMap, OreDepositMaterials materials, Action completionCallback, bool FilterUpgrade, List<string> OreList)
         {
+            
             MyAPIGateway.Parallel.StartBackground(new OreDepositWork
             {
+                OreListSelected = OreList,
+                HasFilterUpgrade = FilterUpgrade,
                 VoxelMap = voxelMap,
                 Min = min,
                 Max = max,
@@ -664,7 +702,8 @@ namespace NaniteConstructionSystem.Entities.Detectors
             // LOD above is 5 we decrease it by 2 so our LOD now is 3
             Min <<= 2;
             Max <<= 2;
-
+            //foreach (string mat in OreListSelected)
+                //Logging.Instance.WriteLine($"OreListSelected has {mat}");
             MyStorageData cache = Cache;
             cache.Resize(new Vector3I(8));
             for (int x = Min.X; x <= Max.X; x++)
@@ -714,7 +753,23 @@ namespace NaniteConstructionSystem.Entities.Detectors
                             if (cache.Content(linearIdx) > 127)
                             {
                                 byte b = cache.Material(linearIdx);
-                                Materials.AddMaterial(b, vector3I + p);
+
+                                if (HasFilterUpgrade)
+                                {
+                                    var voxelDefinition = MyDefinitionManager.Static.GetVoxelMaterialDefinition(b);
+                                    foreach (string mat in OreListSelected)
+                                    {
+                                        //Logging.Instance.WriteLine($"voxelDefinition.MaterialTypeName is {voxelDefinition.MinedOre}");
+                                        if (voxelDefinition.MinedOre.ToLower() == mat.ToLower())
+                                        {
+                                            Materials.AddMaterial(b, vector3I + p);
+                                            break;
+                                        }
+                                    }
+                                }
+                                else
+                                    Materials.AddMaterial(b, vector3I + p);
+
                                 MyAPIGateway.Parallel.Sleep(1);
                             }
                             p.X++;
