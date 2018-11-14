@@ -1,6 +1,8 @@
 using NaniteConstructionSystem.Extensions;
 using Sandbox.Common.ObjectBuilders;
 using Sandbox.ModAPI;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.ObjectBuilders;
@@ -11,6 +13,9 @@ namespace NaniteConstructionSystem.Entities.Detectors
     public class LargeNaniteOreDetectorLogic : MyGameLogicComponent
     {
         public MyModStorageComponentBase Storage { get; set; }
+
+        public float OldRange;
+        public List<string> OldOreListSelected;
 
         private LargeNaniteOreDetector m_detector = null;
         public LargeNaniteOreDetector Detector
@@ -75,6 +80,20 @@ namespace NaniteConstructionSystem.Entities.Detectors
         {
             base.UpdateBeforeSimulation100();
             m_detector.CheckScan();
+
+            bool forceRescan = false;
+            if (OldRange != m_detector.Range)
+            {
+                forceRescan = true;
+                OldRange = m_detector.Range;
+            }
+            if (OldOreListSelected != m_detector.OreListSelected)
+            {
+                forceRescan = true;
+                OldOreListSelected = m_detector.OreListSelected;
+            }
+            if (forceRescan)
+                m_detector.DepositGroup.Clear();
         }
 
         public override bool IsSerialized()
