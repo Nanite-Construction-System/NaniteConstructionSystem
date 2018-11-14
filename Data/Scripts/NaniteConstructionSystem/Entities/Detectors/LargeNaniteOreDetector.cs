@@ -18,7 +18,10 @@ namespace NaniteConstructionSystem.Entities.Detectors
     {
         public byte VoxelMaterial { get; set; }
         public Vector3D Position { get; set; }
+        public Vector3I VoxelPosition { get; set; }
+        public MyVoxelMaterialDefinition Definition { get; set; }
         public long VoxelId { get; set; }
+        public long OreDetectorId { get; set; }
         public float Amount { get; set; }
     }
 }
