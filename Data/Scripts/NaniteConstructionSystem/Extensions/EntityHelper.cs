@@ -57,6 +57,7 @@ namespace NaniteConstructionSystem.Extensions
             {
                 if (source == null)
                     return;
+
                 MyInventory sourceInventory = source.GetInventory();
                 foreach (IMyInventory inv in connectedInventory.OrderByDescending(x => (float)x.MaxVolume - (float)x.CurrentVolume))
                 {
@@ -72,13 +73,20 @@ namespace NaniteConstructionSystem.Extensions
                         {
                             if (subItem == null)
                                 return;
-                            if (targetInventory.ItemsCanBeAdded(subItem.Amount, subItem)) 
-                                targetInventory.TransferItemFrom(sourceInventory, i, null, null, subItem.Amount);
+
+                            if (targetInventory.ItemsCanBeAdded(subItem.Amount, subItem))
+                            {
+                                targetInventory.Add(subItem, subItem.Amount);
+                                sourceInventory.Remove(subItem, subItem.Amount);
+                            }
                             else
                             {
                                 int amountFits = (int)targetInventory.ComputeAmountThatFits(new MyDefinitionId(subItem.Content.TypeId, subItem.Content.SubtypeId));
                                 if (amountFits > 0f) 
-                                    targetInventory.TransferItemFrom(sourceInventory, i, null, null, amountFits);
+                                {
+                                    targetInventory.Add(subItem, (MyFixedPoint)amountFits);
+                                    sourceInventory.Remove(subItem, (MyFixedPoint)amountFits);
+                                }
                             }
                         });
                     }
