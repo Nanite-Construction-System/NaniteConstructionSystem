@@ -121,30 +121,39 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 foreach (var material in materialList)
                 {
-                    for (int i = 0; i < material.WorldPosition.Count; i++)
+                    try
                     {
-                        bool alreadyMined = false;
-                        foreach (var minedPos in oreDetector.Value.minedPositions)
+                        for (int i = 0; i < material.WorldPosition.Count; i++)
                         {
-                            if (material.WorldPosition[i] == minedPos)
+                            bool alreadyMined = false;
+                            foreach (var minedPos in oreDetector.Value.minedPositions)
                             {
-                                alreadyMined = true;
-                                Logging.Instance.WriteLine($"Found an already mined position {minedPos}");
-                                break;
+                                if (material.WorldPosition[i] == minedPos)
+                                {
+                                    alreadyMined = true;
+                                    Logging.Instance.WriteLine($"Found an already mined position {minedPos}");
+                                    break;
+                                }
                             }
-                        }
-                        if (alreadyMined)
-                            continue;
+                            if (alreadyMined)
+                                continue;
 
-                        NaniteMiningItem miningItem = new NaniteMiningItem();
-                        miningItem.Position = material.WorldPosition[i];
-                        miningItem.VoxelPosition = material.VoxelPosition[i];
-                        miningItem.Definition = material.Definition;
-                        miningItem.VoxelMaterial = material.Material;
-                        miningItem.VoxelId = material.EntityId;
-                        miningItem.Amount = 1f; // * 3.9f;
-                        miningItem.OreDetectorId = ((MyEntity)item).EntityId;
-                        finalAddList.Add(miningItem);
+                            NaniteMiningItem miningItem = new NaniteMiningItem();
+                            miningItem.Position = material.WorldPosition[i];
+                            miningItem.VoxelPosition = material.VoxelPosition[i];
+                            miningItem.Definition = material.Definition;
+                            miningItem.VoxelMaterial = material.Material;
+                            miningItem.VoxelId = material.EntityId;
+                            miningItem.Amount = 1f; // * 3.9f;
+                            miningItem.OreDetectorId = ((MyEntity)item).EntityId;
+                            finalAddList.Add(miningItem);
+                        }
+                    }
+                    catch (Exception ex) when (ex.ToString().Contains("ArgumentOutOfRangeException")) //because Keen thinks we shouldn't have access to this exception ...
+                    {
+                        Logging.Instance.WriteLine("Caught an ArgumentOutOfRangeException while processing mining targets. Forcing the Nanite Ore Detector to rescan.");
+                        oreDetector.Value.DepositGroup.Clear();
+                        break;
                     }
                 }
                 if (oldMinedPositionsCount == oreDetector.Value.minedPositions.Count && oreDetector.Value.minedPositions.Count > 0)
