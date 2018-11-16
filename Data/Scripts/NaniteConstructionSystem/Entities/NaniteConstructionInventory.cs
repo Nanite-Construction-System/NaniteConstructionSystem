@@ -25,7 +25,7 @@ namespace NaniteConstructionSystem.Entities
 {
     public class NaniteConstructionInventory
     {
-        public ConcurrentBag<IMyInventory> connectedInventory = new ConcurrentBag<IMyInventory>();
+        public List<IMyInventory> connectedInventory = new List<IMyInventory>();
 
         private Dictionary<string, int> m_componentsRequired;
         public Dictionary<string, int> ComponentsRequired
@@ -47,50 +47,63 @@ namespace NaniteConstructionSystem.Entities
             
             MyAPIGateway.Parallel.StartBackground(() =>
             {
-                foreach(IMyInventory inventory in connectedInventory)
+                List<IMyInventory> removalList = new List<IMyInventory>();
+                lock (connectedInventory)
                 {
-                    IMyInventory constructionInventory = GetConstructionInventory();
-                    if (constructionInventory == null || inventory == null || inventory.GetItems().Count < 1) 
-                        continue;
-
-                    foreach (var inventoryItem in inventory.GetItems().ToList())
+                    foreach (IMyInventory inventory in connectedInventory)
                     {
-                        foreach (var componentNeeded in ComponentsRequired.ToList())
+                        IMyInventory inv = null;
+                        IMyInventory constructionInventory = GetConstructionInventory();
+                        if (!GridHelper.IsValidInventoryConnection(constructionInventory, inventory, out inv))
                         {
-                            if (inventoryItem.Content.TypeId != typeof(MyObjectBuilder_Component) || componentNeeded.Value <= 0 
-                              || (int)inventoryItem.Amount <= 0f || inventoryItem.Content.SubtypeName != componentNeeded.Key) 
-                                continue;
+                            removalList.Add(inventory);
+                            continue;
+                        }
+                        if (constructionInventory == null || inventory == null || inventory.GetItems().Count < 1) 
+                            continue;
 
-                            var validAmount = GetMaxComponentAmount(componentNeeded.Key, (float)constructionInventory.MaxVolume - (float)constructionInventory.CurrentVolume); 
-
-                            float amount;
-
-                            if (inventoryItem.Amount >= componentNeeded.Value) 
-                                amount = Math.Min(componentNeeded.Value, validAmount);
-                            else 
-                                amount = Math.Min((float)inventoryItem.Amount, validAmount);
-
-                            if (!constructionInventory.CanItemsBeAdded((int)amount, new SerializableDefinitionId(typeof(MyObjectBuilder_Component), componentNeeded.Key))) 
-                                continue;
-
-                            MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                        foreach (var inventoryItem in inventory.GetItems().ToList())
+                        {
+                            foreach (var componentNeeded in ComponentsRequired.ToList())
                             {
-                                try
-                                {
-                                    inventory.RemoveItemsOfType((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
-                                    constructionInventory.AddItems((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
+                                if (inventoryItem.Content.TypeId != typeof(MyObjectBuilder_Component) || componentNeeded.Value <= 0 
+                                || (int)inventoryItem.Amount <= 0f || inventoryItem.Content.SubtypeName != componentNeeded.Key) 
+                                    continue;
 
-                                    if (ComponentsRequired.ContainsKey(componentNeeded.Key)) 
-                                        ComponentsRequired[componentNeeded.Key] -= (int)amount;
-                                }
-                                catch (Exception ex)
+                                var validAmount = GetMaxComponentAmount(componentNeeded.Key, (float)constructionInventory.MaxVolume - (float)constructionInventory.CurrentVolume); 
+
+                                float amount;
+
+                                if (inventoryItem.Amount >= componentNeeded.Value) 
+                                    amount = Math.Min(componentNeeded.Value, validAmount);
+                                else 
+                                    amount = Math.Min((float)inventoryItem.Amount, validAmount);
+
+                                if (!constructionInventory.CanItemsBeAdded((int)amount, new SerializableDefinitionId(typeof(MyObjectBuilder_Component), componentNeeded.Key))) 
+                                    continue;
+
+                                MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                                 {
-                                    VRage.Utils.MyLog.Default.WriteLineAndConsole($"Nanite Control Factory: Exception in NaniteConstructionInventory.TakeRequiredComponents:\n{ex.ToString()}");
-                                }
-                            });
+                                    try
+                                    {
+                                        inventory.RemoveItemsOfType((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
+                                        constructionInventory.AddItems((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
+
+                                        if (ComponentsRequired.ContainsKey(componentNeeded.Key)) 
+                                            ComponentsRequired[componentNeeded.Key] -= (int)amount;
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        VRage.Utils.MyLog.Default.WriteLineAndConsole($"Nanite Control Factory: Exception in NaniteConstructionInventory.TakeRequiredComponents:\n{ex.ToString()}");
+                                    }
+                                });
+                            }
                         }
                     }
                 }
+                foreach (IMyInventory inv in removalList)
+                    lock (connectedInventory)
+                        connectedInventory.Remove(inv);
             });
         }
 

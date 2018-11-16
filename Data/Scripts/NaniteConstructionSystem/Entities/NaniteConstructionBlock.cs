@@ -4,9 +4,14 @@ using System.Collections.Concurrent;
 using System.Text;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Sandbox.Definitions;
+using Sandbox.Game;
 using Sandbox.Game.Entities;
+using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
 using VRage;
+using VRage.Collections;
+using VRage.Game.Components;
 using VRage.Game.Entity;
 using VRage.Game;
 using VRage.ModAPI;
@@ -14,7 +19,6 @@ using VRageMath;
 using VRage.Utils;
 using Ingame = Sandbox.ModAPI.Ingame;
 using VRage.Game.ModAPI;
-using Sandbox.Definitions;
 
 using NaniteConstructionSystem.Particles;
 using NaniteConstructionSystem.Entities.Targets;
@@ -22,12 +26,9 @@ using NaniteConstructionSystem.Entities.Effects;
 using NaniteConstructionSystem.Entities.Effects.LightningBolt;
 using NaniteConstructionSystem.Entities.Tools;
 using NaniteConstructionSystem.Entities.Beacons;
+using NaniteConstructionSystem.Entities.Detectors;
 using NaniteConstructionSystem.Extensions;
 using NaniteConstructionSystem.Settings;
-using VRage.Collections;
-using NaniteConstructionSystem.Entities.Detectors;
-using VRage.Game.Components;
-using Sandbox.Game.EntityComponents;
 
 namespace NaniteConstructionSystem.Entities
 {
@@ -95,6 +96,13 @@ namespace NaniteConstructionSystem.Entities
             get { return m_userDefinedNaniteLimit; }
         }
 
+        private bool m_updateConnectedInventory;
+        public bool UpdateConnectedInventory
+        {
+            get { return m_updateConnectedInventory; }
+            set { m_updateConnectedInventory = value; }
+        }
+
         internal MyResourceSinkInfo ResourceInfo;
         internal MyResourceSinkComponent Sink;
 
@@ -119,6 +127,8 @@ namespace NaniteConstructionSystem.Entities
         private int m_targetsCount;
         private bool m_clientEmissivesUpdate;
         private bool m_forceProcessState;
+        private List<IMyCubeGrid> GridGroup = new List<IMyCubeGrid>();
+        private MyInventory m_constructionBlockInventory = null;
 
         private const int m_spoolingTime = 3000;
 
@@ -129,8 +139,8 @@ namespace NaniteConstructionSystem.Entities
         public NaniteConstructionBlock(IMyEntity entity)
         {
             m_constructionBlock = (IMyShipWelder)entity;
-            var inventory = ((MyCubeBlock)entity).GetInventory();
-            inventory.SetFlags(MyInventoryFlags.CanReceive |MyInventoryFlags.CanSend);
+            m_constructionBlockInventory = ((MyCubeBlock)entity).GetInventory();
+            m_constructionBlockInventory.SetFlags(MyInventoryFlags.CanReceive |MyInventoryFlags.CanSend);
             m_defCache = new Dictionary<MyDefinitionId, MyBlueprintDefinitionBase>();
 
             m_constructionCubeBlock = (MyCubeBlock)entity;
@@ -187,10 +197,12 @@ namespace NaniteConstructionSystem.Entities
             m_inventoryManager = new NaniteConstructionInventory((MyEntity)m_constructionBlock);
 
             ((IMyTerminalBlock)m_constructionBlock).AppendingCustomInfo += AppendingCustomInfo;
+            //m_constructionCubeBlock.CubeGrid.OnBlockRemoved += OnBlockRemoved;
+            //m_constructionCubeBlock.CubeGrid.OnBlockAdded += OnBlockAdded;
 
             Sink = ((MyEntity)m_constructionBlock).Components.Get<MyResourceSinkComponent>();
 
-            BuildConnectedInventory();
+            CheckGridGroup();
         }
 
         /// <summary>
@@ -208,9 +220,6 @@ namespace NaniteConstructionSystem.Entities
 
             if (m_updateCount % 1800 == 0)
             {
-                if (m_factoryState != FactoryStates.Disabled && m_factoryState != FactoryStates.MissingPower)
-                    BuildConnectedInventory();
-
                 MyAPIGateway.Parallel.Start(() =>
                 {
                     string upgrades = "";
@@ -228,6 +237,12 @@ namespace NaniteConstructionSystem.Entities
                 {
                     ToolManager.Update();
                     InventoryManager.TakeRequiredComponents();
+                }
+
+                if (m_updateCount % 300 == 0 && m_updateConnectedInventory)
+                {
+                    m_updateConnectedInventory = false;
+                    CheckGridGroup();
                 }
                 
                 ProcessState();
@@ -259,9 +274,6 @@ namespace NaniteConstructionSystem.Entities
             }
         }
 
-        /// <summary>
-        /// Unload
-        /// </summary>
         public void Unload()
         {
             if (m_effects != null)
@@ -274,8 +286,8 @@ namespace NaniteConstructionSystem.Entities
 
         public bool IsUserDefinedLimitReached()
         {
-            var totalTargets = Targets.Sum(x => x.TargetList.Count);
-            if (m_userDefinedNaniteLimit != 0 && totalTargets >= m_userDefinedNaniteLimit)
+            //var totalTargets = ;
+            if (m_userDefinedNaniteLimit != 0 && Targets.Sum(x => x.TargetList.Count) >= m_userDefinedNaniteLimit)
                 return true;
 
             return false;
@@ -326,42 +338,76 @@ namespace NaniteConstructionSystem.Entities
             }
         }
 
-        /// <summary>
-        /// in a parallel thread, gets all connected inventories. Replaces outdated Conveyor.cs helper scripts
-        /// TO DO: This is currently set to rebuild 30 seconds (and once on init), will change to only rebuild when a grid's layout or block integrity changes
-        /// </summary>
-        public void BuildConnectedInventory()
+        private void OnBlockAdded(IMySlimBlock block)
+        {
+            Logging.Instance.WriteLine("Block added to grid. Attempting to add to inventory.");
+            MyAPIGateway.Parallel.Start(() =>
+                {TryAddToInventoryGroup(block);});
+        }
+
+        private void TryAddToInventoryGroup(object block)
+        {
+            IMyInventory inv = null;
+            if (GridHelper.IsValidInventoryConnection(m_constructionBlockInventory, block, out inv))
+            {
+                Logging.Instance.WriteLine("BEEEEEEEEEEEEEEEEEEEEEEEEEP.");
+                if (!InventoryManager.connectedInventory.Contains(inv))
+                {
+                    Logging.Instance.WriteLine("Adding inventory block to connected inventory.");
+                    lock (InventoryManager.connectedInventory)
+                        InventoryManager.connectedInventory.Add(inv);
+                }
+            }
+        }
+
+        // Checks if the grid group has changed and quickly scans/adds any inventory blocks. Removes event handlers
+        private void CheckGridGroup()
+        {
+            MyAPIGateway.Parallel.Start(() =>
+            {
+                try
+                {   
+                    List<IMyCubeGrid> removalList = new List<IMyCubeGrid>();
+                    List<IMyCubeGrid> newGroup = new List<IMyCubeGrid>(MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)m_constructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical));
+                    foreach(IMyCubeGrid grid in GridGroup)
+                    {
+                        if (!newGroup.Contains(grid))
+                        {
+                            Logging.Instance.WriteLine("Removing disconnected grid from grid group.");
+                            removalList.Add(grid);
+                            grid.OnBlockAdded -= OnBlockAdded;
+                        }
+                    }
+                    foreach(IMyCubeGrid grid in removalList)
+                        GridGroup.Remove(grid);
+
+                    foreach (IMyCubeGrid grid in newGroup)
+                    {
+                        if (!GridGroup.Contains(grid))
+                        {
+                            Logging.Instance.WriteLine("Adding new grid to grid group.");
+                            GridGroup.Add(grid);
+                            BuildConnectedInventory(grid);
+                            grid.OnBlockAdded += OnBlockAdded;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                    {VRage.Utils.MyLog.Default.WriteLineAndConsole($"CheckGridGroup() Error: {ex.ToString()}");}
+            });
+        }
+
+        //Scans and adds inventory blocks to a grid in the gridgroup. Adds an event handlers
+        public void BuildConnectedInventory(IMyCubeGrid grid)
         {
             MyAPIGateway.Parallel.StartBackground(() =>
             {
                 try
-                {
-                    IMyInventory BagItem;
-                    while (!InventoryManager.connectedInventory.IsEmpty)
-                        InventoryManager.connectedInventory.TryTake(out BagItem);
-
-                    ConcurrentBag<IMyCubeGrid> gridGroup = new ConcurrentBag<IMyCubeGrid>(MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)m_constructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical));
-                    foreach (IMyCubeGrid grid in gridGroup)
+                {                   
+                    ConcurrentBag<IMySlimBlock> slimBlocks = new ConcurrentBag<IMySlimBlock>(((MyCubeGrid)grid).GetBlocks());
+                    foreach (IMySlimBlock SlimBlock in slimBlocks)
                     {
-                        ConcurrentBag<IMySlimBlock> slimBlocks = new ConcurrentBag<IMySlimBlock>(((MyCubeGrid)grid).GetBlocks());
-                        foreach (IMySlimBlock SlimBlock in slimBlocks)
-                        {
-                            IMyEntity entity = SlimBlock.FatBlock as IMyEntity;
-                            if (entity == null || entity.EntityId == ConstructionBlock.EntityId || entity is Sandbox.ModAPI.Ingame.IMyReactor 
-                              || !entity.HasInventory || SlimBlock.FatBlock.BlockDefinition.SubtypeName.Contains("Nanite")) 
-                                continue;
-
-                            IMyProductionBlock prodblock = entity as IMyProductionBlock; //assemblers
-                            IMyInventory inv;
-
-                            inv = (prodblock != null && prodblock.OutputInventory != null) ? prodblock.OutputInventory : entity.GetInventory();
-
-                            if (inv == null || !inv.IsConnectedTo(m_constructionCubeBlock.GetInventory()) 
-                              || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(SlimBlock.FatBlock.GetUserRelationToOwner(ConstructionBlock.OwnerId))) 
-                                continue;
-
-                            InventoryManager.connectedInventory.Add(inv);
-                        }
+                        TryAddToInventoryGroup(SlimBlock);
                     }
                 }
                 catch (Exception ex)
@@ -378,17 +424,20 @@ namespace NaniteConstructionSystem.Entities
 
             List<IMyProductionBlock> assemblerList = new List<IMyProductionBlock>();
 
-            foreach (var inv in InventoryManager.connectedInventory)
+            lock (InventoryManager.connectedInventory)
             {
-                IMyEntity entity = inv.Owner as IMyEntity;
-                if (entity == null) 
-                    continue;
+                foreach (var inv in InventoryManager.connectedInventory)
+                {
+                    IMyEntity entity = inv.Owner as IMyEntity;
+                    if (entity == null) 
+                        continue;
 
-                IMyAssembler assembler = entity as IMyAssembler;
-                if (assembler == null || assembler.Mode == Sandbox.ModAPI.Ingame.MyAssemblerMode.Disassembly) 
-                    continue;
+                    IMyAssembler assembler = entity as IMyAssembler;
+                    if (assembler == null || assembler.Mode == Sandbox.ModAPI.Ingame.MyAssemblerMode.Disassembly) 
+                        continue;
 
-                assemblerList.Add((IMyProductionBlock)assembler);
+                    assemblerList.Add((IMyProductionBlock)assembler);
+                }
             }
 
             if (assemblerList.Count < 1) 
@@ -523,9 +572,15 @@ namespace NaniteConstructionSystem.Entities
                           + "This is likely due to a list being modified during enumeration in a parallel thread, "
                           + $"which is probably harmless.\n{ex.ToString()}");
                     }
+                    catch (Exception ex) when (ex.ToString().Contains("IndexOutOfRangeException")) //because Keen thinks we shouldn't have access to this exception ...
+                    {
+                        Logging.Instance.WriteLine("ScanForTargets IndexOutOfRangeException: "
+                          + "This is likely due to a list being modified during enumeration in a parallel thread, "
+                          + $"which is probably harmless.\n{ex.ToString()}");
+                    }
                     catch (Exception ex)
                     {
-                        VRage.Utils.MyLog.Default.WriteLineAndConsole($"ScanForTargets Error: {ex.ToString()}");
+                        VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.ScanForTargets Error: {ex.ToString()}");
                     }
                 });
             }
@@ -578,10 +633,19 @@ namespace NaniteConstructionSystem.Entities
                 List<IMyCubeGrid> grids = MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)m_constructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical);
                 List<IMySlimBlock> blocks = new List<IMySlimBlock>();
 
-                foreach (IMyCubeGrid grid in grids.ToList())
-                    grid.GetBlocks(blocks);       
+                try
+                {
+                    foreach (IMyCubeGrid grid in grids)
+                        grid.GetBlocks(blocks);     
+                }
+                catch (InvalidOperationException ex)
+                {
+                    Logging.Instance.WriteLine("NaniteConstructionBlock.ProcessTargetsParallel InvalidOperationException: "
+                          + "This is likely due to a list being modified during enumeration in a parallel thread, "
+                          + $"which is probably harmless.\n{ex.ToString()}");
+                }
 
-                foreach (var item in m_targets.ToList())
+                foreach (var item in m_targets)
                     item.ParallelUpdate(grids, blocks);
             }
             catch (Exception ex) 
@@ -829,8 +893,14 @@ namespace NaniteConstructionSystem.Entities
                 if ((targetsCount > 0) && IsPowered() || m_particleManager.Particles.Count > 0)
                 {
                     if (m_spoolPosition == m_spoolingTime)
+                    {
                         MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                            {m_factoryState = FactoryStates.Active;});
+                        {
+                            m_factoryState = FactoryStates.Active;
+                            if (m_lastState != m_factoryState)
+                                m_updateConnectedInventory = true;
+                        });
+                    }
                     else
                         MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                             {m_factoryState = FactoryStates.SpoolingUp;});
@@ -852,7 +922,11 @@ namespace NaniteConstructionSystem.Entities
                     MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                     {
                         if (InventoryManager.ComponentsRequired.Count > 0)
+                        {
                             m_factoryState = FactoryStates.MissingParts;
+                            if (m_lastState != m_factoryState)
+                                m_updateConnectedInventory = true;
+                        }
                     });
                 }
                 else if (blockEntity.Enabled)
@@ -989,14 +1063,9 @@ namespace NaniteConstructionSystem.Entities
                     var target = GetTarget<NaniteMiningTargets>().TargetList.FirstOrDefault(x => ((NaniteMiningItem)x).Position == new Vector3D(data.PositionD.X, data.PositionD.Y, data.PositionD.Z));
                     if (target == null)
                     {
-                        //var miningHammer = NaniteConstructionManager.MiningList.FirstOrDefault(x => x.MiningBlock.EntityId == data.SubTargetId);
-                        //if (miningHammer == null)
-                        //    return;
-
                         NaniteMiningItem item = new NaniteMiningItem();
                         item.VoxelId = data.TargetId;
                         item.Position = new Vector3D(data.PositionD.X, data.PositionD.Y, data.PositionD.Z);
-                        //item.MiningHammer = miningHammer;
                         GetTarget<NaniteMiningTargets>().TargetList.Add(item);
                     }
 
