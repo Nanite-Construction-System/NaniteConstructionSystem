@@ -2,6 +2,7 @@ using System;
 using VRageMath;
 using VRage.Game.ModAPI;
 using VRage.Game;
+using VRage.Game.Entity;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using Sandbox.ModAPI;
@@ -46,52 +47,87 @@ namespace NaniteConstructionSystem.Extensions
                 return MatrixD.CreateWorld(Vector3D.Transform(slimBlock.Position * size, slimBlock.CubeGrid.WorldMatrix), slimBlock.CubeGrid.WorldMatrix.Forward, slimBlock.CubeGrid.WorldMatrix.Up);
             }
         }
-
     }
 
     public static class GridHelper
     {
-        public static void TryMoveToFreeCargo(MyCubeBlock source, ConcurrentBag<IMyInventory> connectedInventory, bool ignoreOtherFactories = false)
+        public static bool IsValidInventoryConnection(object FactoryBlockInv, object TargetBlockInv, out IMyInventory inv)
+        {
+            inv = null;
+            try
+            {
+                MyInventory FactoryInv = (MyInventory)FactoryBlockInv;
+                MyEntity TargetInv = (TargetBlockInv is MyInventory || TargetBlockInv is IMyInventory) ? ((MyInventory)TargetBlockInv).Owner 
+                  : (TargetBlockInv is IMySlimBlock && ((IMySlimBlock)TargetBlockInv).FatBlock != null) ? (MyEntity)((IMyEntity)(((IMySlimBlock)TargetBlockInv).FatBlock)) 
+                  : (MyEntity)TargetBlockInv;
+                MyCubeBlock FactoryInvBlock = (MyCubeBlock)FactoryInv.Owner;
+                if (TargetInv == null || FactoryInv == null || FactoryInvBlock == null || !TargetInv.HasInventory)
+                    return false;
+
+                MyCubeBlock InvBlock = TargetInv as MyCubeBlock;
+                if (InvBlock == null)
+                    return false;
+
+                IMyProductionBlock prodblock = TargetInv as IMyProductionBlock; //assembler
+                inv = (prodblock != null && prodblock.OutputInventory != null) ? prodblock.OutputInventory : ((IMyEntity)TargetInv).GetInventory();
+
+                if (inv == null || !InvBlock.IsFunctional || NaniteConstructionManager.NaniteBlocks.ContainsKey(TargetInv.EntityId) 
+                || TargetInv is Sandbox.ModAPI.Ingame.IMyReactor || !inv.IsConnectedTo((IMyInventory)FactoryInv)
+                || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(FactoryInvBlock.GetUserRelationToOwner(InvBlock.OwnerId))) 
+                    return false;
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                VRage.Utils.MyLog.Default.WriteLineAndConsole($"IsValidInventoryConnection exception \n{ex.ToString()}.");
+                return false;
+            }
+        }
+
+        public static void TryMoveToFreeCargo(MyCubeBlock source, List<IMyInventory> connectedInventory, bool ignoreOtherFactories = false)
         {
             try
             {
-                if (source == null)
-                    return;
-
+                List<IMyInventory> removalList = new List<IMyInventory>();
                 MyInventory sourceInventory = source.GetInventory();
-                foreach (IMyInventory inv in connectedInventory.OrderByDescending(x => (float)x.MaxVolume - (float)x.CurrentVolume))
+                lock (connectedInventory)
                 {
-                    MyInventory targetInventory = inv as MyInventory;
-                    List<VRage.Game.Entity.MyPhysicalInventoryItem> items = sourceInventory.GetItems();
-                    for (int i = 0; i < items.Count; i++)
+                    foreach (IMyInventory inv in connectedInventory.OrderByDescending(x => (float)x.MaxVolume - (float)x.CurrentVolume))
                     {
-                        IMyInventoryItem subItem = items[i] as IMyInventoryItem;
-                        if (subItem == null) 
-                            continue;
-
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        MyInventory targetInventory = inv as MyInventory;
+                        IMyInventory outinv = null;
+                        if (!IsValidInventoryConnection(sourceInventory, targetInventory, out outinv))
                         {
-                            if (subItem == null)
-                                return;
+                            removalList.Add(inv);
+                            continue;
+                        }
 
-                            if (targetInventory.ItemsCanBeAdded(subItem.Amount, subItem))
+                        List<VRage.Game.Entity.MyPhysicalInventoryItem> items = sourceInventory.GetItems();
+                        for (int i = 0; i < items.Count; i++)
+                        {
+                            IMyInventoryItem subItem = items[i] as IMyInventoryItem;
+                            if (subItem == null) 
+                                continue;
+
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                             {
-                                if (sourceInventory.Remove(subItem, subItem.Amount))
-                                    targetInventory.Add(subItem, subItem.Amount);
-                            }
-                            else
-                            {
-                                int amountFits = (int)targetInventory.ComputeAmountThatFits(new MyDefinitionId(subItem.Content.TypeId, subItem.Content.SubtypeId));
-                                if (amountFits > 0f) 
-                                {
-                                    if (sourceInventory.Remove(subItem, (MyFixedPoint)amountFits))
-                                        targetInventory.Add(subItem, (MyFixedPoint)amountFits);
-                                    
-                                }
-                            }
-                        });
+                                if (subItem == null)
+                                    return;
+
+                                MyFixedPoint amountFits = targetInventory.ComputeAmountThatFits(new MyDefinitionId(subItem.Content.TypeId, subItem.Content.SubtypeId));
+                                amountFits = (amountFits > subItem.Amount) ? subItem.Amount : amountFits;
+                                
+                                if (amountFits > (MyFixedPoint)0f && sourceInventory.Remove(subItem, amountFits))
+                                    targetInventory.Add(subItem, amountFits);
+                            });
+                        }
                     }
                 }
+                foreach (IMyInventory inv in removalList)
+                    lock (connectedInventory)
+                        connectedInventory.Remove(inv);
+                
             }
             catch (InvalidOperationException ex)
             {
@@ -103,6 +139,11 @@ namespace NaniteConstructionSystem.Extensions
                 Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Retrying.");
                 TryMoveToFreeCargo(source, connectedInventory, ignoreOtherFactories);
             }
+        }
+
+        private static void MoveItemQueueWorker(IMyInventoryItem item, MyInventory sourceInventory, MyInventory targetInventory)
+        {
+
         }
     }
 }
