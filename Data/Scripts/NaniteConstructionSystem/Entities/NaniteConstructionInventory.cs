@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Text;
 using System.Linq;
 using Sandbox.Game.Entities;
@@ -24,7 +25,7 @@ namespace NaniteConstructionSystem.Entities
 {
     public class NaniteConstructionInventory
     {
-        public List<IMyInventory> connectedInventory = new List<IMyInventory>();
+        public ConcurrentBag<IMyInventory> connectedInventory = new ConcurrentBag<IMyInventory>();
 
         private Dictionary<string, int> m_componentsRequired;
         public Dictionary<string, int> ComponentsRequired
