@@ -217,7 +217,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
             // TODO remove debug only
             sb.Append($"Range: {Range}\n"); 
-            sb.Append($"Scan: {(m_scanProgress * 100).ToString("0.0000")}%\n");
+            sb.Append($"Scan: {(m_scanProgress * 100).ToString("0.00")}%\n");
             sb.Append($"Ores:\n");
             sb.Append(m_oreListCache);
         }
@@ -236,11 +236,11 @@ namespace NaniteConstructionSystem.Entities.Detectors
             if (m_detectorState != m_lastDetectorState)
             {
                 m_lastDetectorState = m_detectorState;
-                MessageHub.SendMessageToAllPlayers(new MessageOreDetectorStateChange()
+                MessageHub.SendToPlayerInSyncRange(new MessageOreDetectorStateChange()
                 {
                     EntityId = m_block.EntityId,
                     State = m_lastDetectorState,
-                });
+                }, m_block.GetPosition());
             }
         }
 
