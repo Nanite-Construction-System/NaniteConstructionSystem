@@ -361,12 +361,9 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             foreach (var block in blocks.ToList())
                 AddPotentialBlock(block);
-
-            CheckBeacons();
-            CheckAreaBeacons();
         }
 
-        private void CheckBeacons()
+        public override void CheckBeacons()
         {
             var remoteList = new HashSet<IMySlimBlock>();
 
@@ -413,7 +410,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionTargets.GetBeaconBlocks: {ex.ToString()}");}
         }
 
-        private void CheckAreaBeacons()
+        public override void CheckAreaBeacons()
         {
             foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteAreaBeacon).ToList())
             {

@@ -305,26 +305,17 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (!IsEnabled())
                 return;
 
-            if (m_count % 4 == 0)
-                ScanProjection(blocks);
+            using (m_lock.AcquireExclusiveUsing())
+                TargetList.Clear();
 
-            m_count++;
+            PotentialTargetList.Clear();
+
+            foreach (var item in blocks)
+                CheckBlockProjection(item);
         }
 
-        private void ScanProjection(List<IMySlimBlock> blocks)
+        public override void CheckBeacons()
         {
-            using (m_lock.AcquireExclusiveUsing())
-            {
-                TargetList.Clear();
-                PotentialTargetList.Clear();
-            }
-
-            HashSet<IMyEntity> entities = new HashSet<IMyEntity>();
-            MyAPIGateway.Entities.GetEntities(entities, x => x is IMyCubeGrid && x.Physics == null);
-
-            foreach(var item in blocks)
-                CheckBlockProjection(item);
-
             foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteBeaconProjection 
               && Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), x.Value.BeaconBlock.GetPosition()) < m_maxDistance * m_maxDistance).ToList())
             {
@@ -342,8 +333,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                 foreach (var block in beaconBlocks)
                     CheckBlockProjection(block);
             }
-
-            CheckAreaBeacons();
         }
 
         public static long GetProjectorByBlock(IMySlimBlock block)
@@ -358,7 +347,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             return 0;
         }
 
-        private void CheckAreaBeacons()
+        public override void CheckAreaBeacons()
         {
             foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteAreaBeacon).ToList())
             {

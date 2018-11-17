@@ -86,5 +86,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                     m_targetList.Add(target);
             });
         }
+
+        public virtual void CheckBeacons(){}
+        public virtual void CheckAreaBeacons(){}
     }
 }

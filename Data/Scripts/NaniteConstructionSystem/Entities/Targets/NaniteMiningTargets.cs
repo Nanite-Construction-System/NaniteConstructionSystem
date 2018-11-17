@@ -41,8 +41,9 @@ namespace NaniteConstructionSystem.Entities.Targets
         private Dictionary<NaniteMiningItem, NaniteMiningTarget> m_targetTracker;
         private static HashSet<Vector3D> m_globalPositionList;
         private Random rnd;
-        private int oldMinedPositionsCount;
-        private int scannertimeout;
+        private int m_oldMinedPositionsCount;
+        private int m_scannertimeout;
+        private int m_minedPositionsCount;
 
         public NaniteMiningTargets(NaniteConstructionBlock constructionBlock) : base(constructionBlock)
         {
@@ -131,7 +132,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                                 if (material.WorldPosition[i] == minedPos)
                                 {
                                     alreadyMined = true;
-                                    Logging.Instance.WriteLine($"Found an already mined position {minedPos}");
+                                    //Logging.Instance.WriteLine($"Found an already mined position {minedPos}");
                                     break;
                                 }
                             }
@@ -156,18 +157,19 @@ namespace NaniteConstructionSystem.Entities.Targets
                         break;
                     }
                 }
-                if (oldMinedPositionsCount == oreDetector.Value.minedPositions.Count && oreDetector.Value.minedPositions.Count > 0)
+                if (m_oldMinedPositionsCount == m_minedPositionsCount && m_minedPositionsCount > 0)
                 {
-                    if (scannertimeout++ > 5)
+                    if (m_scannertimeout++ > 2)
                     {
-                        scannertimeout = 0;
+                        m_scannertimeout = 0;
                         oreDetector.Value.DepositGroup.Clear(); //we've mined all the scanned stuff. Try a rescan.
+                        m_minedPositionsCount = 0;
                     }
                 }
                 else
                 {
-                    oldMinedPositionsCount = oreDetector.Value.minedPositions.Count;
-                    scannertimeout = 0;
+                    m_oldMinedPositionsCount = m_minedPositionsCount;
+                    m_scannertimeout = 0;
                 }
             }
             var listToAdd = finalAddList.Take(1000).ToList();
@@ -426,8 +428,13 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 targetInventory.AddItems((MyFixedPoint)amount, item);
 
-                voxelBase.PerformCutOutSphereFast(target.Position, 3.9f, true);
-                //Eventually change this to voxelBase.CutOutShapeWithProperties to only remove the material the user wants, rather than wasting unwanted material.
+                voxelBase.RequestVoxelOperationSphere(target.Position, 0.5f, target.VoxelMaterial, MyVoxelBase.OperationType.Cut);
+                //The target.VoxelMaterial here is meaningless. It only works with OperationType.Fill or .Paint
+                //We can't actually cut out JUST the voxels the user wants without access to MyShape
+                //Going to put in a request to Keen
+
+                //This was old way, which was writing directly to the voxel file and forcing the client to update
+                //voxel.Storage.WriteRange(cache, MyStorageDataTypeFlags.ContentAndMaterial, minVoxel, maxVoxel);
                 
                 AddMinedPosition(target);
 
@@ -439,6 +446,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void AddMinedPosition(NaniteMiningItem target)
         {
+            m_minedPositionsCount++;
             foreach (var oreDetector in NaniteConstructionManager.OreDetectors)
             {
                 //Logging.Instance.WriteLine($"{target.OreDetectorId} | {((MyEntity)oreDetector.Value.Block).EntityId}");

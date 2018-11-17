@@ -170,16 +170,13 @@ namespace NaniteConstructionSystem.Entities.Targets
                 CheckAreaBeacons();
                 if (PotentialTargetList.Count > 0)
                 {
-                    using (Lock.AcquireExclusiveUsing())
+                    foreach (IMySlimBlock item in PotentialTargetList.ToList())
                     {
-                        foreach (IMySlimBlock item in PotentialTargetList.ToList())
-                        {
-                            if (item.CubeGrid.Closed || item.IsDestroyed || item.IsFullyDismounted || (item.FatBlock != null && item.FatBlock.Closed))
-                                PotentialTargetList.Remove(item);
-                            
-                            if (EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, item) > m_maxDistance)
-                                PotentialTargetList.Remove(item);
-                        }
+                        if (item.CubeGrid.Closed || item.IsDestroyed || item.IsFullyDismounted || (item.FatBlock != null && item.FatBlock.Closed))
+                            PotentialTargetList.Remove(item);
+                        
+                        if (EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, item) > m_maxDistance)
+                            PotentialTargetList.Remove(item);
                     }
                 }
                 else if (TargetList.Count == 0 && PotentialTargetList.Count == 0)
