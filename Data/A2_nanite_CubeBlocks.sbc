@@ -809,8 +809,6 @@
         <Component Subtype="SmallTube" Count="20"/>
         <Component Subtype="LargeTube" Count="10"/>
         <Component Subtype="Computer" Count="40"/>
-        <Component Subtype="GravityGenerator" Count="5"/>
-        <Component Subtype="PowerCell" Count="25"/>
         <Component Subtype="Superconductor" Count="50"/>
         <Component Subtype="Motor" Count="5"/>
         <Component Subtype="SteelPlate" Count="40"/>
@@ -865,15 +863,13 @@
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1"/>
       <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteConstruction.mwm</Model>
+      <Model>Models\Cubes\Large\NaniteOreDetectScanning.mwm</Model>
       <Components>
         <Component Subtype="InteriorPlate" Count="120"/>
         <Component Subtype="Construction" Count="40"/>
         <Component Subtype="SmallTube" Count="20"/>
         <Component Subtype="LargeTube" Count="10"/>
         <Component Subtype="Computer" Count="40"/>
-        <Component Subtype="GravityGenerator" Count="5"/>
-        <Component Subtype="PowerCell" Count="25"/>
         <Component Subtype="Superconductor" Count="50"/>
         <Component Subtype="Motor" Count="5"/>
         <Component Subtype="SteelPlate" Count="40"/>
@@ -922,8 +918,6 @@
         <Component Subtype="SmallTube" Count="20"/>
         <Component Subtype="LargeTube" Count="10"/>
         <Component Subtype="Computer" Count="40"/>
-        <Component Subtype="GravityGenerator" Count="5"/>
-        <Component Subtype="PowerCell" Count="25"/>
         <Component Subtype="Superconductor" Count="50"/>
         <Component Subtype="Motor" Count="5"/>
         <Component Subtype="SteelPlate" Count="40"/>
@@ -972,8 +966,7 @@
         <Component Subtype="SmallTube" Count="20"/>
         <Component Subtype="LargeTube" Count="10"/>
         <Component Subtype="Computer" Count="40"/>
-        <Component Subtype="GravityGenerator" Count="5"/>
-        <Component Subtype="PowerCell" Count="25"/>
+        <Component Subtype="PowerCell" Count="5"/>
         <Component Subtype="Superconductor" Count="50"/>
         <Component Subtype="Motor" Count="5"/>
         <Component Subtype="SteelPlate" Count="40"/>
