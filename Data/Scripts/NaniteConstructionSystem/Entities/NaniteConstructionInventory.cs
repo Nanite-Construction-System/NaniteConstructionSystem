@@ -42,69 +42,68 @@ namespace NaniteConstructionSystem.Entities
 
         internal void TakeRequiredComponents()
         {
-            if (MyAPIGateway.Session.CreativeMode)
+            if (MyAPIGateway.Session.CreativeMode || ComponentsRequired.Count < 1)
                 return;
             
-            MyAPIGateway.Parallel.StartBackground(() =>
+            List<IMyInventory> removalList = new List<IMyInventory>();
+            lock (connectedInventory)
             {
-                List<IMyInventory> removalList = new List<IMyInventory>();
-                lock (connectedInventory)
+                foreach (IMyInventory inventory in connectedInventory)
                 {
-                    foreach (IMyInventory inventory in connectedInventory)
+                    IMyInventory inv = null;
+                    IMyInventory constructionInventory = GetConstructionInventory();
+                    
+                    if (inventory == null || inventory.CurrentVolume == inventory.MaxVolume) 
+                        continue;
+
+                    if (!GridHelper.IsValidInventoryConnection(constructionInventory, inventory, out inv))
                     {
-                        IMyInventory inv = null;
-                        IMyInventory constructionInventory = GetConstructionInventory();
-                        if (!GridHelper.IsValidInventoryConnection(constructionInventory, inventory, out inv))
-                        {
-                            removalList.Add(inventory);
-                            continue;
-                        }
-                        if (constructionInventory == null || inventory == null || inventory.GetItems().Count < 1) 
-                            continue;
+                        removalList.Add(inventory);
+                        continue;
+                    }
 
-                        foreach (var inventoryItem in inventory.GetItems().ToList())
+                    foreach (var inventoryItem in inventory.GetItems().ToList())
+                    {
+                        foreach (var componentNeeded in ComponentsRequired.ToList())
                         {
-                            foreach (var componentNeeded in ComponentsRequired.ToList())
+                            if (inventoryItem.Content.TypeId != typeof(MyObjectBuilder_Component) || componentNeeded.Value <= 0 
+                            || (int)inventoryItem.Amount <= 0f || inventoryItem.Content.SubtypeName != componentNeeded.Key) 
+                                continue;
+
+                            var validAmount = GetMaxComponentAmount(componentNeeded.Key, (float)constructionInventory.MaxVolume - (float)constructionInventory.CurrentVolume); 
+
+                            float amount;
+
+                            if (inventoryItem.Amount >= componentNeeded.Value) 
+                                amount = Math.Min(componentNeeded.Value, validAmount);
+                            else 
+                                amount = Math.Min((float)inventoryItem.Amount, validAmount);
+
+                            if (!constructionInventory.CanItemsBeAdded((int)amount, new SerializableDefinitionId(typeof(MyObjectBuilder_Component), componentNeeded.Key))) 
+                                continue;
+
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                             {
-                                if (inventoryItem.Content.TypeId != typeof(MyObjectBuilder_Component) || componentNeeded.Value <= 0 
-                                || (int)inventoryItem.Amount <= 0f || inventoryItem.Content.SubtypeName != componentNeeded.Key) 
-                                    continue;
-
-                                var validAmount = GetMaxComponentAmount(componentNeeded.Key, (float)constructionInventory.MaxVolume - (float)constructionInventory.CurrentVolume); 
-
-                                float amount;
-
-                                if (inventoryItem.Amount >= componentNeeded.Value) 
-                                    amount = Math.Min(componentNeeded.Value, validAmount);
-                                else 
-                                    amount = Math.Min((float)inventoryItem.Amount, validAmount);
-
-                                if (!constructionInventory.CanItemsBeAdded((int)amount, new SerializableDefinitionId(typeof(MyObjectBuilder_Component), componentNeeded.Key))) 
-                                    continue;
-
-                                MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                                try
                                 {
-                                    try
-                                    {
-                                        inventory.RemoveItemsOfType((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
-                                        constructionInventory.AddItems((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
+                                    inventory.RemoveItemsOfType((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
+                                    constructionInventory.AddItems((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
 
-                                        if (ComponentsRequired.ContainsKey(componentNeeded.Key)) 
-                                            ComponentsRequired[componentNeeded.Key] -= (int)amount;
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        VRage.Utils.MyLog.Default.WriteLineAndConsole($"Nanite Control Factory: Exception in NaniteConstructionInventory.TakeRequiredComponents:\n{ex.ToString()}");
-                                    }
-                                });
-                            }
+                                    if (ComponentsRequired.ContainsKey(componentNeeded.Key)) 
+                                        ComponentsRequired[componentNeeded.Key] -= (int)amount;
+                                }
+                                catch (Exception ex)
+                                {
+                                    VRage.Utils.MyLog.Default.WriteLineAndConsole($"Nanite Control Factory: Exception in NaniteConstructionInventory.TakeRequiredComponents:\n{ex.ToString()}");
+                                }
+                            });
                         }
                     }
                 }
-                foreach (IMyInventory inv in removalList)
-                    lock (connectedInventory)
-                        connectedInventory.Remove(inv);
-            });
+            }
+            foreach (IMyInventory inv in removalList)
+                lock (connectedInventory)
+                    connectedInventory.Remove(inv);
         }
 
         private float GetMaxComponentAmount(string componentName, float remainingVolume)
