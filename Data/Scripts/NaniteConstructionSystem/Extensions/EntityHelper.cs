@@ -57,9 +57,11 @@ namespace NaniteConstructionSystem.Extensions
             try
             {
                 MyInventory FactoryInv = (MyInventory)FactoryBlockInv;
-                MyEntity TargetInv = (TargetBlockInv is MyInventory || TargetBlockInv is IMyInventory) ? ((MyInventory)TargetBlockInv).Owner 
-                  : (TargetBlockInv is IMySlimBlock && ((IMySlimBlock)TargetBlockInv).FatBlock != null) ? (MyEntity)((IMyEntity)(((IMySlimBlock)TargetBlockInv).FatBlock)) 
-                  : (MyEntity)TargetBlockInv;
+                MyEntity TargetInv = null;
+                if (TargetBlockInv is IMySlimBlock && ((IMySlimBlock)TargetBlockInv).FatBlock != null)
+                    TargetInv = (MyEntity)((IMyEntity)(((IMySlimBlock)TargetBlockInv).FatBlock));
+                else if (TargetBlockInv is MyInventory || TargetBlockInv is IMyInventory)
+                    TargetInv = ((MyInventory)TargetBlockInv).Owner;
                 MyCubeBlock FactoryInvBlock = (MyCubeBlock)FactoryInv.Owner;
                 if (TargetInv == null || FactoryInv == null || FactoryInvBlock == null || !TargetInv.HasInventory)
                     return false;
