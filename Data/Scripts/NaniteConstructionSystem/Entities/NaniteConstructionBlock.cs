@@ -129,6 +129,12 @@ namespace NaniteConstructionSystem.Entities
         private bool m_forceProcessState;
         private List<IMyCubeGrid> GridGroup = new List<IMyCubeGrid>();
         private MyInventory m_constructionBlockInventory = null;
+        private int m_totalScanBlocksCount;
+        private List<IMySlimBlock> m_scanBlocksCache = new List<IMySlimBlock>();
+        public List<IMySlimBlock> ScanBlocksCache
+        {
+            get { return m_scanBlocksCache; }
+        }
 
         private const int m_spoolingTime = 3000;
 
@@ -234,10 +240,7 @@ namespace NaniteConstructionSystem.Entities
             if (Sync.IsServer && ConstructionBlock.IsFunctional)
             {
                 if (m_updateCount % 60 == 0)
-                {
                     ToolManager.Update();
-                    InventoryManager.TakeRequiredComponents();
-                }
 
                 if (m_updateCount % 300 == 0 && m_updateConnectedInventory)
                 {
@@ -350,10 +353,9 @@ namespace NaniteConstructionSystem.Entities
             IMyInventory inv = null;
             if (GridHelper.IsValidInventoryConnection(m_constructionBlockInventory, block, out inv))
             {
-                Logging.Instance.WriteLine("BEEEEEEEEEEEEEEEEEEEEEEEEEP.");
                 if (!InventoryManager.connectedInventory.Contains(inv))
                 {
-                    Logging.Instance.WriteLine("Adding inventory block to connected inventory.");
+                    //Logging.Instance.WriteLine("Adding inventory block to connected inventory.");
                     lock (InventoryManager.connectedInventory)
                         InventoryManager.connectedInventory.Add(inv);
                 }
@@ -369,28 +371,35 @@ namespace NaniteConstructionSystem.Entities
                 {   
                     List<IMyCubeGrid> removalList = new List<IMyCubeGrid>();
                     List<IMyCubeGrid> newGroup = new List<IMyCubeGrid>(MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)m_constructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical));
-                    foreach(IMyCubeGrid grid in GridGroup)
+                    lock (GridGroup)
                     {
-                        if (!newGroup.Contains(grid))
+                        foreach(IMyCubeGrid grid in GridGroup)
                         {
-                            Logging.Instance.WriteLine("Removing disconnected grid from grid group.");
-                            removalList.Add(grid);
-                            grid.OnBlockAdded -= OnBlockAdded;
+                            if (!newGroup.Contains(grid))
+                            {
+                                Logging.Instance.WriteLine("Removing disconnected grid from grid group.");
+                                removalList.Add(grid);
+                                grid.OnBlockAdded -= OnBlockAdded;
+                            }
                         }
+                    
+                        foreach(IMyCubeGrid grid in removalList)
+                            GridGroup.Remove(grid);
                     }
-                    foreach(IMyCubeGrid grid in removalList)
-                        GridGroup.Remove(grid);
 
                     foreach (IMyCubeGrid grid in newGroup)
                     {
                         if (!GridGroup.Contains(grid))
                         {
                             Logging.Instance.WriteLine("Adding new grid to grid group.");
-                            GridGroup.Add(grid);
+                            lock (GridGroup)
+                                GridGroup.Add(grid);
+
                             BuildConnectedInventory(grid);
                             grid.OnBlockAdded += OnBlockAdded;
                         }
                     }
+                    
                 }
                 catch (Exception ex)
                     {VRage.Utils.MyLog.Default.WriteLineAndConsole($"CheckGridGroup() Error: {ex.ToString()}");}
@@ -406,9 +415,7 @@ namespace NaniteConstructionSystem.Entities
                 {                   
                     ConcurrentBag<IMySlimBlock> slimBlocks = new ConcurrentBag<IMySlimBlock>(((MyCubeGrid)grid).GetBlocks());
                     foreach (IMySlimBlock SlimBlock in slimBlocks)
-                    {
                         TryAddToInventoryGroup(SlimBlock);
-                    }
                 }
                 catch (Exception ex)
                     {VRage.Utils.MyLog.Default.WriteLineAndConsole($"BuildConnectedInventory() Error: {ex.ToString()}");}
@@ -630,26 +637,52 @@ namespace NaniteConstructionSystem.Entities
         {
             try
             {
-                List<IMyCubeGrid> grids = MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)m_constructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical);
-                List<IMySlimBlock> blocks = new List<IMySlimBlock>();
+                if (m_scanBlocksCache.Count < 1)
+                {
+                    lock (GridGroup)
+                    {
+                        foreach (IMyCubeGrid grid in GridGroup)
+                            grid.GetBlocks(m_scanBlocksCache); 
+                    }
+                    m_totalScanBlocksCount = m_scanBlocksCache.Count;
+                    foreach (var target in m_targets)
+                    {
+                        if (target is NaniteConstructionTargets || target is NaniteProjectionTargets)
+                        {
+                            target.CheckBeacons();
+                            target.CheckAreaBeacons();
+                        }
+                    }
+                }
 
-                try
+                int counter = 0;
+                List<IMySlimBlock> blocksToGo = new List<IMySlimBlock>();
+
+                foreach (var block in m_scanBlocksCache)
                 {
-                    foreach (IMyCubeGrid grid in grids)
-                        grid.GetBlocks(blocks);     
+                    if (counter++ > 500) //lets make this a configurable amount in the future
+                    break;
+
+                    blocksToGo.Add(block);
                 }
-                catch (InvalidOperationException ex)
-                {
-                    Logging.Instance.WriteLine("NaniteConstructionBlock.ProcessTargetsParallel InvalidOperationException: "
-                          + "This is likely due to a list being modified during enumeration in a parallel thread, "
-                          + $"which is probably harmless.\n{ex.ToString()}");
-                }
+
+                foreach (var block in blocksToGo)
+                    m_scanBlocksCache.Remove(block);
 
                 foreach (var item in m_targets)
-                    item.ParallelUpdate(grids, blocks);
+                    item.ParallelUpdate(GridGroup, blocksToGo);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Logging.Instance.WriteLine("NaniteConstructionBlock.ProcessTargetsParallel InvalidOperationException: "
+                  + "This is likely due to a list being modified during enumeration in a parallel thread, "
+                  + $"which is probably harmless.\n{ex.ToString()}");
             }
             catch (Exception ex) 
-                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"ProcessTargetsParallel() Error {ex.ToString()}");}
+            {
+                VRage.Utils.MyLog.Default.WriteLineAndConsole($"ProcessTargetsParallel() Error. Clearing blockcache. {ex.ToString()}");
+                m_scanBlocksCache.Clear();
+            }
         }
 
         /// <summary>
@@ -692,6 +725,8 @@ namespace NaniteConstructionSystem.Entities
                         InventoryManager.SetupRequiredComponents(item.TargetList.Cast<IMySlimBlock>().ToList(), 
                           item.PotentialTargetList.Cast<IMySlimBlock>().ToList(), item.GetMaximumTargets(), 
                           ref availableComponents, item is NaniteProjectionTargets);
+
+                InventoryManager.TakeRequiredComponents();
             }
             catch (Exception ex) 
             {
@@ -720,7 +755,7 @@ namespace NaniteConstructionSystem.Entities
                     StringBuilder missingComponentsDetailsParallel = new StringBuilder();
                     bool invalidTitleAppended = false;
                     bool missingCompTitleAppended = false;
-
+                        
                     foreach (var item in m_targets.ToList())
                     {
                         targetDetailsParallel.Append("-----\r\n"
@@ -767,6 +802,25 @@ namespace NaniteConstructionSystem.Entities
                         m_missingComponentsDetails = missingComponentsDetailsParallel;
                     });
                 });
+
+                details.Append($"-- Nanite Factory v2.0 --\n");
+                if (m_totalScanBlocksCount > 0)
+                {
+                    if (m_scanBlocksCache.Count == 0)
+                    {
+                        string percent = (((m_totalScanBlocksCount - m_scanBlocksCache.Count)/m_totalScanBlocksCount) * 100).ToString("0.00");
+                        details.Append("Scanning Complete.\nWaiting for next scan ...\n");
+                        details.Append($"{m_totalScanBlocksCount - m_scanBlocksCache.Count}/{m_totalScanBlocksCount} blocks\n");
+                    }
+                    else
+                    {
+                        string percent = (((m_totalScanBlocksCount - m_scanBlocksCache.Count)/m_totalScanBlocksCount) * 100).ToString("0.00");
+                        details.Append($"Scanning targets ... {percent}%\n");
+                        details.Append($"{m_totalScanBlocksCount - m_scanBlocksCache.Count}/{m_totalScanBlocksCount} blocks\n");
+                    }
+                }
+                else
+                    details.Append($"Online and waiting to scan ...");
 
                 details.Append(m_targetDetails
                   + "-----\r\n"
@@ -816,48 +870,56 @@ namespace NaniteConstructionSystem.Entities
                 m_soundEmitter.StopSound(true);
                 MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.Red, Color.White);
             }
-            else if (m_factoryState == FactoryStates.Active)
-                MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, 
-                  Color.FromNonPremultiplied(new Vector4(0.05f, 0.05f, 0.35f, 0.75f)) 
-                  * (((float)m_spoolPosition / m_spoolingTime) + 0.1f), Color.White);
-
-            else if (m_factoryState == FactoryStates.SpoolingUp)
-            {
-                if (m_spoolPosition >= m_spoolingTime)
-                    m_soundEmitter.PlaySound(m_soundPair, true);
-
-                MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, 
-                  Color.FromNonPremultiplied(new Vector4(0.05f, 0.05f, 0.35f, 0.75f)) 
-                  * (((float)m_spoolPosition / m_spoolingTime) + 0.1f), Color.White);
-            }
-            else if (m_factoryState == FactoryStates.SpoolingDown)
-            {
-                m_soundEmitter.StopSound(true);
-                MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, 
-                  Color.FromNonPremultiplied(new Vector4(0.05f, 0.05f, 0.35f, 0.75f)) 
-                  * (((float)m_spoolPosition / m_spoolingTime) + 0.1f), Color.White);
-            }
-            else if (m_factoryState == FactoryStates.MissingPower)
-            {
-                emissivity = (float)MathHelper.Clamp(0.5 * (1 + Math.Sin(2 * 3.14 * m_updateCount * 8)), 0.0, 1.0);
-                MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.DarkGoldenrod * emissivity, Color.White);
-            }
-            else if (m_factoryState == FactoryStates.MissingParts)
-            {
-                emissivity = (float)MathHelper.Clamp(0.5 * (1 + Math.Sin(2 * 3.14 * m_updateCount * 8)), 0.0, 1.0);
-                MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.DeepPink * emissivity, Color.White);
-            }
-            else if (m_factoryState == FactoryStates.InvalidTargets)
-            {
-                emissivity = (float)MathHelper.Clamp(0.5 * (1 + Math.Sin(2 * 3.14 * m_updateCount * 8)), 0.0, 1.0);
-                MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.Lime * emissivity, Color.White);
-            }
-            else if (m_factoryState == FactoryStates.Enabled)
-                MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.Green, Color.White);
             else
             {
-                m_soundEmitter.StopSound(true);
-                MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.Red, Color.White);
+                switch (m_factoryState)
+                {
+                    case FactoryStates.Active:
+                        MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, 
+                          Color.FromNonPremultiplied(new Vector4(0.05f, 0.05f, 0.35f, 0.75f)) 
+                          * (((float)m_spoolPosition / m_spoolingTime) + 0.1f), Color.White);
+                        break;
+
+                    case FactoryStates.SpoolingUp:
+                        if (m_spoolPosition >= m_spoolingTime)
+                            m_soundEmitter.PlaySound(m_soundPair, true);
+
+                        MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, 
+                          Color.FromNonPremultiplied(new Vector4(0.05f, 0.05f, 0.35f, 0.75f)) 
+                          * (((float)m_spoolPosition / m_spoolingTime) + 0.1f), Color.White);
+                        break;
+
+                    case FactoryStates.SpoolingDown:
+                        m_soundEmitter.StopSound(true);
+                        MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, 
+                          Color.FromNonPremultiplied(new Vector4(0.05f, 0.05f, 0.35f, 0.75f)) 
+                          * (((float)m_spoolPosition / m_spoolingTime) + 0.1f), Color.White);
+                        break;
+
+                    case FactoryStates.MissingPower:
+                        emissivity = (float)MathHelper.Clamp(0.5 * (1 + Math.Sin(2 * 3.14 * m_updateCount * 8)), 0.0, 1.0);
+                        MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.DarkGoldenrod * emissivity, Color.White);
+                        break;
+
+                    case FactoryStates.MissingParts:
+                        emissivity = (float)MathHelper.Clamp(0.5 * (1 + Math.Sin(2 * 3.14 * m_updateCount * 8)), 0.0, 1.0);
+                        MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.DeepPink * emissivity, Color.White);
+                        break;
+
+                    case FactoryStates.InvalidTargets:
+                        emissivity = (float)MathHelper.Clamp(0.5 * (1 + Math.Sin(2 * 3.14 * m_updateCount * 8)), 0.0, 1.0);
+                        MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.Lime * emissivity, Color.White);
+                        break;
+
+                    case FactoryStates.Enabled:
+                        MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.Green, Color.White);
+                        break;
+
+                    default:
+                        m_soundEmitter.StopSound(true);
+                        MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.Red, Color.White);
+                        break;
+                }
             }
             m_clientEmissivesUpdate = false;
         }
