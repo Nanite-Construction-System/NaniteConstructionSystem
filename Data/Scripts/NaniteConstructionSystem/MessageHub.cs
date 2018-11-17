@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
+using VRageMath;
 using static NaniteConstructionSystem.Entities.Detectors.NaniteOreDetector;
 
 namespace NaniteConstructionSystem
@@ -36,6 +37,28 @@ namespace NaniteConstructionSystem
             var byteData = MyAPIGateway.Utilities.SerializeToBinary<MessageBase>(message);
             Logging.Instance.WriteLine(string.Format("SendMessageToServer {0} {1} {2}, {3}b", message.SenderSteamId, message.Side, message.GetType().Name, byteData.Length));
             MyAPIGateway.Multiplayer.SendMessageToServer(MessageId, byteData);
+        }
+
+        /// <summary>
+        /// Sends a message to all players within sync range of a given position
+        /// </summary>
+        /// <param name="content"></param>
+        public static void SendToPlayerInSyncRange(MessageBase messageContainer, Vector3D syncPosition)
+        {
+            MyAPIGateway.Parallel.Start(() =>
+            {
+                var distSq = MyAPIGateway.Session.SessionSettings.SyncDistance;
+                distSq += 1000; // some safety padding, avoid desync
+                distSq *= distSq;
+
+                var players = new List<IMyPlayer>();
+                MyAPIGateway.Players.GetPlayers(players);
+
+                foreach (var p in players.ToList())
+                    if (p != null && p.SteamUserId != MyAPIGateway.Multiplayer.MyId && Vector3D.DistanceSquared(p.GetPosition(), syncPosition) <= distSq)
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                            {SendMessageToPlayer(p.SteamUserId, messageContainer);});
+            });
         }
 
         /// <summary>
