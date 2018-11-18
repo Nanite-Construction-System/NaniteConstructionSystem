@@ -141,8 +141,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (!IsEnabled())
                     return;
 
-                PotentialTargetList.Clear();
-
                 // Add 
                 foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteBeaconDeconstruct 
                   && Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), x.Value.BeaconBlock.GetPosition()) < m_maxDistance * m_maxDistance).ToList())
@@ -292,7 +290,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
             }
             if (LastInvalidTargetReason != "")
-                InvalidTargetReason(LastInvalidTargetReason);  
+                InvalidTargetReason(LastInvalidTargetReason);
+
+            PotentialTargetList.Clear();
         }
 
         public override void Update()

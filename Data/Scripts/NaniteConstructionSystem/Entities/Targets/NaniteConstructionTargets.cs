@@ -153,6 +153,8 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
             if (LastInvalidTargetReason != "")
                 InvalidTargetReason(LastInvalidTargetReason);
+            
+            PotentialTargetList.Clear();
         }
 
         private int GetMissingComponentCount(NaniteConstructionInventory inventoryManager, IMySlimBlock block)
@@ -354,8 +356,6 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<IMySlimBlock> blocks)
         {
-            PotentialTargetList.Clear();
-
             if (!IsEnabled())
                 return;
 

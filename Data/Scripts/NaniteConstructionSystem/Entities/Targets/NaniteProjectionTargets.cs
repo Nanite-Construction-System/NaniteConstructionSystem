@@ -109,53 +109,52 @@ namespace NaniteConstructionSystem.Entities.Targets
             Dictionary<string, int> missing = new Dictionary<string, int>();
             string LastInvalidTargetReason = "";
 
-            lock (m_potentialTargetList)
+            int TargetListCount = TargetList.Count;
+            
+            foreach (var item in PotentialTargetList.OrderBy(x => Vector3D.Distance(sourcePosition, EntityHelper.GetBlockPosition((IMySlimBlock)x))).ToList())
             {
-                int TargetListCount = TargetList.Count;
-                
-                foreach (var item in PotentialTargetList.OrderBy(x => Vector3D.Distance(sourcePosition, EntityHelper.GetBlockPosition((IMySlimBlock)x))).ToList())
+                if (item == null || TargetList.Contains(item)) 
+                    continue;
+
+                missing = inventoryManager.GetProjectionComponents((IMySlimBlock)item);
+                bool haveComponents = inventoryManager.CheckComponentsAvailable(ref missing, ref available);
+                if (haveComponents && m_constructionBlock.HasRequiredPowerForNewTarget(this) 
+                    && ((IMySlimBlock)item).CubeGrid.GetPosition() != Vector3D.Zero)
                 {
-                    if (item == null || TargetList.Contains(item)) 
+                    bool found = false;
+                    foreach (var block in blockList.ToList())
+                    {
+                        if (block != null && block.GetTarget<NaniteProjectionTargets>().TargetList.Contains(item))
+                        {
+                            found = true;
+                            LastInvalidTargetReason = "Another factory has this block as a target";
+                            break;
+                        }
+                    }
+
+                    if (found)
                         continue;
 
-                    missing = inventoryManager.GetProjectionComponents((IMySlimBlock)item);
-                    bool haveComponents = inventoryManager.CheckComponentsAvailable(ref missing, ref available);
-                    if (haveComponents && m_constructionBlock.HasRequiredPowerForNewTarget(this) 
-                      && ((IMySlimBlock)item).CubeGrid.GetPosition() != Vector3D.Zero)
-                    {
-                        bool found = false;
-                        foreach (var block in blockList.ToList())
-                        {
-                            if (block != null && block.GetTarget<NaniteProjectionTargets>().TargetList.Contains(item))
-                            {
-                                found = true;
-                                LastInvalidTargetReason = "Another factory has this block as a target";
-                                break;
-                            }
-                        }
+                    AddTarget(item);
 
-                        if (found)
-                            continue;
+                    IMySlimBlock slimBlock = (IMySlimBlock)item;
+                    var def = slimBlock.BlockDefinition as MyCubeBlockDefinition;
+                    Logging.Instance.WriteLine(string.Format("ADDING Projection Target: conid={0} subtypeid={1} entityID={2} position={3}", 
+                        m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, slimBlock.FatBlock != null ? slimBlock.FatBlock.EntityId : 0, slimBlock.Position));
 
-                        AddTarget(item);
-
-                        IMySlimBlock slimBlock = (IMySlimBlock)item;
-                        var def = slimBlock.BlockDefinition as MyCubeBlockDefinition;
-                        Logging.Instance.WriteLine(string.Format("ADDING Projection Target: conid={0} subtypeid={1} entityID={2} position={3}", 
-                          m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, slimBlock.FatBlock != null ? slimBlock.FatBlock.EntityId : 0, slimBlock.Position));
-
-                        if (++TargetListCount >= GetMaximumTargets()) 
-                            break;
-                    }
-                    else if (!haveComponents)
-                        LastInvalidTargetReason = "Missing components to start projected block";
-
-                    else if (!m_constructionBlock.HasRequiredPowerForNewTarget(this))
-                        LastInvalidTargetReason = "Insufficient power for another target.";
+                    if (++TargetListCount >= GetMaximumTargets()) 
+                        break;
                 }
+                else if (!haveComponents)
+                    LastInvalidTargetReason = "Missing components to start projected block";
+
+                else if (!m_constructionBlock.HasRequiredPowerForNewTarget(this))
+                    LastInvalidTargetReason = "Insufficient power for another target.";
             }
             if (LastInvalidTargetReason != "")
                 InvalidTargetReason(LastInvalidTargetReason);
+
+            PotentialTargetList.Clear();
         }
 
         public override void Update()
@@ -307,8 +306,6 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             using (m_lock.AcquireExclusiveUsing())
                 TargetList.Clear();
-
-            PotentialTargetList.Clear();
 
             foreach (var item in blocks)
                 CheckBlockProjection(item);
