@@ -349,7 +349,7 @@ namespace NaniteConstructionSystem
             {
                 var cleanupCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, Ingame.IMyShipWelder>("AllowCleanup");
                 cleanupCheck.Title = MyStringId.GetOrCompute("Cleanup");
-                cleanupCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will cleanup floating objects, ore, components, or corpses.  It will return the objects back to the factory.");
+                cleanupCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will cleanup floating objects, ore, components, or corpses. It will return the objects back to the factory.");
                 cleanupCheck.Getter = (x) =>
                 {
                     if (!TerminalSettings.ContainsKey(x.EntityId))
@@ -980,7 +980,7 @@ namespace NaniteConstructionSystem
             m_customOreDetectorControls.Add(separate);
 
             var oreList = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlListbox, Ingame.IMyOreDetector>("OreList");
-            oreList.Title = MyStringId.GetOrCompute("Valid Ores (deselect to ignore): ");
+            oreList.Title = MyStringId.GetOrCompute("Select Desired Ores: ");
             oreList.Multiselect = true;
             oreList.VisibleRowsCount = 8;
             oreList.ListContent = (block, list, selected) =>
