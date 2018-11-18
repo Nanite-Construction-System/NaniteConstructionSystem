@@ -397,7 +397,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             cache.Content(0, 0);
 
             var voxelMat = target.Definition;
-            amount = CalculateAmount(voxelMat, original * 3.9f);
+            amount = CalculateAmount(voxelMat, original * 90f);
 
             Logging.Instance.WriteLine($"Removing: {target.Position} ({material} {amount})");
 
@@ -428,7 +428,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 targetInventory.AddItems((MyFixedPoint)amount, item);
 
-                voxelBase.RequestVoxelOperationSphere(target.Position, 0.5f, target.VoxelMaterial, MyVoxelBase.OperationType.Cut);
+                voxelBase.RequestVoxelOperationSphere(target.Position, 3.9f, target.VoxelMaterial, MyVoxelBase.OperationType.Cut);
                 //The target.VoxelMaterial here is meaningless. It only works with OperationType.Fill or .Paint
                 //We can't actually cut out JUST the voxels the user wants without access to MyShape
                 //Going to put in a request to Keen
