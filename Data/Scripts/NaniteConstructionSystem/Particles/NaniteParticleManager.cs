@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
@@ -89,27 +89,35 @@ namespace NaniteConstructionSystem.Particles
 
         public void Update()
         {
-            foreach (var item in m_particles)
-            {
-                item.Update();
-            }
+            m_updateCount++;
 
-            for (int r = m_particles.Count - 1; r >= 0; r--)
-            {
-                var particle = m_particles[r];
-                if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - particle.StartTime > particle.LifeTime)
-                {
-                    m_particles.RemoveAt(r);
-                    TotalParticleCount--;
-                }
-            }
+            if (MyAPIGateway.Session.Player == null)
+                return;
+
+            foreach (var item in m_particles)
+                item.Update();
 
             foreach (var particle in m_particles)
-            {
                 particle.Draw();
-            }
+        }
 
-            m_updateCount++;
+        public void CheckParticleLife()
+        {
+            MyAPIGateway.Parallel.Start(() =>
+            {
+                 for (int r = m_particles.Count - 1; r >= 0; r--)
+                {
+                    var particle = m_particles[r];
+                    if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - particle.StartTime > particle.LifeTime)
+                    {
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {    
+                            m_particles.RemoveAt(r);
+                            TotalParticleCount--;
+                        });
+                    }
+                }
+            });
         }
 
         public void CancelTarget(object target)
@@ -126,30 +134,12 @@ namespace NaniteConstructionSystem.Particles
         {
             foreach (var item in m_particles)
             {
-                if (target is long)
-                {
-                    if (item.Destination is IMyEntity)
-                    {
-                        if (((IMyEntity)item.Destination).EntityId == (long)target)
-                        {
-                            item.Complete(cancelled);
-                        }
-                    }
-                }
-                else if (target is IMyEntity || target is IMySlimBlock || target is IMyPlayer)
-                {
-                    if (item.Destination == target)
-                    {
-                        item.Complete(cancelled);
-                    }
-                }
-                else if(target is NaniteMiningItem)
-                {
-                    if(item.Destination == target)
-                    {
-                        item.Complete(cancelled);
-                    }
-                }
+                if (target is long && item.Destination is IMyEntity && ((IMyEntity)item.Destination).EntityId == (long)target)
+                    item.Complete(cancelled);
+                else if ((target is IMyEntity || target is IMySlimBlock || target is IMyPlayer) && item.Destination == target)
+                    item.Complete(cancelled);
+                else if (target is NaniteMiningItem && item.Destination == target)
+                    item.Complete(cancelled);
             }
         }
     }
