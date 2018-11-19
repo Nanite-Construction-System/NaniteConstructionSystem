@@ -153,8 +153,6 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
             if (LastInvalidTargetReason != "")
                 InvalidTargetReason(LastInvalidTargetReason);
-            
-            PotentialTargetList.Clear();
         }
 
         private int GetMissingComponentCount(NaniteConstructionInventory inventoryManager, IMySlimBlock block)

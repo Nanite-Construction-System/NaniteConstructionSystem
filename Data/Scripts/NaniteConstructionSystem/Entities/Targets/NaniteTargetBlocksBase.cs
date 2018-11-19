@@ -24,6 +24,8 @@ namespace NaniteConstructionSystem.Entities.Targets
             get { return m_potentialTargetList; }
         }
 
+        public int PotentialTargetListCount;
+
         protected Dictionary<string, int> m_componentsRequired;
         public Dictionary<string, int> ComponentsRequired
         {

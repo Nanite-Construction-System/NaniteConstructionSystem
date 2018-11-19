@@ -153,8 +153,6 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
             if (LastInvalidTargetReason != "")
                 InvalidTargetReason(LastInvalidTargetReason);
-
-            PotentialTargetList.Clear();
         }
 
         public override void Update()
@@ -304,8 +302,8 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (!IsEnabled())
                 return;
 
-            using (m_lock.AcquireExclusiveUsing())
-                TargetList.Clear();
+            //using (m_lock.AcquireExclusiveUsing())
+                //TargetList.Clear();
 
             foreach (var item in blocks)
                 CheckBlockProjection(item);
@@ -395,11 +393,8 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 if(projector.CanBuild(block, false) == BuildCheckResult.OK)
                 {
-                    using (Lock.AcquireExclusiveUsing())
-                    {
-                        if(!PotentialTargetList.Contains(block))
-                            PotentialTargetList.Add(block);
-                    }
+                    if(!PotentialTargetList.Contains(block))
+                        PotentialTargetList.Add(block);
                 }
             }
         }

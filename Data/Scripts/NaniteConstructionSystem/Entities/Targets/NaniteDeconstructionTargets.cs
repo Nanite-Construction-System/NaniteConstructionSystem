@@ -291,8 +291,6 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
             if (LastInvalidTargetReason != "")
                 InvalidTargetReason(LastInvalidTargetReason);
-
-            PotentialTargetList.Clear();
         }
 
         public override void Update()
