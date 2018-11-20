@@ -221,13 +221,14 @@ namespace NaniteConstructionSystem.Entities.Targets
                     CompleteTarget(target);
                     return;
                 }
-
+                /* 
                 if (!m_potentialTargetList.Contains(target))
                 {
                     Logging.Instance.WriteLine("COMPLETING Projection Target since potential target is missing");
                     CompleteTarget(target);
                     return;
                 }
+                */
             }
             CreateProjectionParticle(target);
         }
@@ -319,7 +320,6 @@ namespace NaniteConstructionSystem.Entities.Targets
 				if (item == null || !((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional 
                   || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
 					continue;
-
                 List<IMySlimBlock> beaconBlocks = new List<IMySlimBlock>();
 
                 foreach (var grid in MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)item.CubeGrid, GridLinkTypeEnum.Physical))
