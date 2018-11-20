@@ -93,59 +93,49 @@ namespace NaniteConstructionSystem.Extensions
             {
                 List<IMyInventory> removalList = new List<IMyInventory>();
                 MyInventory sourceInventory = source.GetInventory();
-                lock (connectedInventory)
+                foreach (IMyInventory inv in connectedInventory.OrderByDescending(x => (float)x.MaxVolume - (float)x.CurrentVolume))
                 {
-                    foreach (IMyInventory inv in connectedInventory.OrderByDescending(x => (float)x.MaxVolume - (float)x.CurrentVolume))
+                    MyInventory targetInventory = inv as MyInventory;
+                    IMyInventory outinv = null;
+                    if (!IsValidInventoryConnection(sourceInventory, targetInventory, out outinv))
                     {
-                        MyInventory targetInventory = inv as MyInventory;
-                        IMyInventory outinv = null;
-                        if (!IsValidInventoryConnection(sourceInventory, targetInventory, out outinv))
-                        {
-                            removalList.Add(inv);
+                        removalList.Add(inv);
+                        continue;
+                    }
+
+                    List<VRage.Game.Entity.MyPhysicalInventoryItem> items = sourceInventory.GetItems();
+                    for (int i = 0; i < items.Count; i++)
+                    {
+                        IMyInventoryItem subItem = items[i] as IMyInventoryItem;
+                        if (subItem == null) 
                             continue;
-                        }
 
-                        List<VRage.Game.Entity.MyPhysicalInventoryItem> items = sourceInventory.GetItems();
-                        for (int i = 0; i < items.Count; i++)
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         {
-                            IMyInventoryItem subItem = items[i] as IMyInventoryItem;
-                            if (subItem == null) 
-                                continue;
+                            if (subItem == null)
+                                return;
 
-                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                            {
-                                if (subItem == null)
-                                    return;
-
-                                MyFixedPoint amountFits = targetInventory.ComputeAmountThatFits(new MyDefinitionId(subItem.Content.TypeId, subItem.Content.SubtypeId));
-                                amountFits = (amountFits > subItem.Amount) ? subItem.Amount : amountFits;
-                                
-                                if (amountFits > (MyFixedPoint)0f && sourceInventory.Remove(subItem, amountFits))
-                                    targetInventory.Add(subItem, amountFits);
-                            });
-                        }
+                            MyFixedPoint amountFits = targetInventory.ComputeAmountThatFits(new MyDefinitionId(subItem.Content.TypeId, subItem.Content.SubtypeId));
+                            amountFits = (amountFits > subItem.Amount) ? subItem.Amount : amountFits;
+                            
+                            if (amountFits > (MyFixedPoint)0f && sourceInventory.Remove(subItem, amountFits))
+                                targetInventory.Add(subItem, amountFits);
+                        });
                     }
                 }
                 foreach (IMyInventory inv in removalList)
-                    lock (connectedInventory)
-                        connectedInventory.Remove(inv);
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {connectedInventory.Remove(inv);});
                 
             }
             catch (InvalidOperationException ex)
             {
-                Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Retrying.");
-                TryMoveToFreeCargo(source, connectedInventory, ignoreOtherFactories);
+                Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Aborting.");
             }
             catch (Exception ex) when (ex.ToString().Contains("IndexOutOfRangeException")) //because Keen thinks we shouldn't have access to this exception ...
             {
-                Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Retrying.");
-                TryMoveToFreeCargo(source, connectedInventory, ignoreOtherFactories);
+                Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Aborting.");
             }
-        }
-
-        private static void MoveItemQueueWorker(IMyInventoryItem item, MyInventory sourceInventory, MyInventory targetInventory)
-        {
-
         }
     }
 }
