@@ -115,6 +115,8 @@ namespace NaniteConstructionSystem.Entities
         private MySoundPair m_soundPair;
         private MyEntity3DSoundEmitter m_soundEmitter;
         private int m_updateCount;
+        private int m_assemblerUpdateTimer;
+        private int m_takeComponentsTimer;
         private FactoryStates m_lastState;
         private int m_spoolPosition;
         private StringBuilder m_syncDetails;
@@ -126,6 +128,7 @@ namespace NaniteConstructionSystem.Entities
         private int m_targetsCount;
         private bool m_clientEmissivesUpdate;
         private bool m_forceProcessState;
+        private bool m_scanningActive;
         private List<IMyCubeGrid> GridGroup = new List<IMyCubeGrid>();
         private MyInventory m_constructionBlockInventory = null;
         private int m_totalScanBlocksCount;
@@ -138,12 +141,8 @@ namespace NaniteConstructionSystem.Entities
 
         private const int m_spoolingTime = 3000;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="entity">The IMyEntity of the block</param>
         public NaniteConstructionBlock(IMyEntity entity)
-        {
+        { // Constructor
             m_constructionBlock = (IMyShipWelder)entity;
             m_constructionBlockInventory = ((MyCubeBlock)entity).GetInventory();
             m_constructionBlockInventory.SetFlags(MyInventoryFlags.CanReceive |MyInventoryFlags.CanSend);
@@ -160,11 +159,8 @@ namespace NaniteConstructionSystem.Entities
 
         }
 
-        /// <summary>
-        /// Actual init.  This occurs once modapi is ready and updating.
-        /// </summary>
         private void Initialize()
-        {
+        { // Actual init. This occurs once modapi is ready and updating.
             m_initialize = true;
 
             m_toolManager = new NaniteToolManager();
@@ -203,19 +199,14 @@ namespace NaniteConstructionSystem.Entities
             m_inventoryManager = new NaniteConstructionInventory((MyEntity)m_constructionBlock);
 
             ((IMyTerminalBlock)m_constructionBlock).AppendingCustomInfo += AppendingCustomInfo;
-            //m_constructionCubeBlock.CubeGrid.OnBlockRemoved += OnBlockRemoved;
-            //m_constructionCubeBlock.CubeGrid.OnBlockAdded += OnBlockAdded;
 
             Sink = ((MyEntity)m_constructionBlock).Components.Get<MyResourceSinkComponent>();
 
             CheckGridGroup();
         }
 
-        /// <summary>
-        /// Main update loop
-        /// </summary>
         public void Update()
-        {
+        { // Main update loop. Called each frame during game block logic
             if (ConstructionBlock.Closed)
                 return;
             
@@ -225,7 +216,7 @@ namespace NaniteConstructionSystem.Entities
                 Initialize();
 
             if (m_updateCount % 1800 == 0)
-            {
+            { // Log some status info. Should include some process time profiling in the future
                 MyAPIGateway.Parallel.Start(() =>
                 {
                     string upgrades = "";
@@ -251,11 +242,21 @@ namespace NaniteConstructionSystem.Entities
                     CheckGridGroup();
                 }
                 
-                bool ScanningActive = false;
-                ScanForTargets(out ScanningActive);
+                ScanForTargets(out m_scanningActive);
 
-                if (!ScanningActive)
-                    ProcessState();
+                if (m_forceProcessState || !m_scanningActive || m_updateCount > m_assemblerUpdateTimer + 600)
+                    ProcessState();                          // ^Prevent factorystate deadlocks
+                    
+                if (m_updateCount == m_takeComponentsTimer)
+                    InventoryManager.TakeRequiredComponents();
+
+                else if (m_updateCount == m_assemblerUpdateTimer)
+                {
+                    if (m_factoryState == FactoryStates.MissingParts)
+                        ProcessAssemblerQueue();
+
+                    m_scanningActive = false;
+                }
             }            
             
             UpdateSpoolPosition();
@@ -266,14 +267,13 @@ namespace NaniteConstructionSystem.Entities
                 UpdateClientEmissives();
                 DrawEffects();
             }
-                
 
             if (m_updateCount % 60 == 0)
                 ProcessTargetItems();
 
             if (m_updateCount % 120 == 0)
             {
-                ParticleManager.CheckParticleLife();
+                ParticleManager.CheckParticleLife(); // removes stubborn Nanite particles
                 m_userDefinedNaniteLimit = NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].MaxNanites;
             }
                 
@@ -319,7 +319,6 @@ namespace NaniteConstructionSystem.Entities
 
         public bool IsUserDefinedLimitReached()
         {
-            //var totalTargets = ;
             if (m_userDefinedNaniteLimit != 0 && Targets.Sum(x => x.TargetList.Count) >= m_userDefinedNaniteLimit)
                 return true;
 
@@ -452,58 +451,49 @@ namespace NaniteConstructionSystem.Entities
 
         private void ProcessAssemblerQueue()
         {
-            if (!NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.EntityId) 
-              || !NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].UseAssemblers 
-              || InventoryManager.ComponentsRequired.Count < 1) 
-                return;
-
-            List<IMyProductionBlock> assemblerList = new List<IMyProductionBlock>();
-            List<IMyProductionBlock> queueableAssemblers = new List<IMyProductionBlock>();
-
-            foreach (var inv in InventoryManager.connectedInventory)
+            MyAPIGateway.Parallel.Start(() =>
             {
-                IMyEntity entity = inv.Owner as IMyEntity;
-                if (entity == null) 
-                    continue;
+                if (!NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.EntityId) 
+                || !NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].UseAssemblers 
+                || InventoryManager.ComponentsRequired.Count < 1) 
+                    return;
 
-                IMyAssembler assembler = entity as IMyAssembler;
-                if (assembler == null || assembler.Mode == Sandbox.ModAPI.Ingame.MyAssemblerMode.Disassembly) 
-                    continue;
+                List<IMyProductionBlock> assemblerList = new List<IMyProductionBlock>();
+                List<IMyProductionBlock> queueableAssemblers = new List<IMyProductionBlock>();
 
-                assemblerList.Add((IMyProductionBlock)assembler);
+                foreach (var inv in InventoryManager.connectedInventory)
+                {
+                    IMyEntity entity = inv.Owner as IMyEntity;
+                    if (entity == null) 
+                        continue;
 
-                if (NaniteConstructionManager.AssemblerSettings.ContainsKey(entity.EntityId) 
-                    && NaniteConstructionManager.AssemblerSettings[entity.EntityId].AllowFactoryUsage)
-                    queueableAssemblers.Add((IMyProductionBlock)assembler);
-            }
+                    IMyAssembler assembler = entity as IMyAssembler;
+                    if (assembler == null || assembler.Mode == Sandbox.ModAPI.Ingame.MyAssemblerMode.Disassembly) 
+                        continue;
 
-            if (assemblerList.Count < 1) 
-                return;
+                    assemblerList.Add((IMyProductionBlock)assembler);
 
-            Dictionary<string, int> missing = new Dictionary<string, int>();
-            Dictionary<string, int> available = new Dictionary<string, int>();
-            InventoryManager.GetAvailableComponents(ref available);
-            GetMissingComponentsPotentialTargets<NaniteConstructionTargets>(missing, available);
-            GetMissingComponentsPotentialTargets<NaniteProjectionTargets>(missing, available);
+                    if (NaniteConstructionManager.AssemblerSettings.ContainsKey(entity.EntityId) 
+                        && NaniteConstructionManager.AssemblerSettings[entity.EntityId].AllowFactoryUsage)
+                        queueableAssemblers.Add((IMyProductionBlock)assembler);
+                }
 
-            
-            foreach (var item in missing)
-            {
-                MyAPIGateway.Parallel.Start(() =>
+                if (assemblerList.Count < 1) 
+                    return;
+
+                MyAPIGateway.Parallel.ForEach(InventoryManager.ComponentsRequired, item =>
                 {
                     var def = MyDefinitionManager.Static.TryGetBlueprintDefinitionByResultId(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key));
                     if (def == null) 
                         return;
 
                     if (def.Results != null && def.Results[0].Amount > 1)
-                    { // If this is some sort of weird modded definition, then we need to find the vanilla definition
+                    { // If this is some sort of weird modded definition, find the vanilla definition
                         if (m_defCache.ContainsKey(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key)))
                             def = m_defCache[new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key)]; 
 
                         else
-                        {
                             foreach (var defTest in MyDefinitionManager.Static.GetBlueprintDefinitions())
-                            {
                                 if (defTest.Results != null && defTest.Results[0].Amount == 1 && defTest.Results[0].Id == new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key))
                                 {
                                     if (!m_defCache.ContainsKey(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key)))
@@ -511,21 +501,12 @@ namespace NaniteConstructionSystem.Entities
                                             {m_defCache.Add(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key), defTest);});
                                         break;
                                 }
-                            }
-                        }
                     }
 
                     if (ItemIsAlreadyQueuedInAssembler(def, item.Value, assemblerList))
                         return;
 
                     int blueprintCount = assemblerList.Sum(x => x.GetQueue().Sum(y => y.Blueprint == def ? (int)y.Amount : 0));
-                    int availableCount = 0;
-
-                    if (available.ContainsKey(item.Key)) 
-                        availableCount = available[item.Key];
-
-                    if (blueprintCount >= item.Value - availableCount) 
-                        return;
 
                     foreach (var target in queueableAssemblers)
                     {
@@ -538,7 +519,11 @@ namespace NaniteConstructionSystem.Entities
                             {target.InsertQueueItem(0, def, amount);});
                     }
                 });
-            }
+            },
+            () => { // callback runs after parallel task finishes
+                foreach (var item in m_targets.ToList())
+                    item.PotentialTargetList.Clear();
+            });
         }
 
         private bool ItemIsAlreadyQueuedInAssembler(object def, int amountNeeded, List<IMyProductionBlock> assemblerList)
@@ -590,19 +575,18 @@ namespace NaniteConstructionSystem.Entities
         /// <summary>
         /// Scans for block targets including projections. This can be intensive, so we're only doing it once every 5 seconds.
         /// </summary>
-        private void ScanForTargets(out bool ScanningActive)
+        private void ScanForTargets(out bool scanningActive)
         {
-            ScanningActive = false;
+            scanningActive = m_scanningActive;
             if (m_factoryState != FactoryStates.Disabled && m_factoryState != FactoryStates.MissingPower && m_updateCount % 300 == 0)
             {
-                ScanningActive = true;
+                scanningActive = true; 
                 MyAPIGateway.Parallel.StartBackground(() =>
                 {
                     DateTime start = DateTime.Now;
                     try
                     {
                         ProcessTargetsParallel();
-                        ProcessAssemblerQueue();
                         ProcessTargets();
                         Logging.Instance.WriteLine($"ScanForTargets {ConstructionBlock.EntityId}: {(DateTime.Now - start).TotalMilliseconds}ms");
                     }
@@ -612,23 +596,23 @@ namespace NaniteConstructionSystem.Entities
                           + "This is likely due to a list being modified during enumeration in a parallel thread, "
                           + $"which is probably harmless.\n{ex.ToString()}");
                     }
-                    catch (Exception ex) when (ex.ToString().Contains("IndexOutOfRangeException")) //because Keen thinks we shouldn't have access to this exception ...
-                    {
+                    catch (Exception ex) when (ex.ToString().Contains("IndexOutOfRangeException")) 
+                    { // because Keen thinks we shouldn't have access to IndexOutOfRangeException ...
                         Logging.Instance.WriteLine("ScanForTargets IndexOutOfRangeException: "
                           + "This is likely due to a list being modified during enumeration in a parallel thread, "
                           + $"which is probably harmless.\n{ex.ToString()}");
                     }
                     catch (Exception ex)
-                    {
-                        VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.ScanForTargets Error: {ex.ToString()}");
-                    }
-                });
+                        {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.ScanForTargets Error: {ex.ToString()}");}
+                },
+                () => { //callback
+                    m_takeComponentsTimer = m_updateCount + 100; //  These timers give the parallel threads time to finish
+                    m_assemblerUpdateTimer = m_updateCount + 200; // computing and then finding components/lists.
+                    m_scanningActive = false; // This bool forces the m_factorystate to wait for at least one attempt at 
+                });                           // finding components before moving to the MissingParts state
             }
         }
 
-        /// <summary>
-        /// Processes targets (construction and projection)
-        /// </summary>
         private void ProcessTargetItems()
         {
             try
@@ -637,21 +621,15 @@ namespace NaniteConstructionSystem.Entities
                     item.Update();
             }
             catch (Exception ex)
-            {
-                VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.ProcessTargetItems() Exception: {ex.ToString()}");
-            }
+                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.ProcessTargetItems() Exception: {ex.ToString()}");}
         }
 
-        /// <summary>
-        /// Draws effects (lightning and center spinning orb)
-        /// </summary>
         private void DrawEffects()
-        {
+        { // Draws effects (lightning and center spinning orb)
             if (!Sync.IsClient)
                 return;
 
             foreach (var item in m_effects)
-            {
                 switch (m_factoryState)
                 {
                     case FactoryStates.Active:
@@ -666,8 +644,7 @@ namespace NaniteConstructionSystem.Entities
                     default:
                         item.InactiveUpdate();
                         break;
-                }                    
-            }
+                }
         }
 
         /// <summary>
@@ -733,12 +710,8 @@ namespace NaniteConstructionSystem.Entities
             }
         }
 
-        /// <summary>
-        /// Processes found targets by the factory and also moves inventory. Processed mostly in parallel
-        /// </summary>
         private void ProcessTargets()
-        {   
-            int pos = 0;
+        { // Processes found targets by the factory and also moves inventory. Processed mostly in parallel
             try
             {
                 Dictionary<string, int> availableComponents = new Dictionary<string, int>();
@@ -748,10 +721,8 @@ namespace NaniteConstructionSystem.Entities
                     if (item is NaniteConstructionTargets || item is NaniteProjectionTargets) 
                         InventoryManager.SubtractAvailableComponents(item.TargetList.Cast<IMySlimBlock>().ToList(), ref availableComponents, item is NaniteProjectionTargets);            
 
-                pos = 1;
                 var factoryBlockList = NaniteConstructionManager.GetConstructionBlocks((IMyCubeGrid)ConstructionBlock.CubeGrid);
 
-                pos = 2;
                 foreach (var item in m_targets.ToList())
                 {
                     m_potentialTargetsCount += item.PotentialTargetList.Count;
@@ -760,43 +731,24 @@ namespace NaniteConstructionSystem.Entities
                 }
 
                 availableComponents = new Dictionary<string, int>();
-                pos = 3;
                 InventoryManager.GetAvailableComponents(ref availableComponents);
 
-                pos = 4;
                 foreach (var item in m_targets.ToList())
                     if ((item is NaniteConstructionTargets) || (item is NaniteProjectionTargets))
                         InventoryManager.SubtractAvailableComponents(item.TargetList.Cast<IMySlimBlock>().ToList(), ref availableComponents, item is NaniteProjectionTargets);
                 
-                pos = 5;
                 foreach (var item in m_targets.ToList())
-                {
                     if ((item is NaniteConstructionTargets) || (item is NaniteProjectionTargets)) 
                         InventoryManager.SetupRequiredComponents(item.TargetList.Cast<IMySlimBlock>().ToList(), 
                           item.PotentialTargetList.Cast<IMySlimBlock>().ToList(), item.GetMaximumTargets(), 
                           ref availableComponents, item is NaniteProjectionTargets);
-
-                    item.PotentialTargetList.Clear();
-                }
-
-                InventoryManager.TakeRequiredComponents();
-
-                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                    {m_forceProcessState = true;});
             }
             catch (Exception ex) 
-            {
-                VRage.Utils.MyLog.Default.WriteLineAndConsole($"Nanite Construction Factory: Exception at NaniteConstructionBlock.ProcessTargets at pos {pos}. \n{ex.ToString()}");
-            }
+                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"Nanite Construction Factory: Exception at NaniteConstructionBlock.ProcessTargets:\n{ex.ToString()}");}
         }
 
-        /// <summary>
-        /// Update custom info of the block
-        /// </summary>
-        /// <param name="block"></param>
-        /// <param name="details"></param>
         private void AppendingCustomInfo(IMyTerminalBlock block, StringBuilder details)
-        {
+        { // Update custom info of the block
             if (m_factoryState == FactoryStates.Disabled || m_updateCount % 180 != 0)
                 return;
             
@@ -836,9 +788,7 @@ namespace NaniteConstructionSystem.Entities
                     }
 
                     if (InventoryManager.ComponentsRequired.Count > 0) 
-                    {
                         foreach (var component in InventoryManager.ComponentsRequired.ToList())
-                        {
                             if (component.Value > 0)
                             {
                                 if (!missingCompTitleAppended)
@@ -848,8 +798,6 @@ namespace NaniteConstructionSystem.Entities
                                 }
                                 missingComponentsDetailsParallel.Append($"{component.Key}: {component.Value}\r\n");
                             }
-                        }
-                    }
 
                     MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                     {
@@ -901,7 +849,6 @@ namespace NaniteConstructionSystem.Entities
                 details.Append(m_syncDetails);
         }
 
-        
         private void UpdateSpoolPosition()
         {
             if (m_factoryState == FactoryStates.SpoolingUp && (m_spoolPosition += (int)(1000f / 60f)) >= m_spoolingTime)
@@ -911,14 +858,14 @@ namespace NaniteConstructionSystem.Entities
             }
 
             else if (m_factoryState == FactoryStates.SpoolingDown && (m_spoolPosition -= (int)(1000f / 60f)) <= 0)
+            {
                 m_spoolPosition = 0;
+                m_forceProcessState = true;
+            }
         }
 
-        /// <summary>
-        /// Change color of emissives on the block model to appropriate color. Client only.
-        /// </summary>
         private void UpdateClientEmissives()
-        {
+        { // Change color of emissives on the block model to appropriate color. Client only.
             float emissivity = 1.0f;
             IMyFunctionalBlock blockEntity = (IMyFunctionalBlock)m_constructionBlock;
             if (!blockEntity.Enabled || !blockEntity.IsFunctional)
@@ -927,7 +874,6 @@ namespace NaniteConstructionSystem.Entities
                 MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.Red, Color.White);
             }
             else
-            {
                 switch (m_factoryState)
                 {
                     case FactoryStates.Active:
@@ -976,17 +922,15 @@ namespace NaniteConstructionSystem.Entities
                         MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.Red, Color.White);
                         break;
                 }
-            }
+
             m_clientEmissivesUpdate = false;
         }
 
-        /// <summary>
-        /// Check state of block (used to be just emissives, but emissive state has been turned into block state.  Will refactor names later)
-        /// </summary>
         private void ProcessState()
-        {
+        { // Check state of factory, controls emissives and other things
             if (m_forceProcessState)
                 m_forceProcessState = false;
+
             else if (m_updateCount % 120 != 0)
                 return;
 
@@ -1004,14 +948,13 @@ namespace NaniteConstructionSystem.Entities
                 if ((m_targetsCount > 0) && IsPowered() || m_particleManager.Particles.Count > 0)
                 {
                     if (m_spoolPosition == m_spoolingTime)
-                    {
                         MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                         {
                             m_factoryState = FactoryStates.Active;
                             if (m_lastState != m_factoryState)
                                 m_updateConnectedInventory = true;
                         });
-                    }
+
                     else
                         MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                             {m_factoryState = FactoryStates.SpoolingUp;});
@@ -1043,13 +986,12 @@ namespace NaniteConstructionSystem.Entities
                 else if (blockEntity.Enabled)
                 { 
                     if (m_spoolPosition <= 0)
-                    {
                         MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                         {
                             m_spoolPosition = 0;
                             m_factoryState = FactoryStates.Enabled;
                         });
-                    }
+
                     else
                         MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                             {m_factoryState = FactoryStates.SpoolingDown;});
@@ -1067,12 +1009,7 @@ namespace NaniteConstructionSystem.Entities
                     SendStateUpdate(m_factoryState);
 
                     if (m_lastState != m_factoryState)
-                    {
                         m_lastState = m_factoryState;
-                        
-                        //if (!MyAPIGateway.Multiplayer.MultiplayerActive)
-                            //UpdateClientEmissives(); //updates emissives for a singleplayer game
-                    }
                 });
             });
         }
@@ -1124,7 +1061,6 @@ namespace NaniteConstructionSystem.Entities
             data.TargetId = target.VoxelId;
             data.TargetType = TargetTypes.Voxel;
             data.PositionD = target.Position;
-            //data.SubTargetId = target.MiningHammer.MiningBlock.EntityId;
             SendToPlayerInSyncRange(8951, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
@@ -1152,13 +1088,11 @@ namespace NaniteConstructionSystem.Entities
                         MyAPIGateway.Players.GetPlayers(players);
                         IMyPlayer playerTarget = null;
                         foreach (var item in players)
-                        {
                             if (item.IdentityId == data.TargetId)
                             {
                                 playerTarget = item;
                                 break;
                             }
-                        }
 
                         if (playerTarget != null)
                             GetTarget<NaniteMedicalTargets>().TargetList.Add(playerTarget);
@@ -1236,6 +1170,7 @@ namespace NaniteConstructionSystem.Entities
             TargetData data = new TargetData();
             data.EntityId = ConstructionBlock.EntityId;
             data.TargetId = target.CubeGrid.EntityId;
+
             if (projectorId > 0)
                 data.TargetId = projectorId;
 
@@ -1289,13 +1224,11 @@ namespace NaniteConstructionSystem.Entities
                     MyAPIGateway.Players.GetPlayers(players);
                     IMyPlayer playerTarget = null;
                     foreach (var item in players)
-                    {
                         if (item.IdentityId == data.TargetId)
                         {
                             playerTarget = item;
                             break;
                         }
-                    }
 
                     if (playerTarget != null)
                         GetTarget<NaniteMedicalTargets>().CompleteTarget(playerTarget);
@@ -1313,13 +1246,11 @@ namespace NaniteConstructionSystem.Entities
                 else if (data.TargetType == TargetTypes.Deconstruction)
                 {
                     foreach (IMySlimBlock item in GetTarget<NaniteDeconstructionTargets>().TargetList.ToList())
-                    {
                         if (item.CubeGrid.EntityId == data.TargetId && item.Position == new Vector3I(data.PositionI.X, data.PositionI.Y, data.PositionI.Z))
                         {
                             GetTarget<NaniteDeconstructionTargets>().CompleteTarget(item);
                             return;
                         }
-                    }
 
                     Logging.Instance.WriteLine(string.Format("PROBLEM Unable to remove (dec): {0} - {1} | {2}", data.EntityId, data.PositionI, data.PositionD));
                     return;
@@ -1327,14 +1258,11 @@ namespace NaniteConstructionSystem.Entities
                 else if (data.TargetType == TargetTypes.Projection)
                 {
                     foreach (IMySlimBlock item in GetTarget<NaniteProjectionTargets>().TargetList.ToList())
-                    {
                         if (item.Position == new Vector3I(data.PositionI.X, data.PositionI.Y, data.PositionI.Z) && NaniteProjectionTargets.GetProjectorByBlock(item) == data.TargetId)
                         {
                             GetTarget<NaniteProjectionTargets>().CompleteTarget(item);
                             return;
                         }
-                    }
-
                 }
 
                 IMySlimBlock block = null;
@@ -1351,9 +1279,7 @@ namespace NaniteConstructionSystem.Entities
                     Logging.Instance.WriteLine(string.Format("PROBLEM Unable to remove (oth): {0} - {1} | {2}", data.EntityId, data.PositionI, data.PositionD));
             }
             finally
-            {
-                CleanupTargets();
-            }
+                {CleanupTargets();}
         }
 
         public void SendCancelTarget(IMySlimBlock target, TargetTypes targetType, long projectorId = 0)
@@ -1361,6 +1287,7 @@ namespace NaniteConstructionSystem.Entities
             TargetData data = new TargetData();
             data.EntityId = ConstructionBlock.EntityId;
             data.TargetId = target.CubeGrid.EntityId;
+
             if (projectorId > 0)
                 data.TargetId = projectorId;
 
@@ -1414,13 +1341,11 @@ namespace NaniteConstructionSystem.Entities
                     MyAPIGateway.Players.GetPlayers(players);
                     IMyPlayer playerTarget = null;
                     foreach (var item in players)
-                    {
                         if (item.IdentityId == data.TargetId)
                         {
                             playerTarget = item;
                             break;
                         }
-                    }
 
                     if (playerTarget != null)
                         GetTarget<NaniteMedicalTargets>().CancelTarget(playerTarget);
@@ -1430,7 +1355,6 @@ namespace NaniteConstructionSystem.Entities
                 else if (data.TargetType == TargetTypes.Deconstruction)
                 {
                     foreach (IMySlimBlock item in m_targets.First(x => x is NaniteDeconstructionTargets).TargetList.ToList())
-                    {
                         if (item.CubeGrid.EntityId == data.TargetId && item.Position == new Vector3I(data.PositionI.X, data.PositionI.Y, data.PositionI.Z))
                         {
                             var deconstructTarget = GetTarget<NaniteDeconstructionTargets>();
@@ -1439,22 +1363,17 @@ namespace NaniteConstructionSystem.Entities
 
                             return;
                         }
-                    }
 
                     Logging.Instance.WriteLine(string.Format("PROBLEM Unable to remove (dec): {0} - {1} | {2}", data.EntityId, data.PositionI));
                     return;
                 }
                 else if (data.TargetType == TargetTypes.Projection)
-                {
                     foreach (IMySlimBlock item in GetTarget<NaniteProjectionTargets>().TargetList.ToList())
-                    {
                         if (item.Position == new Vector3I(data.PositionI.X, data.PositionI.Y, data.PositionI.Z) && NaniteProjectionTargets.GetProjectorByBlock(item) == data.TargetId)
                         {
                             GetTarget<NaniteProjectionTargets>().CancelTarget(item);
                             return;
                         }
-                    }
-                }
 
                 IMySlimBlock block = null;
                 Vector3I position = new Vector3I(data.PositionI.X, data.PositionI.Y, data.PositionI.Z);
@@ -1469,9 +1388,7 @@ namespace NaniteConstructionSystem.Entities
                 Logging.Instance.WriteLine(string.Format("PROBLEM Unable to remove (oth): {0} - {1} | {2}", data.EntityId, data.PositionI, data.PositionD));
             }
             finally
-            {
-                CleanupTargets();
-            }
+                {CleanupTargets();}
         }
 
         private void SendDetails()
@@ -1500,12 +1417,8 @@ namespace NaniteConstructionSystem.Entities
             MyAPIGateway.Multiplayer.SendMessageToOthers(8958, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
-        /// <summary>
-        /// When splits happen, targets grid and position change, which isn't updating properly ?  This will just remove the target on the client.  It's hacky
-        /// but it works
-        /// </summary>
         private void CleanupTargets()
-        {
+        { // When splits happen, targets grid and position change, which isn't updating properly, this will just remove the target on the client.
             try
             {
                 MyAPIGateway.Parallel.Start(() =>
@@ -1542,9 +1455,7 @@ namespace NaniteConstructionSystem.Entities
                 });
             }
             catch(Exception ex)
-            {
-                VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.CleanupTargets Exception: {ex.ToString()}");
-            }
+                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.CleanupTargets Exception: {ex.ToString()}");}
         }
 
         public T GetTarget<T>() where T : NaniteTargetBlocksBase
@@ -1584,11 +1495,8 @@ namespace NaniteConstructionSystem.Entities
         #endregion
     }
 
-    /// <summary>
-    /// Class used to set emissives on a block dynamically
-    /// </summary>
     public class MyCubeBlockEmissive : MyCubeBlock
-    {
+    { // Class used to set emissives on a block dynamically
         public static void SetEmissiveParts(MyEntity entity, float emissivity, Color emissivePartColor, Color displayPartColor)
         {
             if (entity != null)
