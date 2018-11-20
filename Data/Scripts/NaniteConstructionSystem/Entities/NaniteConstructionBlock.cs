@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Sandbox.Definitions;
 using Sandbox.Game;
 using Sandbox.Game.Entities;
@@ -383,9 +382,12 @@ namespace NaniteConstructionSystem.Entities
         {
             IMyInventory inv = null;
             if (GridHelper.IsValidInventoryConnection(m_constructionBlockInventory, block, out inv))
-                lock (InventoryManager.connectedInventory)
-                    if (!InventoryManager.connectedInventory.Contains(inv))
+                if (!InventoryManager.connectedInventory.Contains(inv))
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                    {
+                        if (!InventoryManager.connectedInventory.Contains(inv))
                             InventoryManager.connectedInventory.Add(inv);
+                    });
         }
 
         // Checks if the grid group has changed and quickly scans/adds any inventory blocks. Removes event handlers
@@ -397,29 +399,29 @@ namespace NaniteConstructionSystem.Entities
                 {   
                     List<IMyCubeGrid> removalList = new List<IMyCubeGrid>();
                     List<IMyCubeGrid> newGroup = new List<IMyCubeGrid>(MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)m_constructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical));
-                    lock (GridGroup)
+
+                    foreach (IMyCubeGrid grid in GridGroup)
                     {
-                        foreach(IMyCubeGrid grid in GridGroup)
+                        if (!newGroup.Contains(grid))
                         {
-                            if (!newGroup.Contains(grid))
-                            {
-                                Logging.Instance.WriteLine("Removing disconnected grid from grid group.");
-                                removalList.Add(grid);
-                                grid.OnBlockAdded -= OnBlockAdded;
-                            }
+                            Logging.Instance.WriteLine("Removing disconnected grid from grid group.");
+                            removalList.Add(grid);
+                            grid.OnBlockAdded -= OnBlockAdded;
                         }
-                    
-                        foreach(IMyCubeGrid grid in removalList)
-                            GridGroup.Remove(grid);
                     }
+                    
+                    foreach (IMyCubeGrid removalgrid in removalList)
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                            {GridGroup.Remove(removalgrid);});
 
                     foreach (IMyCubeGrid grid in newGroup)
                     {
                         if (!GridGroup.Contains(grid))
                         {
                             Logging.Instance.WriteLine("Adding new grid to grid group.");
-                            lock (GridGroup)
-                                GridGroup.Add(grid);
+
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                                {GridGroup.Add(grid);});
 
                             BuildConnectedInventory(grid);
                             grid.OnBlockAdded += OnBlockAdded;
@@ -440,9 +442,8 @@ namespace NaniteConstructionSystem.Entities
                 try
                 {                   
                     ConcurrentBag<IMySlimBlock> slimBlocks = new ConcurrentBag<IMySlimBlock>(((MyCubeGrid)grid).GetBlocks());
-                    foreach (IMySlimBlock SlimBlock in slimBlocks)
-                        MyAPIGateway.Parallel.Start(() =>
-                            {TryAddToInventoryGroup(SlimBlock);});
+                    MyAPIGateway.Parallel.ForEach(slimBlocks, SlimBlock => 
+                        {TryAddToInventoryGroup(SlimBlock);});
                 }
                 catch (Exception ex)
                     {VRage.Utils.MyLog.Default.WriteLineAndConsole($"BuildConnectedInventory() Error: {ex.ToString()}");}
@@ -459,24 +460,21 @@ namespace NaniteConstructionSystem.Entities
             List<IMyProductionBlock> assemblerList = new List<IMyProductionBlock>();
             List<IMyProductionBlock> queueableAssemblers = new List<IMyProductionBlock>();
 
-            lock (InventoryManager.connectedInventory)
+            foreach (var inv in InventoryManager.connectedInventory)
             {
-                foreach (var inv in InventoryManager.connectedInventory)
-                {
-                    IMyEntity entity = inv.Owner as IMyEntity;
-                    if (entity == null) 
-                        continue;
+                IMyEntity entity = inv.Owner as IMyEntity;
+                if (entity == null) 
+                    continue;
 
-                    IMyAssembler assembler = entity as IMyAssembler;
-                    if (assembler == null || assembler.Mode == Sandbox.ModAPI.Ingame.MyAssemblerMode.Disassembly) 
-                        continue;
+                IMyAssembler assembler = entity as IMyAssembler;
+                if (assembler == null || assembler.Mode == Sandbox.ModAPI.Ingame.MyAssemblerMode.Disassembly) 
+                    continue;
 
-                    assemblerList.Add((IMyProductionBlock)assembler);
+                assemblerList.Add((IMyProductionBlock)assembler);
 
-                    if (NaniteConstructionManager.AssemblerSettings.ContainsKey(entity.EntityId) 
-                      && NaniteConstructionManager.AssemblerSettings[entity.EntityId].AllowFactoryUsage)
-                        queueableAssemblers.Add((IMyProductionBlock)assembler);
-                }
+                if (NaniteConstructionManager.AssemblerSettings.ContainsKey(entity.EntityId) 
+                    && NaniteConstructionManager.AssemblerSettings[entity.EntityId].AllowFactoryUsage)
+                    queueableAssemblers.Add((IMyProductionBlock)assembler);
             }
 
             if (assemblerList.Count < 1) 
@@ -508,12 +506,10 @@ namespace NaniteConstructionSystem.Entities
                             {
                                 if (defTest.Results != null && defTest.Results[0].Amount == 1 && defTest.Results[0].Id == new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key))
                                 {
-                                    lock (m_defCache)
-                                    {
-                                        if (!m_defCache.ContainsKey(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key)))
-                                            m_defCache.Add(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key), defTest);
+                                    if (!m_defCache.ContainsKey(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key)))
+                                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                                            {m_defCache.Add(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key), defTest);});
                                         break;
-                                    }
                                 }
                             }
                         }
@@ -687,11 +683,9 @@ namespace NaniteConstructionSystem.Entities
                         {InventoryManager.ComponentsRequired.Clear();});
 
                     m_potentialTargetsCount = 0;
-                    lock (GridGroup)
-                    {
-                        foreach (IMyCubeGrid grid in GridGroup)
-                            grid.GetBlocks(m_scanBlocksCache); 
-                    }
+
+                    foreach (IMyCubeGrid grid in GridGroup)
+                        grid.GetBlocks(m_scanBlocksCache); 
 
                     m_totalScanBlocksCount = m_scanBlocksCache.Count;
                     if (m_potentialInventoryBlocks.Count < 1)

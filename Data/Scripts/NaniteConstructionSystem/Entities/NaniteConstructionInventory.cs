@@ -43,11 +43,12 @@ namespace NaniteConstructionSystem.Entities
         internal void TakeRequiredComponents()
         {
             if (MyAPIGateway.Session.CreativeMode || ComponentsRequired.Count < 1)
-                return;
+                    return;
             
             List<IMyInventory> removalList = new List<IMyInventory>();
-            lock (connectedInventory)
+            try
             {
+                
                 foreach (IMyInventory inventory in connectedInventory)
                 {
                     IMyInventory inv = null;
@@ -101,9 +102,18 @@ namespace NaniteConstructionSystem.Entities
                     }
                 }
             }
+            catch (InvalidOperationException ex)
+            {
+                Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Aborting.");
+            }
+            catch (Exception ex) when (ex.ToString().Contains("IndexOutOfRangeException")) //because Keen thinks we shouldn't have access to this exception ...
+            {
+                Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Aborting.");
+            }
+
             foreach (IMyInventory inv in removalList)
-                lock (connectedInventory)
-                    connectedInventory.Remove(inv);
+                MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                    {connectedInventory.Remove(inv);});
         }
 
         private float GetMaxComponentAmount(string componentName, float remainingVolume)
