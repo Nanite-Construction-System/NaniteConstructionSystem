@@ -474,11 +474,11 @@ namespace NaniteConstructionSystem.Entities
                     assemblerList.Add((IMyProductionBlock)assembler);
 
                     if (NaniteConstructionManager.AssemblerSettings.ContainsKey(entity.EntityId) 
-                        && NaniteConstructionManager.AssemblerSettings[entity.EntityId].AllowFactoryUsage)
+                      && NaniteConstructionManager.AssemblerSettings[entity.EntityId].AllowFactoryUsage)
                         queueableAssemblers.Add((IMyProductionBlock)assembler);
                 }
 
-                if (assemblerList.Count < 1) 
+                if (queueableAssemblers.Count < 1) 
                     return;
 
                 MyAPIGateway.Parallel.ForEach(InventoryManager.ComponentsRequired, item =>
@@ -494,26 +494,30 @@ namespace NaniteConstructionSystem.Entities
 
                         else
                             foreach (var defTest in MyDefinitionManager.Static.GetBlueprintDefinitions())
-                                if (defTest.Results != null && defTest.Results[0].Amount == 1 && defTest.Results[0].Id == new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key))
-                                {
+                                if (defTest.Results != null && defTest.Results[0].Amount == 1 
+                                  && defTest.Results[0].Id == new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key))
                                     if (!m_defCache.ContainsKey(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key)))
+                                    {
                                         MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                                             {m_defCache.Add(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key), defTest);});
-                                        break;
-                                }
-                    }
 
-                    if (ItemIsAlreadyQueuedInAssembler(def, item.Value, assemblerList))
-                        return;
+                                        break;
+                                    }
+                    }
 
                     int blueprintCount = assemblerList.Sum(x => x.GetQueue().Sum(y => y.Blueprint == def ? (int)y.Amount : 0));
 
+                    if (blueprintCount > 0)
+                        return;
+
                     foreach (var target in queueableAssemblers)
                     {
-                        int amount = (int)Math.Max(((float)(item.Value - blueprintCount) / (float)queueableAssemblers.Count()), 1f);
+                        int amount = (int)Math.Ceiling((float)(item.Value) / (float)queueableAssemblers.Count());
+                        if (amount < 1)
+                            return;
 
-                        Logging.Instance.WriteLine(string.Format("ASSEMBLER Queuing {0} {1} for factory {2} ({3})", 
-                          amount, def.Id, m_constructionBlock.CustomName, blueprintCount));
+                        Logging.Instance.WriteLine(string.Format("ASSEMBLER Queuing {0} {1} for factory {2} ({4} - {3})", 
+                          amount, def.Id, m_constructionBlock.CustomName, blueprintCount, item.Value));
 
                         MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                             {target.InsertQueueItem(0, def, amount);});
@@ -524,23 +528,6 @@ namespace NaniteConstructionSystem.Entities
                 foreach (var item in m_targets.ToList())
                     item.PotentialTargetList.Clear();
             });
-        }
-
-        private bool ItemIsAlreadyQueuedInAssembler(object def, int amountNeeded, List<IMyProductionBlock> assemblerList)
-        {
-            try
-            {
-                foreach (var assembler in assemblerList)
-                    foreach (var queueItem in assembler.GetQueue())
-                        if (queueItem.Blueprint == def && (int)queueItem.Amount >= amountNeeded)
-                            return true;
-                return false;
-            }
-            catch (InvalidOperationException ex)
-            {
-                Logging.Instance.WriteLine("NaniteConstructionBlock.ItemIsAlreadyQueuedInAssembler: A list was modified. Retrying.");
-                return ItemIsAlreadyQueuedInAssembler(def, amountNeeded, assemblerList);
-            }           
         }
 
         private void GetMissingComponentsPotentialTargets<T>(Dictionary<string, int> addToDictionary, Dictionary<string, int> available) where T : NaniteTargetBlocksBase
