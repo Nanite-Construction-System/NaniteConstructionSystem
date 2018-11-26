@@ -31,7 +31,7 @@ namespace NaniteConstructionSystem.Particles
 
             foreach(var item in m_particles)
             {
-                if(item.TargetGridId == targetGridId && item.TargetPosition == position)
+                if (item.TargetGridId == targetGridId && item.TargetPosition == position)
                 {
                     item.Unload();
                     m_particles.Remove(item);
@@ -47,24 +47,40 @@ namespace NaniteConstructionSystem.Particles
         {
             m_updateCount++;
 
-            foreach(var item in m_particles)
-                item.UpdateMatrix();
+            MyAPIGateway.Parallel.Start(() =>
+            {
+                if (m_updateCount % 120 == 0)
+                {
+                    MyAPIGateway.Parallel.ForEach(m_particles, particle => 
+                    {
+                        try
+                            {particle.UpdateMatrix();}
+                        catch (System.Exception e)
+                            {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Update:\n{e.ToString()}");}
+                    }); 
 
-            if (Sync.IsClient && m_updateCount % 120 == 0)
-                Cleanup();
+                    if (Sync.IsClient)
+                    {
+                        try
+                            {Cleanup();}
+                        catch (System.Exception e)
+                            {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Cleanup:\n{e.ToString()}");}
+                    }
+                }
+            });
         } 
 
         private void Cleanup()
         {
             HashSet<TargetEntity> remove = new HashSet<TargetEntity>();
 
-            foreach(var item in m_particles)
+            MyAPIGateway.Parallel.ForEach(m_particles, item => 
             {
                 IMyEntity entity;
-                if(!MyAPIGateway.Entities.TryGetEntityById(item.TargetGridId, out entity))
+                if (!MyAPIGateway.Entities.TryGetEntityById(item.TargetGridId, out entity))
                 {
                     remove.Add(item);
-                    continue;
+                    return;
                 }
 
                 IMyCubeGrid grid = entity as IMyCubeGrid;
@@ -72,21 +88,27 @@ namespace NaniteConstructionSystem.Particles
                 if (slimBlock == null)
                 {
                     remove.Add(item);
-                    continue;
+                    return;
                 }
 
-                if(slimBlock.IsDestroyed || slimBlock.IsFullyDismounted || (slimBlock.FatBlock != null && slimBlock.FatBlock.Closed))
+                if (slimBlock.IsDestroyed || slimBlock.IsFullyDismounted || (slimBlock.FatBlock != null && slimBlock.FatBlock.Closed))
                 {
                     remove.Add(item);
-                    continue;
+                    return;
                 }
-            }
+            });
 
-            foreach(var item in remove)
+            if (remove.Count < 1)
+                return;
+
+            MyAPIGateway.Utilities.InvokeOnGameThread(() => 
             {
-                item.Unload();
-                m_particles.Remove(item);
-            }
+                foreach (var item in remove)
+                {
+                    item.Unload();
+                    m_particles.Remove(item);
+                }
+            });
         }
     }
 
@@ -129,7 +151,10 @@ namespace NaniteConstructionSystem.Particles
             if (slimBlock == null)
                 return;
 
-            m_particle.WorldMatrix = EntityHelper.GetBlockWorldMatrix(slimBlock);
+            var matrix = EntityHelper.GetBlockWorldMatrix(slimBlock);
+
+            MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                {m_particle.WorldMatrix = matrix;});
         }
     }
 }
