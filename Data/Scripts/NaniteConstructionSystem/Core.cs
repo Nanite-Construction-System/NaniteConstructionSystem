@@ -260,35 +260,12 @@ namespace NaniteConstructionSystem
 
             try
             {
-                ProcessNaniteBlocks();
-                ProcessParticleEffects();
-                //ProcessMiningBlocks();
+                ParticleManager.Update();
             }
             catch (Exception ex)
             {
-                Logging.Instance.WriteLine(string.Format("Update Error: {0}", ex.ToString()));
+                VRage.Utils.MyLog.Default.WriteLineAndConsole($"Update Error:\n{ex.ToString()}");
             }
-        }
-
-        private void ProcessNaniteBlocks()
-        {
-            foreach (var item in NaniteBlocks.ToList())
-            {
-                if (item.Value.ConstructionBlock.Closed || item.Value.ConstructionBlock.CubeGrid.Closed) // || item.Value.ConstructionBlock.CubeGrid.Physics == null)
-                {
-                    Logging.Instance.WriteLine(string.Format("REMOVING {1} Factory: {0}", item.Value.ConstructionBlock.EntityId, item.Value.GetType().Name));
-                    item.Value.Unload();
-                    NaniteBlocks.Remove(item.Key);
-                    continue;
-                }
-
-                item.Value.Update();
-            }
-        }
-
-        private void ProcessParticleEffects()
-        {
-            ParticleManager.Update();
         }
 
         public void InitializeControls()
