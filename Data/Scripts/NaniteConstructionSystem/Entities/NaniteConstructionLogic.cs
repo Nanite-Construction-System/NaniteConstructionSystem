@@ -6,7 +6,7 @@ using Sandbox.Game.Entities;
 
 namespace NaniteConstructionSystem.Entities
 {
-    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_ShipWelder), false, "LargeNaniteControlFacility")]
+    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_ShipWelder), true, "LargeNaniteControlFacility")]
     public class LargeControlFacilityLogic : MyGameLogicComponent
     {
         private NaniteConstructionBlock m_block = null;
@@ -15,6 +15,7 @@ namespace NaniteConstructionSystem.Entities
         {
             base.Init(objectBuilder);
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
+            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_FRAME;
         }
 
         public override void UpdateOnceBeforeFrame()
@@ -34,17 +35,18 @@ namespace NaniteConstructionSystem.Entities
                 NaniteConstructionManager.NaniteSync.SendNeedTerminalSettings(Entity.EntityId);
         }
 
+        public override void UpdateBeforeSimulation()
+        {
+            m_block.Update();
+        }
+
         public override void Close()
         {
-            if (NaniteConstructionManager.NaniteBlocks == null)
-                return;
-
-            if (NaniteConstructionManager.NaniteBlocks.ContainsKey(Entity.EntityId))
-            {
-                Logging.Instance.WriteLine(string.Format("REMOVING Nanite Factory: {0}", Entity.EntityId));
-                NaniteConstructionManager.NaniteBlocks[Entity.EntityId].Unload();
+            if (NaniteConstructionManager.NaniteBlocks != null)
                 NaniteConstructionManager.NaniteBlocks.Remove(Entity.EntityId);
-            }
+
+            Logging.Instance.WriteLine(string.Format("REMOVING Nanite Factory: {0}", Entity.EntityId));
+            m_block.Unload();
         }
     }
 
