@@ -112,14 +112,21 @@ namespace NaniteConstructionSystem.Extensions
 
                         MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         {
-                            if (subItem == null)
+                            try
+                            {
+                                if (subItem == null || targetInventory == null || sourceInventory == null)
                                 return;
 
-                            MyFixedPoint amountFits = targetInventory.ComputeAmountThatFits(new MyDefinitionId(subItem.Content.TypeId, subItem.Content.SubtypeId));
-                            amountFits = (amountFits > subItem.Amount) ? subItem.Amount : amountFits;
-                            
-                            if (amountFits > (MyFixedPoint)0f && sourceInventory.Remove(subItem, amountFits))
-                                targetInventory.Add(subItem, amountFits);
+                                MyFixedPoint amountFits = targetInventory.ComputeAmountThatFits(new MyDefinitionId(subItem.Content.TypeId, subItem.Content.SubtypeId));
+                                amountFits = (amountFits > subItem.Amount) ? subItem.Amount : amountFits;
+                                
+                                if (amountFits > (MyFixedPoint)0f && sourceInventory.Remove(subItem, amountFits))
+                                    targetInventory.Add(subItem, amountFits);
+                            }
+                            catch (Exception e)
+                            {
+                                Logging.Instance.WriteLine($"NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo:{e.ToString()}");
+                            }
                         });
                     }
                 }
