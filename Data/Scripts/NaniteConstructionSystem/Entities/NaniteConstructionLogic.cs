@@ -37,7 +37,10 @@ namespace NaniteConstructionSystem.Entities
 
         public override void UpdateBeforeSimulation()
         {
-            m_block.Update();
+            try
+                {m_block.Update();}
+            catch (System.Exception e)
+                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"LargeControlFacilityLogic.UpdateBeforeSimulation Exception: {e.ToString()}");}
         }
 
         public override void Close()
