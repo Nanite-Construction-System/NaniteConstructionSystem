@@ -60,12 +60,7 @@ namespace NaniteConstructionSystem.Particles
                     }); 
 
                     if (Sync.IsClient)
-                    {
-                        try
-                            {Cleanup();}
-                        catch (System.Exception e)
-                            {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Cleanup:\n{e.ToString()}");}
-                    }
+                        Cleanup();
                 }
             });
         } 
@@ -76,26 +71,31 @@ namespace NaniteConstructionSystem.Particles
 
             MyAPIGateway.Parallel.ForEach(m_particles, item => 
             {
-                IMyEntity entity;
-                if (!MyAPIGateway.Entities.TryGetEntityById(item.TargetGridId, out entity))
+                try
                 {
-                    remove.Add(item);
-                    return;
-                }
+                    IMyEntity entity;
+                    if (!MyAPIGateway.Entities.TryGetEntityById(item.TargetGridId, out entity))
+                    {
+                        remove.Add(item);
+                        return;
+                    }
 
-                IMyCubeGrid grid = entity as IMyCubeGrid;
-                IMySlimBlock slimBlock = grid.GetCubeBlock(item.TargetPosition);
-                if (slimBlock == null)
-                {
-                    remove.Add(item);
-                    return;
-                }
+                    IMyCubeGrid grid = entity as IMyCubeGrid;
+                    IMySlimBlock slimBlock = grid.GetCubeBlock(item.TargetPosition);
+                    if (slimBlock == null)
+                    {
+                        remove.Add(item);
+                        return;
+                    }
 
-                if (slimBlock.IsDestroyed || slimBlock.IsFullyDismounted || (slimBlock.FatBlock != null && slimBlock.FatBlock.Closed))
-                {
-                    remove.Add(item);
-                    return;
+                    if (slimBlock.IsDestroyed || slimBlock.IsFullyDismounted || (slimBlock.FatBlock != null && slimBlock.FatBlock.Closed))
+                    {
+                        remove.Add(item);
+                        return;
+                    }
                 }
+                catch (System.Exception e)
+                    {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Cleanup:\n{e.ToString()}");}
             });
 
             if (remove.Count < 1)
@@ -104,10 +104,11 @@ namespace NaniteConstructionSystem.Particles
             MyAPIGateway.Utilities.InvokeOnGameThread(() => 
             {
                 foreach (var item in remove)
-                {
-                    item.Unload();
-                    m_particles.Remove(item);
-                }
+                    if(item != null)
+                    {
+                        item.Unload();
+                        m_particles.Remove(item);
+                    }
             });
         }
     }
