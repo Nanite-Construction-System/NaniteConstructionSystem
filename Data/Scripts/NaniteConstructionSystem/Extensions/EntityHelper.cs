@@ -115,7 +115,7 @@ namespace NaniteConstructionSystem.Extensions
                             try
                             {
                                 if (subItem == null || targetInventory == null || sourceInventory == null)
-                                return;
+                                    return;
 
                                 MyFixedPoint amountFits = targetInventory.ComputeAmountThatFits(new MyDefinitionId(subItem.Content.TypeId, subItem.Content.SubtypeId));
                                 amountFits = (amountFits > subItem.Amount) ? subItem.Amount : amountFits;
@@ -124,9 +124,7 @@ namespace NaniteConstructionSystem.Extensions
                                     targetInventory.Add(subItem, amountFits);
                             }
                             catch (Exception e)
-                            {
-                                Logging.Instance.WriteLine($"NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo:{e.ToString()}");
-                            }
+                                {Logging.Instance.WriteLine($"NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo:{e.ToString()}");}
                         });
                     }
                 }
