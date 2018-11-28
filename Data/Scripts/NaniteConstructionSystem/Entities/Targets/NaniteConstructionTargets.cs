@@ -1,20 +1,19 @@
+using NaniteConstructionSystem.Entities.Beacons;
+using NaniteConstructionSystem.Entities.Tools;
+using NaniteConstructionSystem.Extensions;
+using NaniteConstructionSystem.Particles;
+using Sandbox.Definitions;
+using Sandbox.Game.Entities;
+using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Sandbox.Game.Entities;
-using Sandbox.ModAPI;
 using VRage;
 using VRage.Game;
 using VRage.Game.Entity;
+using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRageMath;
-using VRage.Game.ModAPI;
-using Sandbox.Definitions;
-
-using NaniteConstructionSystem.Extensions;
-using NaniteConstructionSystem.Particles;
-using NaniteConstructionSystem.Entities.Tools;
-using NaniteConstructionSystem.Entities.Beacons;
 
 namespace NaniteConstructionSystem.Entities.Targets
 {
@@ -414,8 +413,8 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 IMyCubeBlock cubeBlock = beaconBlock.Value.BeaconBlock;
 
-                if (cubeBlock == null || !((IMyFunctionalBlock)cubeBlock).Enabled || !((IMyFunctionalBlock)cubeBlock).IsFunctional)
-                    continue;
+                if (!IsAreaBeaconValid(cubeBlock))
+                    continue;  
 
                 var item = beaconBlock.Value as NaniteAreaBeacon;
                 if (!item.Settings.AllowRepair)
@@ -428,15 +427,13 @@ namespace NaniteConstructionSystem.Entities.Targets
                     var grid = entity as IMyCubeGrid;
 
                     if (grid != null && (grid.GetPosition() - cubeBlock.GetPosition()).Length() < m_maxDistance)
-                    {
-                        foreach(IMySlimBlock block in ((MyCubeGrid)grid).GetBlocks().ToList())
+                        foreach (IMySlimBlock block in ((MyCubeGrid)grid).GetBlocks().ToList())
                         {
                             BoundingBoxD blockbb;
                             block.GetWorldBoundingBox(out blockbb);
                             if (item.IsInsideBox(blockbb))
                                 AddPotentialBlock(block, true, item);
                         }
-                    }
                 }
             }
         }

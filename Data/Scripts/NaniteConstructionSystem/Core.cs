@@ -23,6 +23,20 @@ using NaniteConstructionSystem.Entities.Detectors;
 
 namespace NaniteConstructionSystem
 {
+    public class GridTargetInfo
+    {
+        public List<long> Factories = new List<long>();
+        public MyCubeBlock BeaconBlock;
+        public bool IsAreaBeacon;
+
+        public GridTargetInfo(long factoryId, MyCubeBlock beaconBlock = null, bool isAreaBeacon = false)
+        {
+            Factories.Add(factoryId);
+            BeaconBlock = beaconBlock;
+            IsAreaBeacon = isAreaBeacon;
+        }
+    }
+
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation)]
     public class NaniteConstructionManager : MySessionComponentBase
     {
@@ -161,7 +175,6 @@ namespace NaniteConstructionSystem
         private List<IMyTerminalAction> m_customBeaconActions = new List<IMyTerminalAction>();
         private List<IMyTerminalControl> m_customOreDetectorControls = new List<IMyTerminalControl>();
 
-
         public NaniteConstructionManager()
         {
             Instance = this;
@@ -261,11 +274,17 @@ namespace NaniteConstructionSystem
             try
             {
                 ParticleManager.Update();
+
             }
             catch (Exception ex)
             {
                 VRage.Utils.MyLog.Default.WriteLineAndConsole($"Update Error:\n{ex.ToString()}");
             }
+        }
+
+        private void ScanGrid()
+        {
+
         }
 
         public void InitializeControls()

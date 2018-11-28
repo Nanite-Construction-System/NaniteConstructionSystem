@@ -19,3 +19,8 @@
 
 # temp
 *.tmp
+*.csproj
+/.vs
+/obj/Debug
+*.user
+*.sln

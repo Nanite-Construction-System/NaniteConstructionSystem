@@ -1,7 +1,11 @@
+using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using System.Collections.Generic;
+using System.Linq;
 using VRage;
+using VRage.Game;
 using VRage.Game.ModAPI;
+using VRageMath;
 
 namespace NaniteConstructionSystem.Entities.Targets
 {
@@ -62,12 +66,38 @@ namespace NaniteConstructionSystem.Entities.Targets
         public abstract void CancelTarget(object obj);
         public abstract void CompleteTarget(object obj);
 
+        private float m_maxDistance = 300f;
+
         public virtual void Remove(object target)
         {
             TargetList.Remove(target);
 
-            using(Lock.AcquireExclusiveUsing())
-                PotentialTargetList.Remove(target);
+            PotentialTargetList.Remove(target);
+        }
+
+        internal bool IsAreaBeaconValid(IMyCubeBlock cubeBlock)
+        {
+            if (cubeBlock == null || !((IMyFunctionalBlock)cubeBlock).Enabled || !((IMyFunctionalBlock)cubeBlock).IsFunctional)
+                return false;
+
+            if (Vector3D.Distance(cubeBlock.GetPosition(), m_constructionBlock.ConstructionBlock.GetPosition()) > m_maxDistance)
+            {
+                bool foundInGroup = false;
+                foreach (var grid in m_constructionBlock.GridGroup.ToList())
+                    if (cubeBlock.CubeGrid == grid)
+                    {
+                        foundInGroup = true;
+                        break;
+                    }
+
+                if (!foundInGroup)
+                    return false;
+            }
+
+            if (!MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(cubeBlock.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
+                return false;
+
+            return true;
         }
 
         internal void InvalidTargetReason(string reason)

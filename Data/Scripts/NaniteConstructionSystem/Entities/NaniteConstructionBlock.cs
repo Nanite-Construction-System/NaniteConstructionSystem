@@ -129,7 +129,7 @@ namespace NaniteConstructionSystem.Entities
         private bool m_clientEmissivesUpdate;
         private bool m_forceProcessState;
         private bool m_scanningActive;
-        private List<IMyCubeGrid> GridGroup = new List<IMyCubeGrid>();
+        public List<IMyCubeGrid> GridGroup = new List<IMyCubeGrid>();
         private MyInventory m_constructionBlockInventory = null;
         private int m_totalScanBlocksCount;
         private List<IMySlimBlock> m_scanBlocksCache = new List<IMySlimBlock>();
@@ -635,7 +635,7 @@ namespace NaniteConstructionSystem.Entities
         }
 
         /// <summary>
-        /// Walking the grid looking for target blocks. All done in a thread
+        /// Walking the grid looking for target blocks and also checks beacons. All done in a thread
         /// </summary>
         private void ProcessTargetsParallel()
         {
