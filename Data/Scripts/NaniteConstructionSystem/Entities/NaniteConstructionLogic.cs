@@ -45,11 +45,14 @@ namespace NaniteConstructionSystem.Entities
 
         public override void Close()
         {
-            if (NaniteConstructionManager.NaniteBlocks != null)
+            if (NaniteConstructionManager.NaniteBlocks != null && Entity != null)
+            {
                 NaniteConstructionManager.NaniteBlocks.Remove(Entity.EntityId);
+                Logging.Instance.WriteLine(string.Format("REMOVING Nanite Factory: {0}", Entity.EntityId));
+            }
 
-            Logging.Instance.WriteLine(string.Format("REMOVING Nanite Factory: {0}", Entity.EntityId));
-            m_block.Unload();
+            if (m_block != null)
+                m_block.Unload();
         }
     }
 
