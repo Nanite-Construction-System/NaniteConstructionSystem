@@ -95,7 +95,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             return result;
         }
 
-        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<IMySlimBlock> gridBlocks)
+        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> gridBlocks)
         {
             DateTime start = DateTime.Now;
             List<object> finalAddList = new List<object>();

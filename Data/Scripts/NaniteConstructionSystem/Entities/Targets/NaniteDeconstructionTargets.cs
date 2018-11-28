@@ -134,7 +134,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             return result;
         }
 
-        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<IMySlimBlock> gridBlocks)
+        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> gridBlocks)
         {
             try
             {
@@ -156,11 +156,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                     m_validBeaconedGrids.Add(deconstruct);
                     CreateGridStack(deconstruct, (MyCubeGrid)item.CubeGrid, (MyCubeBlock)item);
 
-                    using (Lock.AcquireExclusiveUsing())
-                    {
-                        foreach (var slimBlock in deconstruct.RemoveList)
-                            PotentialTargetList.Add(slimBlock);
-                    }
+                    foreach (var slimBlock in deconstruct.RemoveList)
+                        PotentialTargetList.Add(slimBlock);
 
                     deconstruct.RemoveList.Clear();
                 }
@@ -225,7 +222,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
             }
         }
-
 
         public override void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList)
         {

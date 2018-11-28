@@ -381,7 +381,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_constructionBlock.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
         }
 
-        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<IMySlimBlock> blocks)
+        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> blocks)
         {
             PotentialTargetList.Clear();
 

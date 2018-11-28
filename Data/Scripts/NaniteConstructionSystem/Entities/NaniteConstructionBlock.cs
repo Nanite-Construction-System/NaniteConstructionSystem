@@ -132,9 +132,10 @@ namespace NaniteConstructionSystem.Entities
         public List<IMyCubeGrid> GridGroup = new List<IMyCubeGrid>();
         private MyInventory m_constructionBlockInventory = null;
         private int m_totalScanBlocksCount;
-        private List<IMySlimBlock> m_scanBlocksCache = new List<IMySlimBlock>();
         private ConcurrentBag<IMySlimBlock> m_potentialInventoryBlocks = new ConcurrentBag<IMySlimBlock>();
-        public List<IMySlimBlock> ScanBlocksCache
+
+        private List<BlockTarget> m_scanBlocksCache = new List<BlockTarget>();
+        public List<BlockTarget> ScanBlocksCache
         {
             get { return m_scanBlocksCache; }
         }
@@ -643,37 +644,60 @@ namespace NaniteConstructionSystem.Entities
             {
                 if (m_scanBlocksCache.Count < 1)
                 {
+                    m_totalScanBlocksCount = 0;
+                    m_potentialTargetsCount = 0;
+
+                    List<IMySlimBlock> newGridBlocks = new List<IMySlimBlock>();
+
                     MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         {InventoryManager.ComponentsRequired.Clear();});
 
-                    m_potentialTargetsCount = 0;
-
-                    foreach (IMyCubeGrid grid in GridGroup)
-                        grid.GetBlocks(m_scanBlocksCache); 
-
-                    m_totalScanBlocksCount = m_scanBlocksCache.Count;
-                    if (m_potentialInventoryBlocks.Count < 1)
-                        foreach (var block in m_scanBlocksCache)
-                            m_potentialInventoryBlocks.Add(block);
+                    int DisabledCounter = 0;
 
                     foreach (var target in m_targets)
                     {
                         target.PotentialTargetListCount = 0;
                         if (target is NaniteConstructionTargets || target is NaniteProjectionTargets)
                         {
+                            if (!target.IsEnabled())
+                            {
+                                DisabledCounter++;
+                                continue;
+                            }
                             target.CheckBeacons();
                             target.CheckAreaBeacons();
                         }
+                        else if (target is NaniteDeconstructionTargets)
+                        {
+                            if (!target.IsEnabled())
+                            {
+                                DisabledCounter++;
+                                continue;
+                            }
+                            target.ParallelUpdate(GridGroup, m_scanBlocksCache);
+                        }
                     }
+
+                    foreach (IMyCubeGrid grid in GridGroup)
+                        grid.GetBlocks(newGridBlocks);
+
+                    if (m_potentialInventoryBlocks.Count < 1)
+                        m_potentialInventoryBlocks = new ConcurrentBag<IMySlimBlock>(newGridBlocks);
+
+                    if (DisabledCounter < 3)
+                        foreach (IMySlimBlock block in newGridBlocks)
+                            m_scanBlocksCache.Add(new BlockTarget(block)); 
+
+                    m_totalScanBlocksCount = m_scanBlocksCache.Count;
                 }
 
                 int counter = 0;
-                List<IMySlimBlock> blocksToGo = new List<IMySlimBlock>();
+                List<BlockTarget> blocksToGo = new List<BlockTarget>();
 
                 foreach (var block in m_scanBlocksCache)
                 {
                     if (counter++ > 500) //lets make this a configurable amount in the future
-                    break;
+                        break;
 
                     blocksToGo.Add(block);
                 }
@@ -682,7 +706,8 @@ namespace NaniteConstructionSystem.Entities
                     m_scanBlocksCache.Remove(block);
 
                 foreach (var item in m_targets)
-                    item.ParallelUpdate(GridGroup, blocksToGo);
+                    if (!(item is NaniteDeconstructionTargets))
+                        item.ParallelUpdate(GridGroup, blocksToGo);
             }
             catch (InvalidOperationException ex)
             {

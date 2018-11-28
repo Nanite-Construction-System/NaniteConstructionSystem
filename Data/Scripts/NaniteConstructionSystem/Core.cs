@@ -37,6 +37,20 @@ namespace NaniteConstructionSystem
         }
     }
 
+    public class BlockTarget
+    {
+        public IMySlimBlock Block;
+        public bool IsRemote;
+        public NaniteAreaBeacon AreaBeacon;
+
+        public BlockTarget(IMySlimBlock block, bool isRemote = false, NaniteAreaBeacon areaBeacon = null)
+        {
+            Block = block;
+            IsRemote = isRemote;
+            AreaBeacon = areaBeacon;
+        }
+    }
+
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation)]
     public class NaniteConstructionManager : MySessionComponentBase
     {

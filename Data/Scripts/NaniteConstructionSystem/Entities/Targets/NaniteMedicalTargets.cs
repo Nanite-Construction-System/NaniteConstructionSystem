@@ -88,7 +88,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             return result;
         }
 
-        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<IMySlimBlock> gridBlocks)
+        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> gridBlocks)
         {
             using (Lock.AcquireExclusiveUsing())
                 PotentialTargetList.Clear();

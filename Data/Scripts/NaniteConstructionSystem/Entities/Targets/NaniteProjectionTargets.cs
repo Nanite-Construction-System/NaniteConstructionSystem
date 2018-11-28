@@ -298,16 +298,13 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_constructionBlock.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
         }
 
-        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<IMySlimBlock> blocks)
+        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> blocks)
         {
             if (!IsEnabled())
                 return;
 
-            //using (m_lock.AcquireExclusiveUsing())
-                //TargetList.Clear();
-
-            foreach (var item in blocks)
-                CheckBlockProjection(item);
+            foreach (var block in blocks)
+                CheckBlockProjection(block.Block);
         }
 
         public override void CheckBeacons()
@@ -320,13 +317,14 @@ namespace NaniteConstructionSystem.Entities.Targets
 				if (item == null || !((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional 
                   || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
 					continue;
+
                 List<IMySlimBlock> beaconBlocks = new List<IMySlimBlock>();
 
                 foreach (var grid in MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)item.CubeGrid, GridLinkTypeEnum.Physical))
                     grid.GetBlocks(beaconBlocks);
 
                 foreach (var block in beaconBlocks)
-                    CheckBlockProjection(block);
+                    m_constructionBlock.ScanBlocksCache.Add(new BlockTarget(block));
             }
         }
 
@@ -369,7 +367,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         BoundingBoxD blockbb;
                         block.GetWorldBoundingBox(out blockbb, true);
                         if (item.IsInsideBox(blockbb))
-                            CheckBlockProjection(block);
+                            m_constructionBlock.ScanBlocksCache.Add(new BlockTarget(block));
                     }
                 }
             }
@@ -389,14 +387,9 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             MyCubeGrid grid = (MyCubeGrid)projector.ProjectedGrid;
 
-            foreach(IMySlimBlock block in grid.GetBlocks())
-            {
-                if(projector.CanBuild(block, false) == BuildCheckResult.OK)
-                {
-                    if(!PotentialTargetList.Contains(block))
-                        PotentialTargetList.Add(block);
-                }
-            }
+            foreach (IMySlimBlock block in grid.GetBlocks())
+                if (projector.CanBuild(block, false) == BuildCheckResult.OK && !PotentialTargetList.Contains(block))
+                    PotentialTargetList.Add(block);
         }
 
         private void ProcessBuildBlock(IMySlimBlock block)

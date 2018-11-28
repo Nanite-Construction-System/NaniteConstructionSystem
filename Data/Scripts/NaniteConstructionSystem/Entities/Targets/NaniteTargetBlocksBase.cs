@@ -61,7 +61,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         public abstract float GetSpeed();
         public abstract bool IsEnabled();
         public abstract void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList);
-        public abstract void ParallelUpdate(List<IMyCubeGrid> gridList, List<IMySlimBlock> gridBlocks);
+        public abstract void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> gridBlocks);
         public abstract void Update();
         public abstract void CancelTarget(object obj);
         public abstract void CompleteTarget(object obj);

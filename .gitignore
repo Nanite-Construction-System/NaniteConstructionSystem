@@ -24,3 +24,5 @@
 /obj/Debug
 *.user
 *.sln
+*.mod
+/obj/Release

@@ -351,18 +351,27 @@ namespace NaniteConstructionSystem.Entities.Targets
             CompleteTarget(target);
         }
 
-        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<IMySlimBlock> blocks)
+        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> blocks)
         {
             if (!IsEnabled())
                 return;
 
             foreach (var block in blocks.ToList())
-                AddPotentialBlock(block);
+            {
+                if (block == null)
+                    continue;
+
+                if (block.IsRemote && AddPotentialBlock(block.Block, true))
+                    m_remoteTargets.Add(block.Block);
+                else
+                    AddPotentialBlock(block.Block, block.IsRemote, block.AreaBeacon);
+            }
+                
         }
 
         public override void CheckBeacons()
         {
-            var remoteList = new HashSet<IMySlimBlock>();
+            m_remoteTargets.Clear();
 
             // Find beacons in range
             foreach (var beaconBlock in (NaniteConstructionManager.BeaconList.ToList()).Where(x => (x.Value is NaniteBeaconConstruct || x.Value is NaniteBeaconProjection) 
@@ -377,12 +386,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                 GetBeaconBlocks((IMyCubeGrid)item.CubeGrid);
                 GetBeaconBlocksRetryCounter = 0;
 
-                foreach (var block in beaconBlocks.ToList())
-                    if (block != null && AddPotentialBlock(block, true))
-                        remoteList.Add(block);
+                foreach (var block in beaconBlocks)
+                    m_constructionBlock.ScanBlocksCache.Add(new BlockTarget(block, true));
             }
-
-            m_remoteTargets = remoteList;
         }
 
         private void GetBeaconBlocks(IMyCubeGrid BeaconBlockGrid)
@@ -432,7 +438,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                             BoundingBoxD blockbb;
                             block.GetWorldBoundingBox(out blockbb);
                             if (item.IsInsideBox(blockbb))
-                                AddPotentialBlock(block, true, item);
+                                m_constructionBlock.ScanBlocksCache.Add(new BlockTarget(block, true, item));
                         }
                 }
             }
