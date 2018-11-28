@@ -192,9 +192,8 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 IMyCubeBlock cubeBlock = (IMyCubeBlock)beaconBlock.Value.BeaconBlock;
 
-				if (cubeBlock == null || !((IMyFunctionalBlock)cubeBlock).Enabled || !((IMyFunctionalBlock)cubeBlock).IsFunctional
-                  || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(cubeBlock.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
-					continue;
+			    if (!IsAreaBeaconValid(cubeBlock))
+                    continue;
 
                 var item = beaconBlock.Value as NaniteAreaBeacon;
                 if (!item.Settings.AllowDeconstruction)

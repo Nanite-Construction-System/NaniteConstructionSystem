@@ -348,10 +348,10 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 IMyCubeBlock cubeBlock = beaconBlock.Value.BeaconBlock;
 
-				if (cubeBlock == null || !((IMyFunctionalBlock)cubeBlock).Enabled || !((IMyFunctionalBlock)cubeBlock).IsFunctional)
-					continue;
+                if (!IsAreaBeaconValid(cubeBlock))
+                    continue;
 
-				var item = beaconBlock.Value as NaniteAreaBeacon;
+                var item = beaconBlock.Value as NaniteAreaBeacon;
                 if (!item.Settings.AllowProjection)
                     continue;
 
