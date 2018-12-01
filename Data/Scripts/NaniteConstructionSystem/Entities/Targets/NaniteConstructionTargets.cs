@@ -48,38 +48,33 @@ namespace NaniteConstructionSystem.Entities.Targets
         public override int GetMaximumTargets()
         {        
             return (int)Math.Min(NaniteConstructionManager.Settings.ConstructionNanitesNoUpgrade 
-              + (((MyCubeBlock)m_constructionBlock.ConstructionBlock).UpgradeValues["ConstructionNanites"] 
-              * NaniteConstructionManager.Settings.ConstructionNanitesPerUpgrade), NaniteConstructionManager.Settings.ConstructionMaxStreams);
+              + m_constructionBlock.UpgradeValue("ConstructionNanites"), NaniteConstructionManager.Settings.ConstructionMaxStreams);
         }
 
         public override float GetPowerUsage()
         {
-            return Math.Max(1, NaniteConstructionManager.Settings.ConstructionPowerPerStream 
-              - (int)(((MyCubeBlock)m_constructionBlock.ConstructionBlock).UpgradeValues["PowerNanites"] 
-              * NaniteConstructionManager.Settings.PowerDecreasePerUpgrade));
+            return Math.Max(1, NaniteConstructionManager.Settings.ConstructionPowerPerStream
+              - (int)m_constructionBlock.UpgradeValue("PowerNanites"));
         }
 
         public override float GetMinTravelTime()
         {
             return Math.Max(1f, NaniteConstructionManager.Settings.ConstructionMinTravelTime 
-              - (((MyCubeBlock)m_constructionBlock.ConstructionBlock).UpgradeValues["SpeedNanites"] 
-              * NaniteConstructionManager.Settings.MinTravelTimeReductionPerUpgrade));
+              - m_constructionBlock.UpgradeValue("MinTravelTime"));
         }
 
         public override float GetSpeed()
         {
-            return NaniteConstructionManager.Settings.ConstructionDistanceDivisor 
-              + (((MyCubeBlock)m_constructionBlock.ConstructionBlock).UpgradeValues["SpeedNanites"] 
-              * (float)NaniteConstructionManager.Settings.SpeedIncreasePerUpgrade);
+            return NaniteConstructionManager.Settings.ConstructionDistanceDivisor
+              + m_constructionBlock.UpgradeValue("SpeedNanites");
         }
 
-        public override bool IsEnabled()
+        public override bool IsEnabled(NaniteConstructionBlock factory)
         {
-            if (!((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).Enabled
-              || !((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).IsFunctional 
-              || m_constructionBlock.ConstructionBlock.CustomName.ToLower().Contains("NoConstruction".ToLower()) 
-              || (NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.ConstructionBlock.EntityId) 
-              && !NaniteConstructionManager.TerminalSettings[m_constructionBlock.ConstructionBlock.EntityId].AllowRepair))
+            if (!((IMyFunctionalBlock)factory.ConstructionBlock).Enabled
+              || !((IMyFunctionalBlock)factory.ConstructionBlock).IsFunctional 
+              || (NaniteConstructionManager.TerminalSettings.ContainsKey(factory.ConstructionBlock.EntityId) 
+              && !NaniteConstructionManager.TerminalSettings[factory.ConstructionBlock.EntityId].AllowRepair))
                 return false;
 
             return true;
@@ -89,10 +84,9 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             InvalidTargetReason("");
 
-            if (!IsEnabled()) 
-                return;
+            var maxTargets = GetMaximumTargets();
 
-            if (m_targetList.Count >= GetMaximumTargets())
+            if (m_targetList.Count >= maxTargets)
             {
                 if (PotentialTargetList.Count > 0) 
                     InvalidTargetReason("Maximum targets reached. Add more upgrades!");
@@ -141,14 +135,18 @@ namespace NaniteConstructionSystem.Entities.Targets
                     Logging.Instance.WriteLine(string.Format("ADDING Construction/Repair Target: conid={0} subtype={1} entityID={2} position={3}", 
                         m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, item.FatBlock != null ? item.FatBlock.EntityId : 0, item.Position));
 
-                    if (++targetListCount >= GetMaximumTargets()) 
+                    if (++targetListCount >= maxTargets) 
                         break;
                 }
                 else if (!foundMissingComponents)
                     LastInvalidTargetReason = "Missing components";
 
                 else if (!m_constructionBlock.HasRequiredPowerForNewTarget(this))
+                {
                     LastInvalidTargetReason = "Insufficient power for another target.";
+                    break;
+                }
+                    
             }
             if (LastInvalidTargetReason != "")
                 InvalidTargetReason(LastInvalidTargetReason);
@@ -194,6 +192,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             if (Sync.IsServer)
             {
+                /* // NEW 12-1-2018 To save on performance, once nanites are powered and their host factory IsEnabled(), there's no turning back unless there's missing components
                 if (!IsEnabled())
                 {
                     Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to being disabled");
@@ -209,6 +208,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         {CancelTarget(target);});
                     return;
                 }
+                */
 
                 if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
                     return;
@@ -273,15 +273,16 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                     return;
                 }
-                
+                // NEW 12-1-2018 To save on performance, once a target is started, use SyncDistance only so we dont have to check each slave factory
                 if (m_remoteTargets.Contains(target) 
-                  && EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target) > m_maxDistance)
+                  && EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target) > MyAPIGateway.Session.SessionSettings.SyncDistance)
                 {
                     Logging.Instance.WriteLine("CANCELLING Repair Target due to target being out of range");
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                         {CancelTarget(target);});
                     return;
                 }
+                
             }
 
             CreateConstructionParticle(target);
@@ -353,9 +354,6 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> blocks)
         {
-            if (!IsEnabled())
-                return;
-
             foreach (var block in blocks.ToList())
             {
                 if (block == null)
@@ -366,7 +364,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                 else
                     AddPotentialBlock(block.Block, block.IsRemote, block.AreaBeacon);
             }
-                
         }
 
         public override void CheckBeacons()
@@ -374,13 +371,13 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_remoteTargets.Clear();
 
             // Find beacons in range
-            foreach (var beaconBlock in (NaniteConstructionManager.BeaconList.ToList()).Where(x => (x.Value is NaniteBeaconConstruct || x.Value is NaniteBeaconProjection) 
-              && Vector3D.Distance(m_constructionBlock.ConstructionBlock.GetPosition(), x.Value.BeaconBlock.GetPosition()) < m_maxDistance))
+            foreach (var beaconBlock in (NaniteConstructionManager.BeaconList.ToList()).Where(x => (x.Value is NaniteBeaconConstruct || x.Value is NaniteBeaconProjection)))
             {
                 var item = beaconBlock.Value.BeaconBlock;
 
                 if (item == null || !item.Enabled || !item.IsFunctional
-                  || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
+                  || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId))
+                  || !IsInRange( item.GetPosition() ) )
                     continue;
 
                 GetBeaconBlocks((IMyCubeGrid)item.CubeGrid);
@@ -415,33 +412,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void CheckAreaBeacons()
         {
-            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteAreaBeacon).ToList())
-            {
-                IMyCubeBlock cubeBlock = beaconBlock.Value.BeaconBlock;
-
-                if (!IsAreaBeaconValid(cubeBlock))
-                    continue;  
-
-                var item = beaconBlock.Value as NaniteAreaBeacon;
-                if (!item.Settings.AllowRepair)
-                    continue;
-
-                HashSet<IMyEntity> entities = new HashSet<IMyEntity>();
-                MyAPIGateway.Entities.GetEntities(entities);
-                foreach(var entity in entities.ToList())
-                {
-                    var grid = entity as IMyCubeGrid;
-
-                    if (grid != null && (grid.GetPosition() - cubeBlock.GetPosition()).Length() < m_maxDistance)
-                        foreach (IMySlimBlock block in ((MyCubeGrid)grid).GetBlocks().ToList())
-                        {
-                            BoundingBoxD blockbb;
-                            block.GetWorldBoundingBox(out blockbb);
-                            if (item.IsInsideBox(blockbb))
-                                m_constructionBlock.ScanBlocksCache.Add(new BlockTarget(block, true, item));
-                        }
-                }
-            }
+            CheckConstructionOrProjectionAreaBeacons();
         }
 
         private bool AddPotentialBlock(IMySlimBlock block, bool remote = false, NaniteAreaBeacon beacon = null)
@@ -449,17 +420,9 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (PotentialTargetList.Contains(block))
                 return false;
 
-            if (EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, block) > m_maxDistance)
+            if (!remote && block.FatBlock != null && block.FatBlock is IMyTerminalBlock && block.FatBlock.OwnerId != 0
+              && !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(block.FatBlock.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
                 return false;
-
-            if (!remote && block.FatBlock != null && block.FatBlock is IMyTerminalBlock && block.FatBlock.OwnerId != 0 
-              && !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(((IMyTerminalBlock)block.FatBlock).GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
-                return false;
-
-            else if (remote)
-                foreach (var item in block.CubeGrid.BigOwners.ToList())
-                    if (!MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(m_constructionBlock.ConstructionBlock.GetUserRelationToOwner(item)))
-                        return false;
 
             if (!block.IsFullIntegrity || block.HasDeformation)
             {

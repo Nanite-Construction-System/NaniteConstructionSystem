@@ -49,11 +49,10 @@ namespace NaniteConstructionSystem.Entities.Targets
         public override void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList)
         {
             InvalidTargetReason("");
-            
-            if (!IsEnabled()) 
-                return;
 
-            if (TargetList.Count >= GetMaximumTargets())
+            var maxTargets = GetMaximumTargets();
+
+            if (TargetList.Count >= maxTargets)
             {
                 if (PotentialTargetList.Count > 0)
                     InvalidTargetReason("Maximum targets reached. Add more upgrades!");
@@ -81,16 +80,20 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (found) 
                     continue;
 
-                if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), item.GetPosition()) < m_maxDistance * m_maxDistance 
-                    && m_constructionBlock.HasRequiredPowerForNewTarget(this))
+                if (m_constructionBlock.HasRequiredPowerForNewTarget(this))
                 {
                     AddTarget(item);
                     
                     Logging.Instance.WriteLine(string.Format("ADDING Floating Object Target: conid={0} type={1} entityID={2} position={3}", 
                         m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.EntityId, item.GetPosition()));
 
-                    if (++TargetListCount >= GetMaximumTargets()) 
+                    if (++TargetListCount >= maxTargets) 
                         break;
+                }
+                else
+                {
+                    InvalidTargetReason("Not enough power for new target!");
+                    break;
                 }
             }
         }
@@ -98,37 +101,33 @@ namespace NaniteConstructionSystem.Entities.Targets
         public override int GetMaximumTargets()
         {
             return (int)Math.Min(NaniteConstructionManager.Settings.CleanupNanitesNoUpgrade 
-              + (((MyCubeBlock)m_constructionBlock.ConstructionBlock).UpgradeValues["CleanupNanites"] 
-              * NaniteConstructionManager.Settings.CleanupNanitesPerUpgrade), NaniteConstructionManager.Settings.CleanupMaxStreams);
+              + m_constructionBlock.UpgradeValue("CleanupNanites"), NaniteConstructionManager.Settings.CleanupMaxStreams);
         }
 
         public override float GetPowerUsage()
         {
-            return Math.Max(1, NaniteConstructionManager.Settings.CleanupPowerPerStream 
-              - (int)(((MyCubeBlock)m_constructionBlock.ConstructionBlock).UpgradeValues["PowerNanites"] 
-              * NaniteConstructionManager.Settings.PowerDecreasePerUpgrade));
+            return Math.Max(1, NaniteConstructionManager.Settings.CleanupPowerPerStream
+              - (int)m_constructionBlock.UpgradeValue("PowerNanites"));
         }
 
         public override float GetMinTravelTime()
         {
             return Math.Max(1f, NaniteConstructionManager.Settings.CleanupMinTravelTime 
-              - (((MyCubeBlock)m_constructionBlock.ConstructionBlock).UpgradeValues["SpeedNanites"] 
-              * NaniteConstructionManager.Settings.MinTravelTimeReductionPerUpgrade));
+              - m_constructionBlock.UpgradeValue("MinTravelTime"));
         }
 
         public override float GetSpeed()
         {
-            return NaniteConstructionManager.Settings.CleanupDistanceDivisor 
-              + (((MyCubeBlock)m_constructionBlock.ConstructionBlock).UpgradeValues["SpeedNanites"] 
-              * (float)NaniteConstructionManager.Settings.SpeedIncreasePerUpgrade);
+            return NaniteConstructionManager.Settings.CleanupDistanceDivisor
+              + m_constructionBlock.UpgradeValue("SpeedNanites");
         }
 
-        public override bool IsEnabled()
+        public override bool IsEnabled(NaniteConstructionBlock factory)
         {
-            if (!((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).Enabled
-              || !((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).IsFunctional 
-              || (NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.ConstructionBlock.EntityId) 
-              && !NaniteConstructionManager.TerminalSettings[m_constructionBlock.ConstructionBlock.EntityId].AllowCleanup))
+            if (!((IMyFunctionalBlock)factory.ConstructionBlock).Enabled
+              || !((IMyFunctionalBlock)factory.ConstructionBlock).IsFunctional 
+              || (NaniteConstructionManager.TerminalSettings.ContainsKey(factory.ConstructionBlock.EntityId) 
+              && !NaniteConstructionManager.TerminalSettings[factory.ConstructionBlock.EntityId].AllowCleanup))
                 return false;
 
             return true;
@@ -149,22 +148,8 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             if (Sync.IsServer)
             {
-                if (!IsEnabled())
-                {
-                    Logging.Instance.WriteLine("CANCELLING Cleanup Target due to being disabled");
-                    CancelTarget(floating);
-                    return;
-                }
-
                 if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
                     return;
-
-                if (!m_constructionBlock.IsPowered())
-                {
-                    Logging.Instance.WriteLine("CANCELLING Cleanup Target due to power shortage");
-                    CancelTarget(floating);
-                    return;
-                }
 
                 if (floating.Closed)
                 {
@@ -383,8 +368,6 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> blocks)
         {
-            PotentialTargetList.Clear();
-
             m_entities.Clear();
             try
             {
@@ -392,12 +375,9 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
             catch
             {
-                Logging.Instance.WriteLine(string.Format("Error getting entities, skipping"));
+                Logging.Instance.WriteLine("Error getting entities, skipping");
                 return; 
             }
-
-            if (!IsEnabled())
-                return;
 
             foreach (var item in m_entities.ToList())
             {
@@ -411,8 +391,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         continue;
                 }
 
-                if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), item.GetPosition()) < m_maxDistance * m_maxDistance 
-                  && TransferFromTarget(item, false))
+                if (IsInRange(item.GetPosition()) && TransferFromTarget(item, false))
                     PotentialTargetList.Add(item);
             }
         }

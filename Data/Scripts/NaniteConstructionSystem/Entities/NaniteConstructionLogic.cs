@@ -27,6 +27,9 @@ namespace NaniteConstructionSystem.Entities
             if (!NaniteConstructionManager.NaniteBlocks.ContainsKey(Entity.EntityId))
                 NaniteConstructionManager.NaniteBlocks.Add(Entity.EntityId, m_block);
 
+            m_block.UpdateCount += NaniteConstructionManager.NaniteBlocks.Count * 30;
+            // Adds some gap between factory processing so they don't all process their targets at once.
+
             IMySlimBlock slimBlock = ((MyCubeBlock)m_block.ConstructionBlock).SlimBlock as IMySlimBlock;
             Logging.Instance.WriteLine(string.Format("ADDING Nanite Factory: conid={0} physics={1} ratio={2}", 
               Entity.EntityId, m_block.ConstructionBlock.CubeGrid.Physics == null, slimBlock.BuildLevelRatio));

@@ -6,6 +6,7 @@ using VRage;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
+using NaniteConstructionSystem.Entities.Beacons;
 
 namespace NaniteConstructionSystem.Entities.Targets
 {
@@ -45,6 +46,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         public abstract string TargetName { get; }
 
         protected NaniteConstructionBlock m_constructionBlock;
+        protected MyCubeBlock m_factoryCubeBlock;
 
         public NaniteTargetBlocksBase(NaniteConstructionBlock constructionBlock)
         {
@@ -53,13 +55,14 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_potentialTargetList = new List<object>();
             m_componentsRequired = new Dictionary<string, int>();
             m_constructionBlock = constructionBlock;
+            m_factoryCubeBlock = ((MyCubeBlock)m_constructionBlock.ConstructionBlock);
         }
 
         public abstract int GetMaximumTargets();
         public abstract float GetPowerUsage();
         public abstract float GetMinTravelTime();
         public abstract float GetSpeed();
-        public abstract bool IsEnabled();
+        public abstract bool IsEnabled(NaniteConstructionBlock factory);
         public abstract void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList);
         public abstract void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> gridBlocks);
         public abstract void Update();
@@ -77,27 +80,55 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         internal bool IsAreaBeaconValid(IMyCubeBlock cubeBlock)
         {
-            if (cubeBlock == null || !((IMyFunctionalBlock)cubeBlock).Enabled || !((IMyFunctionalBlock)cubeBlock).IsFunctional)
+            if (cubeBlock == null || !((IMyFunctionalBlock)cubeBlock).Enabled || !((IMyFunctionalBlock)cubeBlock).IsFunctional
+              || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(cubeBlock.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
                 return false;
 
-            if (Vector3D.Distance(cubeBlock.GetPosition(), m_constructionBlock.ConstructionBlock.GetPosition()) > m_maxDistance)
+            foreach (var factory in m_constructionBlock.FactoryGroup)
+                if (IsEnabled(factory))
+                {
+                    if (Vector3D.Distance(cubeBlock.GetPosition(), factory.ConstructionBlock.GetPosition()) < m_maxDistance)
+                        return true;
+
+                    foreach (var grid in factory.GridGroup.ToList())
+                        if (cubeBlock.CubeGrid == grid)
+                            return true;
+                }
+
+            return false;
+        }
+
+        internal void CheckConstructionOrProjectionAreaBeacons(bool isProjection = false)
+        {
+            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteAreaBeacon).ToList())
             {
-                bool foundInGroup = false;
-                foreach (var grid in m_constructionBlock.GridGroup.ToList())
-                    if (cubeBlock.CubeGrid == grid)
+                IMyCubeBlock cubeBlock = beaconBlock.Value.BeaconBlock;
+
+                if (!IsAreaBeaconValid(cubeBlock))
+                    continue;
+
+                var item = beaconBlock.Value as NaniteAreaBeacon;
+                if ( (isProjection && !item.Settings.AllowProjection) || !item.Settings.AllowRepair)
+                    continue;
+
+                HashSet<IMyEntity> entities = new HashSet<IMyEntity>();
+                MyAPIGateway.Entities.GetEntities(entities);
+                foreach (var entity in entities)
+                {
+                    var grid = entity as IMyCubeGrid;
+
+                    if (grid == null || (grid.GetPosition() - cubeBlock.GetPosition()).LengthSquared() >= m_maxDistance * m_maxDistance)
+                        continue;
+                        
+                    foreach (IMySlimBlock block in ((MyCubeGrid)grid).GetBlocks())
                     {
-                        foundInGroup = true;
-                        break;
+                        BoundingBoxD blockbb;
+                        block.GetWorldBoundingBox(out blockbb, true);
+                        if (item.IsInsideBox(blockbb))
+                            m_constructionBlock.ScanBlocksCache.Add(new BlockTarget(block, true, item));
                     }
-
-                if (!foundInGroup)
-                    return false;
+                }
             }
-
-            if (!MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(cubeBlock.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
-                return false;
-
-            return true;
         }
 
         internal void InvalidTargetReason(string reason)
@@ -107,6 +138,22 @@ namespace NaniteConstructionSystem.Entities.Targets
                 m_lastInvalidTargetReason = reason;
             });
         }
+
+        /// <summary>
+        /// Checks if an item is in range of a group of master-slave factories, and that the factory in range has the type of target enabled
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        internal bool IsInRange(Vector3D itemPosition)
+        {
+            foreach (var factory in m_constructionBlock.FactoryGroup)
+                if (factory.ConstructionBlock != null && IsEnabled(factory)
+                  && Vector3D.Distance(factory.ConstructionBlock.GetPosition(), itemPosition) < m_maxDistance)
+                    return true;
+
+            return false;
+        }
+        
 
         internal void AddTarget(object target)
         {

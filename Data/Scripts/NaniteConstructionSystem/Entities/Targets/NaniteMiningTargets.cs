@@ -31,10 +31,7 @@ namespace NaniteConstructionSystem.Entities.Targets
     {
         public override string TargetName
         {
-            get
-            {
-                return "Mining";
-            }
+            get { return "Mining"; }
         }
 
         private float m_maxDistance = 500f;
@@ -55,44 +52,37 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override int GetMaximumTargets()
         {
-            MyCubeBlock block = (MyCubeBlock)m_constructionBlock.ConstructionBlock;
-            return (int)Math.Min(NaniteConstructionManager.Settings.MiningNanitesNoUpgrade + (block.UpgradeValues["MiningNanites"] 
-              * NaniteConstructionManager.Settings.MiningNanitesPerUpgrade), NaniteConstructionManager.Settings.MiningMaxStreams);
+             return (int)Math.Min(NaniteConstructionManager.Settings.MiningNanitesNoUpgrade 
+              + m_constructionBlock.UpgradeValue("MiningNanites"), NaniteConstructionManager.Settings.MiningMaxStreams);
         }
 
         public override float GetPowerUsage()
         {
-            MyCubeBlock block = (MyCubeBlock)m_constructionBlock.ConstructionBlock;
-            return Math.Max(1, NaniteConstructionManager.Settings.MiningPowerPerStream - (int)(block.UpgradeValues["PowerNanites"] * NaniteConstructionManager.Settings.PowerDecreasePerUpgrade));
+            return Math.Max(1, NaniteConstructionManager.Settings.MiningPowerPerStream
+              - (int)m_constructionBlock.UpgradeValue("PowerNanites"));
         }
 
         public override float GetMinTravelTime()
         {
-            MyCubeBlock block = (MyCubeBlock)m_constructionBlock.ConstructionBlock;
-            return Math.Max(1f, NaniteConstructionManager.Settings.MiningMinTravelTime - (block.UpgradeValues["SpeedNanites"] * NaniteConstructionManager.Settings.MinTravelTimeReductionPerUpgrade));
+            return Math.Max(1f, NaniteConstructionManager.Settings.MiningMinTravelTime 
+              - m_constructionBlock.UpgradeValue("MinTravelTime"));
         }
 
         public override float GetSpeed()
         {
-            MyCubeBlock block = (MyCubeBlock)m_constructionBlock.ConstructionBlock;
-            return NaniteConstructionManager.Settings.MiningDistanceDivisor + (block.UpgradeValues["SpeedNanites"] * (float)NaniteConstructionManager.Settings.SpeedIncreasePerUpgrade);
+            return NaniteConstructionManager.Settings.MiningDistanceDivisor
+              + m_constructionBlock.UpgradeValue("SpeedNanites");
         }
 
-        public override bool IsEnabled()
+        public override bool IsEnabled(NaniteConstructionBlock factory)
         {
-            bool result = true;
-            if (!((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).Enabled ||
-                !((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).IsFunctional ||
-                m_constructionBlock.ConstructionBlock.CustomName.ToLower().Contains("NoMining".ToLower()))
-                result = false;
+            if (!((IMyFunctionalBlock)factory.ConstructionBlock).Enabled
+              || !((IMyFunctionalBlock)factory.ConstructionBlock).IsFunctional 
+              || (NaniteConstructionManager.TerminalSettings.ContainsKey(factory.ConstructionBlock.EntityId) 
+              && !NaniteConstructionManager.TerminalSettings[factory.ConstructionBlock.EntityId].AllowMining))
+                return false;
 
-            if (NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.ConstructionBlock.EntityId))
-            {
-                if (!NaniteConstructionManager.TerminalSettings[m_constructionBlock.ConstructionBlock.EntityId].AllowMining)
-                    return false;
-            }
-
-            return result;
+            return true;
         }
 
         public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> gridBlocks)
@@ -100,7 +90,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             DateTime start = DateTime.Now;
             List<object> finalAddList = new List<object>();
 
-            foreach (var oreDetector in NaniteConstructionManager.OreDetectors.Where((x) => Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), x.Value.Block.GetPosition()) < m_maxDistance * m_maxDistance).OrderBy(x => rnd.Next(100)))
+            foreach (var oreDetector in NaniteConstructionManager.OreDetectors.Where( x => IsInRange( x.Value.Block.GetPosition() ) ) )
             {
                 IMyCubeBlock item = oreDetector.Value.Block;
       
@@ -195,10 +185,9 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList)
         {
-            if (!IsEnabled())
-                return;
+            var maxTargets = GetMaximumTargets();
 
-            if (TargetList.Count >= GetMaximumTargets())
+            if (TargetList.Count >= maxTargets)
             {
                 if (PotentialTargetList.Count > 0)
                     InvalidTargetReason("Maximum targets reached. Add more upgrades!");
@@ -257,7 +246,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         }
                     });
                     
-                    if (targetListCount++ >= GetMaximumTargets())
+                    if (targetListCount++ >= maxTargets)
                         break;
                 }
             }
@@ -279,6 +268,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             if (Sync.IsServer)
             {
+                /*
                 if (!IsEnabled())
                 {
                     Logging.Instance.WriteLine("CANCELLING Mining Target due to being disabled");
@@ -295,6 +285,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     CancelTarget(target);
                     return;
                 }
+                */
 
                 if (!m_targetTracker.ContainsKey(target))
                     m_constructionBlock.SendAddTarget(target);
@@ -471,9 +462,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             var target = obj as NaniteMiningItem;
             Logging.Instance.WriteLine(string.Format("CANCELLED Mining Target: {0} - {1} (VoxelID={2},Position={3})", m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, target.VoxelId, target.Position));
             if (Sync.IsServer)
-            {
                 m_constructionBlock.SendCompleteTarget((NaniteMiningItem)obj);
-            }
 
             m_constructionBlock.ParticleManager.CancelTarget(target);
             if (m_targetTracker.ContainsKey(target))

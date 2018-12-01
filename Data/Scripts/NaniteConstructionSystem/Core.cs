@@ -1179,7 +1179,7 @@ namespace NaniteConstructionSystem
                     foreach (var target in item.Value.Targets)
                     {
                         message += $"-- {target.TargetName}:\n";
-                        message += $"--- Enabled: {target.IsEnabled()}\n";
+                        //message += $"--- Enabled: {target.IsEnabled()}\n";
                         message += $"--- ComponentsRequired: {target.ComponentsRequired.Count}\n";
                         message += $"--- MaxTargets: {target.GetMaximumTargets()}\n";
                         message += $"--- MinTravelTime: {target.GetMinTravelTime()}\n";

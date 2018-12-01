@@ -89,67 +89,56 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override string TargetName
         {
-            get
-            {
-                return "Deconstruction";
-            }
+            get { return "Deconstruction"; }
         }
 
         public override int GetMaximumTargets()
         {
-            MyCubeBlock block = (MyCubeBlock)m_constructionBlock.ConstructionBlock;
-            return (int)Math.Min(NaniteConstructionManager.Settings.DeconstructionNanitesNoUpgrade + (block.UpgradeValues["DeconstructionNanites"] * NaniteConstructionManager.Settings.DeconstructionNanitesPerUpgrade), NaniteConstructionManager.Settings.DeconstructionMaxStreams);
+            return (int)Math.Min(NaniteConstructionManager.Settings.DeconstructionNanitesNoUpgrade 
+              + m_constructionBlock.UpgradeValue("DeconstructionNanites"), NaniteConstructionManager.Settings.DeconstructionMaxStreams);
         }
 
         public override float GetPowerUsage()
         {
-            MyCubeBlock block = (MyCubeBlock)m_constructionBlock.ConstructionBlock;
-            return Math.Max(1, NaniteConstructionManager.Settings.DeconstructionPowerPerStream - (int)(block.UpgradeValues["PowerNanites"] * NaniteConstructionManager.Settings.PowerDecreasePerUpgrade));
+            return Math.Max(1, NaniteConstructionManager.Settings.DeconstructionPowerPerStream
+              - (int)m_constructionBlock.UpgradeValue("PowerNanites"));
         }
 
         public override float GetMinTravelTime()
         {
-            MyCubeBlock block = (MyCubeBlock)m_constructionBlock.ConstructionBlock;
-            return Math.Max(1f, NaniteConstructionManager.Settings.DeconstructionMinTravelTime - (block.UpgradeValues["SpeedNanites"] * NaniteConstructionManager.Settings.MinTravelTimeReductionPerUpgrade));
+            return Math.Max(1f, NaniteConstructionManager.Settings.DeconstructionMinTravelTime 
+              - m_constructionBlock.UpgradeValue("MinTravelTime"));
         }
 
         public override float GetSpeed()
         {
-            MyCubeBlock block = (MyCubeBlock)m_constructionBlock.ConstructionBlock;
-            return NaniteConstructionManager.Settings.DeconstructionDistanceDivisor + (block.UpgradeValues["SpeedNanites"] * (float)NaniteConstructionManager.Settings.SpeedIncreasePerUpgrade);
+            return NaniteConstructionManager.Settings.DeconstructionDistanceDivisor
+              + m_constructionBlock.UpgradeValue("SpeedNanites");
         }
 
-        public override bool IsEnabled()
+        public override bool IsEnabled(NaniteConstructionBlock factory)
         {
-            bool result = true;
-            if (!((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).Enabled
-              || !((IMyFunctionalBlock)m_constructionBlock.ConstructionBlock).IsFunctional
-              || m_constructionBlock.ConstructionBlock.CustomName.ToLower().Contains("NoDeconstruction".ToLower()))
-                result = false;
-
-            if (NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.ConstructionBlock.EntityId) 
-              && !NaniteConstructionManager.TerminalSettings[m_constructionBlock.ConstructionBlock.EntityId].AllowDeconstruct)
+            if (!((IMyFunctionalBlock)factory.ConstructionBlock).Enabled
+              || !((IMyFunctionalBlock)factory.ConstructionBlock).IsFunctional
+              || (NaniteConstructionManager.TerminalSettings.ContainsKey(factory.ConstructionBlock.EntityId) 
+              && !NaniteConstructionManager.TerminalSettings[factory.ConstructionBlock.EntityId].AllowDeconstruct))
                 return false;
 
-            return result;
+            return true;
         }
 
         public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> gridBlocks)
         {
             try
             {
-                if (!IsEnabled())
-                    return;
-
                 // Add 
-                foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteBeaconDeconstruct 
-                  && Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), x.Value.BeaconBlock.GetPosition()) < m_maxDistance * m_maxDistance).ToList())
+                foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteBeaconDeconstruct))
                 {
                     IMyCubeBlock item = (IMyCubeBlock)beaconBlock.Value.BeaconBlock;
 
                     if (item == null || !((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional || gridList.Contains(item.CubeGrid) 
                       || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId))
-                      || m_validBeaconedGrids.FirstOrDefault(x => x.GridsProcessed.Contains(item.CubeGrid)) != null)
+                      || m_validBeaconedGrids.FirstOrDefault(x => x.GridsProcessed.Contains(item.CubeGrid)) != null || !IsInRange( item.GetPosition() ) )
 						continue;
 
                     NaniteDeconstructionGrid deconstruct = new NaniteDeconstructionGrid(item.CubeGrid);
@@ -227,10 +216,9 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             InvalidTargetReason("");
 
-            if (!IsEnabled()) 
-                return;
+            var maxTargets = GetMaximumTargets();
 
-            if (TargetList.Count >= GetMaximumTargets())
+            if (TargetList.Count >= maxTargets)
             {
                 if (PotentialTargetList.Count > 0) 
                     InvalidTargetReason("Maximum targets reached. Add more upgrades!");
@@ -280,7 +268,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     Logging.Instance.WriteLine(string.Format("ADDING Deconstruction Target: conid={0} subtypeid={1} entityID={2} position={3}", 
                       m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, item.FatBlock != null ? item.FatBlock.EntityId : 0, item.Position));
 
-                    if (++TargetListCount >= GetMaximumTargets()) 
+                    if (++TargetListCount >= maxTargets) 
                         break;
                 }
             }
@@ -324,6 +312,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             if(Sync.IsServer)
             {
+                /*
                 if(!IsEnabled())
                 {
                     Logging.Instance.WriteLine("CANCELLING Deconstruction Target due to being disabled");
@@ -337,13 +326,14 @@ namespace NaniteConstructionSystem.Entities.Targets
                     CancelTarget(target);
                     return;
                 }
+                */
 
                 if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
                     return;
 
                 NaniteGrinder grinder = (NaniteGrinder)m_constructionBlock.ToolManager.Tools.FirstOrDefault(x => x.TargetBlock == target && x is NaniteGrinder);
 
-                if(grinder == null)
+                if (grinder == null)
                 {
                     double distance = EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target);
                     int time = (int)Math.Max(GetMinTravelTime() * 1000f, (distance / GetSpeed()) * 1000f);
@@ -352,9 +342,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                     m_constructionBlock.SendAddTarget(target, TargetTypes.Deconstruction);
                 }
 
-                if(m_areaTargetBlocks.ContainsKey(target.CubeGrid))
+                if (m_areaTargetBlocks.ContainsKey(target.CubeGrid))
                 {
-                    if(!m_areaTargetBlocks[target.CubeGrid].IsInsideBox(target.CubeGrid.WorldAABB, false))                    
+                    if (!m_areaTargetBlocks[target.CubeGrid].IsInsideBox(target.CubeGrid.WorldAABB, false))                    
                     {
                         CancelTarget(target);
                         RemoveGridTarget(target.CubeGrid);
@@ -368,20 +358,20 @@ namespace NaniteConstructionSystem.Entities.Targets
                     }
                 }
 
-                if(target.IsDestroyed || target.IsFullyDismounted || target.CubeGrid.GetCubeBlock(target.Position) == null || (target.FatBlock != null && target.FatBlock.Closed))
+                if (target.IsDestroyed || target.IsFullyDismounted || target.CubeGrid.GetCubeBlock(target.Position) == null || (target.FatBlock != null && target.FatBlock.Closed))
                 {
                     CompleteTarget(target);
                     return;
                 }
 
-                if(target.CubeGrid.Closed)
+                if (target.CubeGrid.Closed)
                 {
                     Logging.Instance.WriteLine("CANCELLING Deconstruction Target due to grid being closed");
                     CancelTarget(target);
                     return;
                 }
 
-                if (EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target) > m_maxDistance)
+                if (EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target) > MyAPIGateway.Session.SessionSettings.SyncDistance)
                 {
                     Logging.Instance.WriteLine("CANCELLING Deconstruction Target due to target being out of range");
                     CancelTarget(target);
@@ -395,24 +385,18 @@ namespace NaniteConstructionSystem.Entities.Targets
         private void RemoveGridTarget(IMyCubeGrid grid)
         {
             foreach (var item in m_validBeaconedGrids)
-            {
                 if (item.MainGrid == grid)
                 {
-                    using (Lock.AcquireExclusiveUsing())
+                    foreach (var block in item.RemoveList)
                     {
-                        foreach (var block in item.RemoveList)
-                        {
-                            PotentialTargetList.Remove(block);
-                            TargetList.Remove(block);
-                        }
+                        PotentialTargetList.Remove(block);
+                        TargetList.Remove(block);
                     }
-
                     m_validBeaconedGrids.Remove(item);
                     break;
                 }
-            }
 
-            if(m_areaTargetBlocks.ContainsKey(grid))
+            if (m_areaTargetBlocks.ContainsKey(grid))
                 m_areaTargetBlocks.Remove(grid);
         }
 
