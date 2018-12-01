@@ -49,6 +49,8 @@
         <Z>1</Z>
       </InventorySize>
       <BlockPairName>NaniteControlFacility</BlockPairName>
+      <Description>A facility that produces nanites that will mine, collect, weld, grind, and heal. It requires at least 100MW of power to operate. 
+	  Beacons are required for the nanites to lock onto grids. Ore, ingots, and components are picked up by the cleanup nanites.</Description>
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <BuildTimeSeconds>300</BuildTimeSeconds>
@@ -111,6 +113,7 @@
         <Z>1</Z>
       </InventorySize>
       <BlockPairName>NaniteControlFacility</BlockPairName>
+      <Description>A small version of the facility that only does cleanup and repair.</Description>
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <BuildTimeSeconds>80</BuildTimeSeconds>
@@ -156,6 +159,7 @@
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NaniteBeacon_Constr2.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteBeaconDeconstruct</BlockPairName>
+      <Description>Nanite beacon for deconstruction nanites to lock onto, place these on grids to take apart.</Description>
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <EdgeType>Light</EdgeType>
@@ -196,6 +200,7 @@
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\NaniteBeaconSmall_Constr2.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteBeaconDeconstruct</BlockPairName>
+      <Description>Nanite beacon for deconstruction nanites to lock onto, place these on grids to take apart.</Description>
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <EdgeType>Light</EdgeType>
@@ -236,6 +241,7 @@
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NaniteBeacon_Constr2.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteBeaconConstruct</BlockPairName>
+      <Description>Nanite beacon for construction nanites to lock onto, place these on grids to take apart.</Description>
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <EdgeType>Light</EdgeType>
@@ -285,6 +291,7 @@
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\NaniteBeaconSmall_Constr2.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteBeaconConstruct</BlockPairName>
+      <Description>Nanite beacon for construction nanites to lock onto, place these on grids to take apart.</Description>
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <EdgeType>Light</EdgeType>
@@ -334,6 +341,7 @@
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NaniteBeacon_Constr2.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteBeaconProjection</BlockPairName>
+      <Description>Nanite beacon for projection nanites to lock onto, place these to build projections.</Description>
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <EdgeType>Light</EdgeType>
@@ -374,6 +382,7 @@
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\NaniteBeaconSmall_Constr2.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteBeaconProjection</BlockPairName>
+      <Description>Nanite beacon for projection nanites to lock onto, place these to build projections.</Description>
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <EdgeType>Light</EdgeType>
@@ -414,6 +423,7 @@
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\AreaBeacon_Constr2.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteAreaBeacon</BlockPairName>
+      <Description>Nanite Area Beacon allows nanites to operate in a controlled space for deconstruction, construction, and projections.</Description>
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <EdgeType>Light</EdgeType>
@@ -459,6 +469,7 @@
         <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>UpgradeConstruct</BlockPairName>
+      <Description>Nanite upgrade that adds 3 constructor nanites.</Description>
       <EmissiveColorPreset>Default</EmissiveColorPreset>
       <MirroringX>Z</MirroringX>
       <MirroringZ>X</MirroringZ>
@@ -538,6 +549,7 @@
         <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>UpgradeDeconstruct</BlockPairName>
+      <Description>Nanite upgrade that adds 3 deconstructor nanites.</Description>
       <MirroringX>Z</MirroringX>
       <MirroringZ>X</MirroringZ>
       <EdgeType>Light</EdgeType>
@@ -636,6 +648,7 @@
         <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>UpgradeCleanup</BlockPairName>
+      <Description>Nanite upgrade that adds 3 cleanup nanites.</Description>
       <MirroringX>Z</MirroringX>
       <MirroringZ>X</MirroringZ>
       <EdgeType>Light</EdgeType>
@@ -685,6 +698,7 @@
         <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>MiningNanites</BlockPairName>
+      <Description>Nanite upgrade that adds 3 mining nanites.</Description>
       <MirroringX>Z</MirroringX>
       <MirroringZ>X</MirroringZ>
       <EdgeType>Light</EdgeType>
@@ -734,6 +748,7 @@
         <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>MedicalNanites</BlockPairName>
+      <Description>Nanite upgrade that adds 3 medical nanites.</Description>
       <MirroringX>Z</MirroringX>
       <MirroringZ>X</MirroringZ>
       <EdgeType>Light</EdgeType>
@@ -783,6 +798,7 @@
         <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>UpgradeSpeed</BlockPairName>
+      <Description>Nanite upgrade that increases the speed of the nanites.</Description>
       <MirroringX>Z</MirroringX>
       <MirroringZ>X</MirroringZ>
       <EdgeType>Light</EdgeType>
@@ -832,6 +848,7 @@
         <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>UpgradePower</BlockPairName>
+      <Description>Nanite upgrade that decreases the power requirement of the facility.</Description>
       <MirroringX>Z</MirroringX>
       <MirroringZ>X</MirroringZ>
       <EdgeType>Light</EdgeType>
@@ -882,6 +899,7 @@
         <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteOreDetectorUpgradeRange</BlockPairName>
+      <Description>Nanite Ore Detector upgrade that increases range.</Description>
       <BlockVariants>
         <BlockVariant>
           <TypeId>UpgradeModule</TypeId>
@@ -943,6 +961,7 @@
         <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteOreDetectorUpgradeScanning</BlockPairName>
+      <Description>Nanite Ore Detector upgrade that increases scanning.</Description>
       <EmissiveColorPreset>Default</EmissiveColorPreset>
       <MirroringX>Z</MirroringX>
       <MirroringZ>X</MirroringZ>
@@ -991,6 +1010,7 @@
         <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteOreDetectorUpgradeFilter</BlockPairName>
+      <Description>Nanite Ore Detector upgrade that allows you to filter ore.</Description>
       <EmissiveColorPreset>Default</EmissiveColorPreset>
       <MirroringX>Z</MirroringX>
       <MirroringZ>X</MirroringZ>
@@ -1040,6 +1060,7 @@
         <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteOreDetectorUpgradePowerEfficiency</BlockPairName>
+      <Description>Nanite Ore Detector upgrade that reduces power cost.</Description>
       <EmissiveColorPreset>Default</EmissiveColorPreset>
       <MirroringX>Z</MirroringX>
       <MirroringZ>X</MirroringZ>
@@ -1290,6 +1311,7 @@
         <Z>1</Z>
       </InventorySize>
       <BlockPairName>LargeNaniteOreDetector</BlockPairName>
+      <Description>Nanite Ore Detector used for mining with nanites, requires Nanite Control Facility that is active and within range (300m) to function.</Description>
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <BuildTimeSeconds>300</BuildTimeSeconds>
