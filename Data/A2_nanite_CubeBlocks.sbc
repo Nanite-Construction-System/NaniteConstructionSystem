@@ -71,7 +71,7 @@
         <SubtypeId>SmallNaniteControlFacility</SubtypeId>
       </Id>
       <DisplayName>Small Nanite Control Facility</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteFactory.dds</Icon>
+      <Icon>Textures\GUI\Icons\Cubes\SmallNaniteFactory.dds</Icon>
       <CubeSize>Small</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
 	<Size x="5" y="5" z="6" />
@@ -83,12 +83,12 @@
         <Component Subtype="Construction" Count="40"/>
         <Component Subtype="MetalGrid" Count="15"/>
         <Component Subtype="LargeTube" Count="15"/>
-        <Component Subtype="GravityGenerator" Count="35"/>
-        <Component Subtype="Detector" Count="25"/>
-        <Component Subtype="PowerCell" Count="75"/>
+        <Component Subtype="GravityGenerator" Count="5"/>
+        <Component Subtype="Detector" Count="10"/>
+        <Component Subtype="PowerCell" Count="6"/>
         <Component Subtype="Computer" Count="45"/>
-        <Component Subtype="Motor" Count="15"/>
-        <Component Subtype="Superconductor" Count="120"/>
+        <Component Subtype="Motor" Count="10"/>
+        <Component Subtype="Superconductor" Count="80"/>
         <Component Subtype="Display" Count="4"/>
         <Component Subtype="SteelPlate" Count="90"/>
         <Component Subtype="InteriorPlate" Count="40"/>
@@ -96,16 +96,19 @@
       <CriticalComponent Subtype="Display" Index="0"/>
 	<MountPoints>
 		<MountPoint Side="Front" StartX="0.77" StartY="0.73" EndX="4.23" EndY="4.27" />
-		<MountPoint Side="Back" StartX="0.77" StartY="0.73" EndX="4.23" EndY="4.27" />
-		<MountPoint Side="Left" StartX="1.93" StartY="0.55" EndX="4.07" EndY="4.45" />
-		<MountPoint Side="Right" StartX="1.93" StartY="0.55" EndX="4.07" EndY="4.45" />
-		<MountPoint Side="Bottom" StartX="0.57" StartY="1.93" EndX="4.43" EndY="4.07" />
-		<MountPoint Side="Top" StartX="0.57" StartY="1.93" EndX="4.43" EndY="4.07" />
+		<MountPoint Side="Back" StartX="0.77" StartY="0.73" EndX="4.23" EndY="4.27" Default="true" />
+		<MountPoint Side="Left" StartX="1.93" StartY="4.12" EndX="4.07" EndY="4.45" />
+		<MountPoint Side="Right" StartX="1.93" StartY="4.12" EndX="4.07" EndY="4.45" />
+		<MountPoint Side="Bottom" StartX="4.13" StartY="1.93" EndX="4.43" EndY="4.07" />
+		<MountPoint Side="Top" StartX="4.13" StartY="1.93" EndX="4.43" EndY="4.07" />
+		<MountPoint Side="Left" StartX="1.93" StartY="0.54" EndX="4.07" EndY="0.86" />
+		<MountPoint Side="Right" StartX="1.93" StartY="0.54" EndX="4.07" EndY="0.86" />
+		<MountPoint Side="Bottom" StartX="0.53" StartY="1.93" EndX="0.84" EndY="4.07" />
+		<MountPoint Side="Top" StartX="0.53" StartY="1.93" EndX="0.84" EndY="4.07" />
 	</MountPoints>
       <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\NaniteControlFacility_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="0.75" File="Models\Cubes\Large\NaniteControlFacility_Constr2.mwm"/>
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NaniteControlFacility_Constr3.mwm"/>
+		<Model BuildPercentUpperBound="0.50" File="Models\SmallNaniteController_Constr1.mwm" />
+		<Model BuildPercentUpperBound="1.00" File="Models\SmallNaniteController_Constr2.mwm" />
       </BuildProgressModels>
       <InventorySize>
         <X>1</X>
@@ -124,7 +127,7 @@
       <PrimarySound>NaniteModule</PrimarySound>
       <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>
       <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <SensorRadius>4</SensorRadius>
+      <SensorRadius>.2</SensorRadius>
       <SensorOffset>0</SensorOffset>
       <PCU>2000</PCU>
     </Definition>
