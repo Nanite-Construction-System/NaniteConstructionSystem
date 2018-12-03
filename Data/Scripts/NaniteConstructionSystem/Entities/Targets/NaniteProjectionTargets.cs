@@ -47,7 +47,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override int GetMaximumTargets()
         {
-            return (int)Math.Min(NaniteConstructionManager.Settings.ProjectionNanitesNoUpgrade 
+            return (int)Math.Min((NaniteConstructionManager.Settings.ProjectionNanitesNoUpgrade * m_constructionBlock.FactoryGroup.Count)
               + m_constructionBlock.UpgradeValue("ProjectionNanites"), NaniteConstructionManager.Settings.ProjectionMaxStreams);
         }
 
@@ -75,8 +75,12 @@ namespace NaniteConstructionSystem.Entities.Targets
               || !((IMyFunctionalBlock)factory.ConstructionBlock).IsFunctional 
               || (NaniteConstructionManager.TerminalSettings.ContainsKey(factory.ConstructionBlock.EntityId) 
               && !NaniteConstructionManager.TerminalSettings[factory.ConstructionBlock.EntityId].AllowProjection))
+            {
+                factory.EnabledParticleTargets[TargetName] = false;
                 return false;
-
+            }
+                
+            factory.EnabledParticleTargets[TargetName] = true;
             return true;
         }
 
@@ -285,9 +289,33 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (NaniteParticleManager.TotalParticleCount > NaniteParticleManager.MaxTotalParticles)
                 return;
 
-            Vector4 startColor = new Vector4(0.95f, 0.0f, 0.95f, 0.75f);
-            Vector4 endColor = new Vector4(0.035f, 0.0f, 0.35f, 0.75f);
-            m_constructionBlock.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
+            MyAPIGateway.Parallel.Start(() =>
+            {
+                try
+                {
+                    Vector3D targetPosition = default(Vector3D);
+
+                    if (target.FatBlock != null)
+                        targetPosition = target.FatBlock.GetPosition();
+                    else
+                    {
+                        var size = target.CubeGrid.GridSizeEnum == MyCubeSize.Small ? 0.5f : 2.5f;
+                        var destinationPosition = new Vector3D(target.Position * size);
+                        targetPosition = Vector3D.Transform(destinationPosition, target.CubeGrid.WorldMatrix);
+                    }
+
+                    NaniteConstructionBlock nearestFactory = GetNearestFactory(TargetName, targetPosition);
+
+                    Vector4 startColor = new Vector4(0.95f, 0.0f, 0.95f, 0.75f);
+                    Vector4 endColor = new Vector4(0.035f, 0.0f, 0.35f, 0.75f);
+
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                    {
+                        nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
+                    });
+                }
+                catch{}
+            });
         }
 
         public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> blocks)

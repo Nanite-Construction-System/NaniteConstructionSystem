@@ -100,7 +100,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override int GetMaximumTargets()
         {
-            return (int)Math.Min(NaniteConstructionManager.Settings.CleanupNanitesNoUpgrade 
+            return (int)Math.Min((NaniteConstructionManager.Settings.CleanupNanitesNoUpgrade * m_constructionBlock.FactoryGroup.Count)
               + m_constructionBlock.UpgradeValue("CleanupNanites"), NaniteConstructionManager.Settings.CleanupMaxStreams);
         }
 
@@ -128,8 +128,12 @@ namespace NaniteConstructionSystem.Entities.Targets
               || !((IMyFunctionalBlock)factory.ConstructionBlock).IsFunctional 
               || (NaniteConstructionManager.TerminalSettings.ContainsKey(factory.ConstructionBlock.EntityId) 
               && !NaniteConstructionManager.TerminalSettings[factory.ConstructionBlock.EntityId].AllowCleanup))
+            {
+                factory.EnabledParticleTargets[TargetName] = false;
                 return false;
-
+            }
+                
+            factory.EnabledParticleTargets[TargetName] = true;
             return true;
         }
 
@@ -361,9 +365,22 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (NaniteParticleManager.TotalParticleCount > NaniteParticleManager.MaxTotalParticles)
                 return;
 
-            Vector4 startColor = new Vector4(0.75f, 0.75f, 0.0f, 0.75f);
-            Vector4 endColor = new Vector4(0.20f, 0.20f, 0.0f, 0.75f);
-            m_constructionBlock.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
+            MyAPIGateway.Parallel.Start(() =>
+            {
+                try
+                {
+                    Vector4 startColor = new Vector4(0.75f, 0.75f, 0.0f, 0.75f);
+                    Vector4 endColor = new Vector4(0.20f, 0.20f, 0.0f, 0.75f);
+
+                    var nearestFactory = GetNearestFactory(TargetName, target.GetPosition());
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                    {
+                        nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
+                    });
+                    
+                }
+                catch {}
+            }); 
         }
 
         public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> blocks)

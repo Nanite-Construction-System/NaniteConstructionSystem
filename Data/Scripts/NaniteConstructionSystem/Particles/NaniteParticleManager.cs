@@ -61,16 +61,15 @@ namespace NaniteConstructionSystem.Particles
                     targetPosition = Vector3D.Transform(destinationPosition, slimBlock.CubeGrid.WorldMatrix);
                 }
             }
-            else if(target is NaniteMiningItem)
+            else if (target is NaniteMiningItem)
             {
                 var miningTarget = target as NaniteMiningItem;
                 targetPosition = miningTarget.Position;
             }
-            else if(target is IMyPlayer)
+            else if (target is IMyPlayer)
             {
                 var destinationPosition = new Vector3D(0f, 2f, 0f);
                 targetPosition = Vector3D.Transform(destinationPosition, (target as IMyPlayer).Controller.ControlledEntity.Entity.WorldMatrix);
-                //targetPosition = (target as IMyPlayer).GetPosition();
             }
 
             double distance = Vector3D.Distance(m_constructionBlock.ConstructionBlock.GetPosition(), targetPosition);
@@ -79,10 +78,7 @@ namespace NaniteConstructionSystem.Particles
             NaniteParticle particle = new NaniteParticle(time, (IMyCubeBlock)m_constructionBlock.ConstructionBlock, target, startColor, endColor, tailLength, 0.05f);
             m_particles.Add(particle);
 
-            if (miningHammer == null)
-                particle.Start();
-            else
-                particle.StartMining(miningHammer);
+            particle.Start();
 
             TotalParticleCount++;
         }
@@ -120,17 +116,26 @@ namespace NaniteConstructionSystem.Particles
             });
         }
 
-        public void CancelTarget(object target)
+        private void CallTargetRemoved(object target, bool cancelled)
         {
-            TargetRemoved(target, true);
+            MyAPIGateway.Parallel.Start(() =>
+            {
+                List<NaniteConstructionBlock> factoryGroup = new List<NaniteConstructionBlock>();
+                lock (m_constructionBlock.FactoryGroup)
+                    factoryGroup = new List<NaniteConstructionBlock>(m_constructionBlock.FactoryGroup);
+
+                foreach (NaniteConstructionBlock factory in factoryGroup)
+                    factory.ParticleManager.TargetRemoved(target, cancelled);
+            });
         }
+
+        public void CancelTarget(object target)
+            {CallTargetRemoved(target, true);}
 
         public void CompleteTarget(object target)
-        {
-            TargetRemoved(target, false);
-        }
+            {CallTargetRemoved(target, false);}
 
-        private void TargetRemoved(object target, bool cancelled)
+        public void TargetRemoved(object target, bool cancelled)
         {
             foreach (var item in m_particles)
             {

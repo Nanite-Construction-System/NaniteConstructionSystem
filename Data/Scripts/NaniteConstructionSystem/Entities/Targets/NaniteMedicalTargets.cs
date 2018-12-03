@@ -49,7 +49,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override int GetMaximumTargets()
         {
-            return (int)Math.Min(NaniteConstructionManager.Settings.MedicalNanitesNoUpgrade 
+            return (int)Math.Min((NaniteConstructionManager.Settings.MedicalNanitesNoUpgrade * m_constructionBlock.FactoryGroup.Count)
               + m_constructionBlock.UpgradeValue("MedicalNanites"), NaniteConstructionManager.Settings.MedicalMaxStreams);
         }
 
@@ -77,8 +77,12 @@ namespace NaniteConstructionSystem.Entities.Targets
               || !((IMyFunctionalBlock)factory.ConstructionBlock).IsFunctional 
               || (NaniteConstructionManager.TerminalSettings.ContainsKey(factory.ConstructionBlock.EntityId) 
               && !NaniteConstructionManager.TerminalSettings[factory.ConstructionBlock.EntityId].AllowMedical))
+            {
+                factory.EnabledParticleTargets[TargetName] = false;
                 return false;
-
+            }
+                
+            factory.EnabledParticleTargets[TargetName] = true;
             return true;
         }
 
@@ -305,9 +309,24 @@ namespace NaniteConstructionSystem.Entities.Targets
                 return;
 
             // Create Particle
-            Vector4 startColor = new Vector4(1f, 1f, 1f, 1f);
-            Vector4 endColor = new Vector4(0.4f, 0.4f, 0.4f, 0.35f);
-            m_constructionBlock.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
+
+            MyAPIGateway.Parallel.Start(() =>
+            {
+                try
+                {
+                    Vector4 startColor = new Vector4(1f, 1f, 1f, 1f);
+                    Vector4 endColor = new Vector4(0.4f, 0.4f, 0.4f, 0.35f);
+                    var nearestFactory = GetNearestFactory(TargetName, target.GetPosition());
+
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                    {
+                        nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
+                    });
+                    
+                }
+                catch {}
+                
+            }); 
         }
 
         private void CreateTrackerItem(IMyPlayer target)

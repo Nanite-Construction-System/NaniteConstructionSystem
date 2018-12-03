@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using VRageMath;
@@ -86,18 +86,6 @@ namespace NaniteConstructionSystem.Particles
         public void Start()
         {
             float size = 1.75f;
-            /*
-            if(m_destination is IMySlimBlock)
-            {
-                var slim = (IMySlimBlock)m_destination;
-                if (slim.FatBlock != null)
-                {
-                    var destBlock = (IMyCubeBlock)slim.FatBlock;
-                    size = destBlock.LocalVolume.Radius;
-                }
-            }
-            */
-
             m_paths.Add(new ParticleRelativePath(m_source, m_destination, 10, 0.3f));
             m_paths.Add(new ParticleRelativePath(m_destination, m_destination, 6, size));
             m_paths.Add(new ParticleRelativePath(m_destination, m_source, 10, 1f, true));
@@ -284,7 +272,10 @@ namespace NaniteConstructionSystem.Particles
                 pushList.Add(MyUtils.GetRandomBorderPosition(ref sphere));
             }
 
-            m_paths.Add(new ParticleRelativePath(position, m_source, 10, 0.6f, true, pushList));
+            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+            {
+                m_paths.Add(new ParticleRelativePath(position, m_source, 10, 0.6f, true, pushList));
+            });
         }
 
         private Vector3D GetSourcePosition()

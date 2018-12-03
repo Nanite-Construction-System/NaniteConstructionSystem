@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using Sandbox.ModAPI;
 using VRageMath;
 using VRage;
@@ -169,6 +170,13 @@ namespace NaniteConstructionSystem.Extensions
     }
 
     [Serializable]
+    public class FactoryGroupData
+    {
+        public long EntityId { get; set; }
+        public List<long> FactoryGroup { get; set; }
+    }
+
+    [Serializable]
     public class LoginData
     {
         public ulong SteamId { get; set; }
@@ -189,7 +197,6 @@ namespace NaniteConstructionSystem.Extensions
         public int PositionY { get; set; }
         public int PositionZ { get; set; }
         public int EffectId { get; set; }
-
     }
 
     [Serializable]

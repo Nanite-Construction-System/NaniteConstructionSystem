@@ -31,6 +31,7 @@ namespace NaniteConstructionSystem.Entities
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8960, HandleTerminalSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8962, HandleAssemblerSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8971, HandleBeaconTerminalSettings);
+                MyAPIGateway.Multiplayer.RegisterMessageHandler(8974, HandleFactoryGroup);
             }
             else if (Sync.IsServer)
             {
@@ -171,31 +172,61 @@ namespace NaniteConstructionSystem.Entities
 
         private void HandleDetails(byte[] data)
         {
-            try
+            MyAPIGateway.Parallel.Start(() =>
             {
-                if (MyAPIGateway.Session == null)
-                    return;
-
-                if (NaniteConstructionManager.NaniteBlocks == null)
-                    return;
-
-                DetailData details = MyAPIGateway.Utilities.SerializeFromXML<DetailData>(ASCIIEncoding.ASCII.GetString(data));
-                //Logging.Instance.WriteLine(string.Format("HandleDetails: {0}", details.EntityId));
-
-                foreach (var item in NaniteConstructionManager.NaniteBlocks)
+                try
                 {
-                    if (item.Key == details.EntityId && item.Value.Initialized)
-                    {
-                        //Logging.Instance.WriteLine(string.Format("Details for Factory: {0}", details.EntityId));
-                        item.Value.SyncDetails(details);
-                        break;
-                    }
+                    if (MyAPIGateway.Session == null)
+                        return;
+
+                    if (NaniteConstructionManager.NaniteBlocks == null)
+                        return;
+
+                    DetailData details = MyAPIGateway.Utilities.SerializeFromXML<DetailData>(ASCIIEncoding.ASCII.GetString(data));
+                    //Logging.Instance.WriteLine(string.Format("HandleDetails: {0}", details.EntityId));
+
+                    foreach (var item in NaniteConstructionManager.NaniteBlocks)
+                        if (item.Key == details.EntityId && item.Value.Initialized)
+                        {
+                            //Logging.Instance.WriteLine(string.Format("Details for Factory: {0}", details.EntityId));
+                            item.Value.SyncDetails(details);
+                            break;
+                        }
                 }
-            }
-            catch (Exception ex)
+                catch (Exception ex)
+                {
+                    MyLog.Default.WriteLine(string.Format("HandleDetails() Error: {0}", ex.ToString()));
+                }
+            });
+            
+        }
+
+        private void HandleFactoryGroup(byte[] data)
+        {
+            MyAPIGateway.Parallel.Start(() =>
             {
-                MyLog.Default.WriteLine(string.Format("HandleDetails() Error: {0}", ex.ToString()));
-            }
+                try
+                {
+                    if (MyAPIGateway.Session == null)
+                        return;
+
+                    if (NaniteConstructionManager.NaniteBlocks == null)
+                        return;
+
+                    FactoryGroupData details = MyAPIGateway.Utilities.SerializeFromXML<FactoryGroupData>(ASCIIEncoding.ASCII.GetString(data));
+
+                    foreach (var item in NaniteConstructionManager.NaniteBlocks)
+                        if (item.Key == details.EntityId && item.Value.Initialized)
+                        {
+                            item.Value.SyncFactoryGroup(details);
+                            break;
+                        }
+                }
+                catch (Exception ex)
+                {
+                    MyLog.Default.WriteLine(string.Format("HandleFactoryGroup() Error: {0}", ex.ToString()));
+                }
+            });
         }
 
         //public void SendLogin()

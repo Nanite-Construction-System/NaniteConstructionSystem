@@ -52,7 +52,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override int GetMaximumTargets()
         {
-             return (int)Math.Min(NaniteConstructionManager.Settings.MiningNanitesNoUpgrade 
+             return (int)Math.Min((NaniteConstructionManager.Settings.MiningNanitesNoUpgrade * m_constructionBlock.FactoryGroup.Count)
               + m_constructionBlock.UpgradeValue("MiningNanites"), NaniteConstructionManager.Settings.MiningMaxStreams);
         }
 
@@ -80,8 +80,12 @@ namespace NaniteConstructionSystem.Entities.Targets
               || !((IMyFunctionalBlock)factory.ConstructionBlock).IsFunctional 
               || (NaniteConstructionManager.TerminalSettings.ContainsKey(factory.ConstructionBlock.EntityId) 
               && !NaniteConstructionManager.TerminalSettings[factory.ConstructionBlock.EntityId].AllowMining))
+            {
+                factory.EnabledParticleTargets[TargetName] = false;
                 return false;
-
+            }
+                
+            factory.EnabledParticleTargets[TargetName] = true;
             return true;
         }
 
@@ -318,9 +322,22 @@ namespace NaniteConstructionSystem.Entities.Targets
                 return;
 
             // Create Particle
-            Vector4 startColor = new Vector4(0.7f, 0.2f, 0.0f, 1f);
-            Vector4 endColor = new Vector4(0.2f, 0.05f, 0.0f, 0.35f);
-            m_constructionBlock.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target, null);
+            MyAPIGateway.Parallel.Start(() =>
+            {
+                try
+                {
+                    Vector4 startColor = new Vector4(0.7f, 0.2f, 0.0f, 1f);
+                    Vector4 endColor = new Vector4(0.2f, 0.05f, 0.0f, 0.35f);
+
+                    var nearestFactory = GetNearestFactory(TargetName, target.Position);
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                    {
+                        nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target, null);
+                    });
+                    
+                }
+                catch {}
+            }); 
         }
 
         private void CreateTrackerItem(NaniteMiningItem target)

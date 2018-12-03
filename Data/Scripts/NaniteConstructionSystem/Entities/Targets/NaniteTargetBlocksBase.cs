@@ -74,7 +74,6 @@ namespace NaniteConstructionSystem.Entities.Targets
         public virtual void Remove(object target)
         {
             TargetList.Remove(target);
-
             PotentialTargetList.Remove(target);
         }
 
@@ -134,9 +133,16 @@ namespace NaniteConstructionSystem.Entities.Targets
         internal void InvalidTargetReason(string reason)
         {
             MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-            {
-                m_lastInvalidTargetReason = reason;
-            });
+                { m_lastInvalidTargetReason = reason; });
+        }
+
+        internal NaniteConstructionBlock GetNearestFactory(string targetName, Vector3D distance)
+        {
+            foreach ( var factory in m_constructionBlock.FactoryGroup.OrderBy(x => x.ConstructionBlock != null ? Vector3D.Distance(x.ConstructionBlock.GetPosition(), distance) : double.MaxValue ) )
+                if (factory.EnabledParticleTargets[targetName])
+                    return factory;
+
+            return m_constructionBlock;
         }
 
         /// <summary>

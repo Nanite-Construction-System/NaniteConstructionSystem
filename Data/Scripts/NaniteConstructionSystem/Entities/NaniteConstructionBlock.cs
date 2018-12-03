@@ -1,3 +1,4 @@
+#region Assembly references
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
@@ -18,7 +19,6 @@ using VRageMath;
 using VRage.Utils;
 using Ingame = Sandbox.ModAPI.Ingame;
 using VRage.Game.ModAPI;
-
 using NaniteConstructionSystem.Particles;
 using NaniteConstructionSystem.Entities.Targets;
 using NaniteConstructionSystem.Entities.Effects;
@@ -28,136 +28,129 @@ using NaniteConstructionSystem.Entities.Beacons;
 using NaniteConstructionSystem.Entities.Detectors;
 using NaniteConstructionSystem.Extensions;
 using NaniteConstructionSystem.Settings;
+#endregion
 
 namespace NaniteConstructionSystem.Entities
 {
     public class NaniteConstructionBlock
     {
+        #region Variables
         public enum FactoryStates
         {
-            Disabled,
-            Enabled,
-            SpoolingUp,
-            SpoolingDown,
-            MissingParts,
-            MissingPower,
-            InvalidTargets,
-            Active
+            Disabled, Enabled, SpoolingUp, SpoolingDown,
+            MissingParts, MissingPower, InvalidTargets, Active
         }
 
         private IMyShipWelder m_constructionBlock;
-        public IMyShipWelder ConstructionBlock
-        {
-            get { return m_constructionBlock; }
-        }
+        public IMyShipWelder ConstructionBlock {get {return m_constructionBlock;} }
 
         private MyCubeBlock m_constructionCubeBlock;
-        public MyCubeBlock ConstructionCubeBlock
-        {
-            get { return m_constructionCubeBlock; }
-        }
+        public MyCubeBlock ConstructionCubeBlock {get {return m_constructionCubeBlock;} }
 
 
         private List<NaniteTargetBlocksBase> m_targets;
-        public List<NaniteTargetBlocksBase> Targets
-        {
-            get { return m_targets; }
-        }
+        public List<NaniteTargetBlocksBase> Targets {get {return m_targets;} }
 
         private bool m_initialize;
-        public bool Initialized
-        {
-            get { return m_initialize; }
-        }
+        public bool Initialized {get {return m_initialize;} }
 
         private NaniteParticleManager m_particleManager;
-        public NaniteParticleManager ParticleManager
-        {
-            get { return m_particleManager; }
-        }
+        public NaniteParticleManager ParticleManager {get {return m_particleManager;} }
 
         private NaniteToolManager m_toolManager;
-        public NaniteToolManager ToolManager
-        {
-            get { return m_toolManager; }
-        }
+        public NaniteToolManager ToolManager {get {return m_toolManager;} }
 
         private NaniteConstructionInventory m_inventoryManager;
-        public NaniteConstructionInventory InventoryManager
-        {
-            get { return m_inventoryManager; }
-        }
+        public NaniteConstructionInventory InventoryManager {get {return m_inventoryManager;} }
 
         private FactoryStates m_factoryState;
-        public FactoryStates FactoryState
-        {
-            get { return m_factoryState; }
-        }
+        public FactoryStates FactoryState {get {return m_factoryState;} }
+        private FactoryStates m_lastState;
 
         private int m_userDefinedNaniteLimit;
-        public int UserDefinedNaniteLimit
-        {
-            get { return m_userDefinedNaniteLimit; }
-        }
 
         private bool m_updateConnectedInventory;
         public bool UpdateConnectedInventory
         {
-            get { return m_updateConnectedInventory; }
-            set { m_updateConnectedInventory = value; }
+            get {return m_updateConnectedInventory;}
+            set {m_updateConnectedInventory = value;}
         }
+
+        private int m_spoolPosition;
+        public int SpoolPosition {get { return m_spoolPosition;} }
 
         internal MyResourceSinkInfo ResourceInfo;
         internal MyResourceSinkComponent Sink;
 
         private float _power = 0.0001f;
         public float Power
-        {
-            get { return Sink.CurrentInputByType(MyResourceDistributorComponent.ElectricityId); }
-        }
+            {get { return Sink.CurrentInputByType(MyResourceDistributorComponent.ElectricityId);} }
 
         private List<NaniteBlockEffectBase> m_effects;
         private MySoundPair m_soundPair;
-        private float m_maxDistance = 300f;
         private MyEntity3DSoundEmitter m_soundEmitter;
+
         private int m_updateCount;
         public int UpdateCount
         {
-            get { return m_updateCount; }
-            set { m_updateCount = value; }
+            get {return m_updateCount;}
+            set {m_updateCount = value;}
         }
+
+        private Dictionary<MyDefinitionId, MyBlueprintDefinitionBase> m_defCache;
+        public Dictionary<string, bool> EnabledParticleTargets = new Dictionary<string, bool>
+        {
+            ["Construction"] = true,
+            ["Deconstruction"] = true,
+            ["Cleanup"] = true,
+            ["Medical"] = true,
+            ["Mining"] = true,
+            ["Projection"] = true
+        };
+
         private int m_assemblerUpdateTimer;
         private int m_takeComponentsTimer;
-        private FactoryStates m_lastState;
-        private int m_spoolPosition;
+        
         private StringBuilder m_syncDetails;
-        private Dictionary<MyDefinitionId, MyBlueprintDefinitionBase> m_defCache;
         private StringBuilder m_targetDetails;
         private StringBuilder m_invalidTargetDetails;
         private StringBuilder m_missingComponentsDetails;
+
         private int m_potentialTargetsCount;
+        public int PotentialTargetsCount
+            {get { return m_potentialTargetsCount;} set {m_potentialTargetsCount = value;} }
+
         private int m_targetsCount;
+
         private bool m_clientEmissivesUpdate;
         private bool m_forceProcessState;
-        private bool m_scanningActive;
-        public List<IMyCubeGrid> GridGroup = new List<IMyCubeGrid>();
-        private MyInventory m_constructionBlockInventory = null;
-        private int m_totalScanBlocksCount;
+        
+        private MyInventory m_constructionBlockInventory;
+        public MyInventory ConstructionBlockInventory {get { return m_constructionBlockInventory;} }
+
         private ConcurrentBag<IMySlimBlock> m_potentialInventoryBlocks = new ConcurrentBag<IMySlimBlock>();
 
-        public List<NaniteConstructionBlock> FactoryGroup;
+        private long m_entityId;
+        public long EntityId {get { return m_entityId;} }
 
+        public List<NaniteConstructionBlock> FactoryGroup;
         public NaniteConstructionBlock Master;
         public List<NaniteConstructionBlock> Slaves = new List<NaniteConstructionBlock>();
+        public List<IMyCubeGrid> GridGroup = new List<IMyCubeGrid>();
 
         private List<BlockTarget> m_scanBlocksCache = new List<BlockTarget>();
-        public List<BlockTarget> ScanBlocksCache
-        {
-            get { return m_scanBlocksCache; }
-        }
+        public List<BlockTarget> ScanBlocksCache {get { return m_scanBlocksCache;}}
 
+        private int m_totalScanBlocksCount;
+        public int TotalScanBlocksCount {get { return m_totalScanBlocksCount;} set { m_totalScanBlocksCount = value;}}
+
+        private bool m_scanningActive;
+        
         private const int m_spoolingTime = 3000;
+        private const float m_maxDistance = 300f;
+        #endregion
 
+        #region Core
         public NaniteConstructionBlock(IMyEntity entity)
         { // Constructor
             m_constructionBlock = (IMyShipWelder)entity;
@@ -219,50 +212,11 @@ namespace NaniteConstructionSystem.Entities
             Sink = ((MyEntity)m_constructionBlock).Components.Get<MyResourceSinkComponent>();
 
             CheckGridGroup();
+            m_entityId = ConstructionBlock.EntityId;
 
+            FactoryGroup = new List<NaniteConstructionBlock>();
             FactoryGroup.Add(this);
         }
-
-        public float UpgradeValue(string upgrade)
-        {
-            string type = "";
-
-            if (upgrade == "MinTravelTime")
-                type = "SpeedNanites";
-            else if (upgrade == "ProjectionNanites")
-                type = "ConstructionNanites";
-            else
-                type = upgrade;
-
-            float v = (float)m_constructionCubeBlock.UpgradeValues[type];
-            foreach (var slave in Slaves)
-                v += (float)slave.ConstructionCubeBlock.UpgradeValues[type];
-            var s = NaniteConstructionManager.Settings;
-
-            switch (upgrade)
-            {
-                case "SpeedNanites":
-                    return (v * (float)s.SpeedIncreasePerUpgrade);
-                case "PowerNanites":
-                    return (v * (float)s.PowerDecreasePerUpgrade);
-                case "MedicalNanites":
-                    return (v * (float)s.MedicalNanitesPerUpgrade);
-                case "MiningNanites":
-                    return (v * (float)s.MiningNanitesPerUpgrade);
-                case "CleanupNanites":
-                    return (v * (float)s.CleanupNanitesPerUpgrade);
-                case "DeconstructionNanites":
-                    return (v * (float)s.DeconstructionNanitesPerUpgrade);
-                case "ProjectionNanites":
-                    return (v * (float)s.ProjectionNanitesPerUpgrade);
-                case "ConstructionNanites":
-                    return (v * (float)s.ConstructionNanitesPerUpgrade);
-                case "MinTravelTime":
-                    return (v * (float)s.MinTravelTimeReductionPerUpgrade);
-                default:
-                    return 1f;
-            }       
-        } 
 
         public void Update()
         { // Main update loop. Called each frame during game block logic
@@ -278,12 +232,17 @@ namespace NaniteConstructionSystem.Entities
             { // Log some status info. Should include some process time profiling in the future
                 MyAPIGateway.Parallel.Start(() =>
                 {
-                    string upgrades = "";
-                    foreach (var item in ((MyCubeBlock)m_constructionBlock).UpgradeValues)
-                        upgrades += string.Format("({0} - {1}) ", item.Key, item.Value);
+                    try
+                    {
+                        string upgrades = "";
+                        foreach (var item in ((MyCubeBlock)m_constructionBlock).UpgradeValues)
+                            upgrades += string.Format("({0} - {1}) ", item.Key, item.Value);
 
-                    Logging.Instance.WriteLine(string.Format("STATUS Nanite Factory: {0} - (t: {1}  pt: {2}  pw: {3} st: {4}) - {5}", 
-                      ConstructionBlock.EntityId, m_targetsCount, m_potentialTargetsCount, _power, m_factoryState, upgrades));
+                        Logging.Instance.WriteLine(string.Format("STATUS Nanite Factory: {0} - (t: {1}  pt: {2}  pw: {3} st: {4}) - {5}", 
+                          ConstructionBlock.EntityId, m_targetsCount, m_potentialTargetsCount, _power, m_factoryState, upgrades));
+                    }
+                    catch (Exception e)
+                        { VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception while logging Nanite Factory status: {e.ToString()}"); }
                 });
             }
 
@@ -296,13 +255,20 @@ namespace NaniteConstructionSystem.Entities
                         m_updateConnectedInventory = false;
                         CheckGridGroup();
                     }
-                    CheckSlaveMaster();  
+
+                    MyAPIGateway.Parallel.Start(() =>
+                    {
+                        try
+                            { CheckSlaveMaster(); }
+                        catch (Exception e)
+                            { VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception: CheckSlaveMaster: {e.ToString()}"); }
+                    });
                 }
 
                 if (Master == null)
                 {
                     if (m_updateCount % 10 == 0)
-                    CheckIfAGridBlockIsInventory();
+                        CheckIfAGridBlockIsInventory();
 
                     if (m_updateCount % 60 == 0)
                         ToolManager.Update();
@@ -340,70 +306,97 @@ namespace NaniteConstructionSystem.Entities
             if (m_updateCount % 120 == 0)
             {
                 ParticleManager.CheckParticleLife(); // removes stubborn Nanite particles
-                m_userDefinedNaniteLimit = NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].MaxNanites;
+
+                MyAPIGateway.Parallel.Start(() =>
+                { // This is the only place that ever modifies m_userDefinedNaniteLimit, so this should be thread-safe without locks
+                    if (NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.EntityId)
+                      && NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].MaxNanites != m_userDefinedNaniteLimit)
+                        m_userDefinedNaniteLimit = NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].MaxNanites;
+                });
             }
                 
             if (m_updateCount % 180 == 0)
                 UpdateTerminal();
         }
 
-        private void CheckSlaveMaster()
+        public void Unload()
         {
-            MyAPIGateway.Parallel.Start(() =>
-            {
-                try
+            m_factoryState = FactoryStates.Disabled; // In case keen doesn't catch that the block is dead, this will invalidate slave/master groups
+
+            if (m_effects != null)
+                foreach (var item in m_effects)
+                    item.Unload();
+
+            if (m_soundEmitter != null)
+                m_soundEmitter.StopSound(true);
+        }
+        #endregion
+
+		#region Master-slave connection methods
+        /// <summary> Checks existing slave-master connections and tries to make new ones. Runs on parallel thread </summary>
+        private void CheckSlaveMaster()
+        { 
+            if (Master != null && !MasterSlaveIsValid(Master, true))
+                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                 {
-                    if (Master != null)
-                        if (!MasterSlaveIsValid(Master, true))
-                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                            {
-                                if (Master != null)
-                                {
-                                    Master.Slaves.Remove(this);
-                                    Master = null; 
-                                }
-                            });
+                    Logging.Instance.WriteLine($"Factory {m_entityId} is no longer slaved to {Master.EntityId}.");
+                    Master.Slaves.Remove(this);
+                    Master = null; 
+                });
 
-                    else 
-                    {
-                        if (Slaves.Count > 1)
+            else if (Master == null)
+            {
+                if (Slaves.Count > 1)
+                {
+                    List<NaniteConstructionBlock> removeList = new List<NaniteConstructionBlock>();
+
+                    foreach (var slave in Slaves)
+                        if (!MasterSlaveIsValid(slave))
+                            removeList.Add(slave);
+
+                    if (removeList.Count > 0)
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         {
-                            List<NaniteConstructionBlock> removeList = new List<NaniteConstructionBlock>();
-
-                            foreach (var slave in Slaves)
-                                if (!MasterSlaveIsValid(slave))
-                                    removeList.Add(slave);
-
-                            if (removeList.Count > 0)
-                                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                                {
-                                    foreach (var slave in removeList)
-                                        Slaves.Remove(slave);
-                                });
-                        }
-
-                        foreach (var factory in NaniteConstructionManager.NaniteBlocks)
-                        { // Check for a valid master and then move all slaves over
-                            if (MasterSlaveIsValid(factory.Value) && factory.Value.Master == null)
+                            foreach (var slave in removeList)
                             {
-                                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                                {
-                                    if (factory.Value.Master == null)
-                                    {
-                                        Master = factory.Value;
-                                        foreach (var slave in Slaves)
-                                            slave.Master = factory.Value;
-                                    }
-                                });
+                                Logging.Instance.WriteLine($"Factory {slave.EntityId} is no longer slaved to {m_entityId}.");
+                                Slaves.Remove(slave);
+                            } 
+                        });
+                }
 
-                                break;
+                foreach (var factory in NaniteConstructionManager.NaniteBlocks)
+                { // Check for a valid master and then become slave/move all slaves over
+                    if (factory.Key != m_entityId && factory.Value.Master == null && MasterSlaveIsValid(factory.Value))
+                    {
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {
+                            if (factory.Value.Master == null)
+                            {
+                                Master = factory.Value;
+
+                                if (!Master.Slaves.Contains(this))
+                                    Master.Slaves.Add(this);
+
+                                Logging.Instance.WriteLine($"Factory {m_entityId} is now slaved to {Master.EntityId}.");
+
+                                foreach (var slave in Slaves)
+                                {
+                                    slave.Master = Master;
+
+                                    if (!Master.Slaves.Contains(slave))
+                                        Master.Slaves.Add(slave);
+
+                                    Logging.Instance.WriteLine($"Factory {slave.EntityId} is now slaved to {Master.EntityId}.");
+                                }
+                                Slaves.Clear();
                             }
-                        }
+                        });
+
+                        break;
                     }
                 }
-                catch (Exception e)
-                    {VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception: CheckSlaveMaster: {e.ToString()}");}
-            });
+            }
         }
 
         private bool MasterSlaveIsValid(NaniteConstructionBlock factory, bool useOtherGridGroup = false)
@@ -412,7 +405,7 @@ namespace NaniteConstructionSystem.Entities
               || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(m_constructionBlock.GetUserRelationToOwner(factory.ConstructionBlock.OwnerId)))
                 return false;
             
-            else if (Vector3D.Distance(ConstructionBlock.GetPosition(), factory.ConstructionBlock.GetPosition()) > m_maxDistance)
+            if (Vector3D.Distance(ConstructionBlock.GetPosition(), factory.ConstructionBlock.GetPosition()) > m_maxDistance)
             {
                 bool isInGroup = false;
                 List<IMyCubeGrid> grids = useOtherGridGroup ? factory.GridGroup : GridGroup;
@@ -428,8 +421,10 @@ namespace NaniteConstructionSystem.Entities
             }
 
             return true;
-        }
+        } 
+	    #endregion
 
+        #region Terminal information display methods
         private void UpdateTerminal()
         {
             ((IMyTerminalBlock)m_constructionBlock).RefreshCustomInfo();
@@ -443,6 +438,7 @@ namespace NaniteConstructionSystem.Entities
             }
         }
 
+        /// <summary> Silly hack needed to get around a longstanding bug. Forces the terminal to update if the player is viewing it. Credit to Equinox </summary>
         void UpdateTerminalClient()
         {
             MyOwnershipShareModeEnum shareMode;
@@ -460,41 +456,119 @@ namespace NaniteConstructionSystem.Entities
             m_constructionCubeBlock.ChangeOwner(ownerId, shareMode);
         }
 
-        private void CheckIfAGridBlockIsInventory()
-        {
-            MyAPIGateway.Parallel.Start(() =>
-            {
-                IMySlimBlock block = null;
-                m_potentialInventoryBlocks.TryTake(out block);
-                if (block != null)
-                    TryAddToInventoryGroup(block);
-            });
+        /// <summary> Updates .CustomInfo of the factory. Viewed in the control panel </summary>
+        private void AppendingCustomInfo(IMyTerminalBlock block, StringBuilder details)
+        { 
+            if (m_factoryState == FactoryStates.Disabled || m_updateCount % 180 != 0)
+                return;
+            
+            details.Clear();
+
+            if (Sync.IsServer)
+            {    
+                MyAPIGateway.Parallel.Start(() =>
+                {
+                    StringBuilder targetDetailsParallel = new StringBuilder();
+                    StringBuilder invalidTargetDetailsParallel = new StringBuilder();
+                    StringBuilder missingComponentsDetailsParallel = new StringBuilder();
+                    bool invalidTitleAppended = false;
+                    bool missingCompTitleAppended = false;
+
+                    NaniteConstructionBlock factory = Master != null ? Master : this;
+                        
+                    foreach (var item in factory.Targets.ToList())
+                    {
+                        targetDetailsParallel.Append("-----\r\n"
+                          + $"{item.TargetName} Nanites\r\n"
+                          + "-----\r\n"
+                          + $"Possible Targets: {item.PotentialTargetListCount}\r\n"
+                          + $"Current Targets: {item.TargetList.Count}\r\n"
+                          + $"Max Streams: {item.GetMaximumTargets()}\r\n" // TO DO: Retrieve a cached value for these instead of invoking a method
+                          + $"MW/Stream: {item.GetPowerUsage()} MW\r\n"
+                          + $"Min. Travel Time: {item.GetMinTravelTime()} s\r\n"
+                          + $"Travel Speed: {item.GetSpeed()} m/s\r\n");
+
+                        if (item.LastInvalidTargetReason != null && item.LastInvalidTargetReason != "")
+                        {
+                            if (!invalidTitleAppended)
+                            {
+                                invalidTargetDetailsParallel.Append("\nTarget information:\r\n");
+                                invalidTitleAppended = true;
+                            }
+                            invalidTargetDetailsParallel.Append($"\n- ({item.TargetName}) " + item.LastInvalidTargetReason);
+                        }
+                    }
+
+                    if (factory.InventoryManager.ComponentsRequired.Count > 0) 
+                        foreach (var component in factory.InventoryManager.ComponentsRequired.ToList())
+                            if (component.Value > 0)
+                            {
+                                if (!missingCompTitleAppended)
+                                {
+                                    missingComponentsDetailsParallel.Append("\r\nMissing components:\r\n");
+                                    missingCompTitleAppended = true;
+                                }
+                                missingComponentsDetailsParallel.Append($"{component.Key}: {component.Value}\r\n");
+                            }
+
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                    {
+                        m_targetDetails = targetDetailsParallel;
+                        m_invalidTargetDetails = invalidTargetDetailsParallel;
+                        m_missingComponentsDetails = missingComponentsDetailsParallel;
+                    });
+                });
+
+                details.Append($"-- Nanite Factory v2.0 --\n");
+                if (m_totalScanBlocksCount > 0)
+                {
+                    if (m_scanBlocksCache.Count == 0)
+                    {
+                        string percent = (((m_totalScanBlocksCount - m_scanBlocksCache.Count)/m_totalScanBlocksCount) * 100).ToString("0.00");
+                        details.Append("Scanning Complete.\nWaiting for next scan ...\n");
+                        details.Append($"{m_totalScanBlocksCount - m_scanBlocksCache.Count}/{m_totalScanBlocksCount} blocks\n");
+                    }
+                    else
+                    {
+                        string percent = (((m_totalScanBlocksCount - m_scanBlocksCache.Count)/m_totalScanBlocksCount) * 100).ToString("0.00");
+                        details.Append($"Scanning targets ... {percent}%\n");
+                        details.Append($"{m_totalScanBlocksCount - m_scanBlocksCache.Count}/{m_totalScanBlocksCount} blocks\n");
+                    }
+                }
+                else
+                    details.Append($"Online and waiting to scan ...");
+
+                details.Append(m_targetDetails
+                  + "-----\r\n"
+                  + $"Current Power Required: {_power} MW\r\n"
+                  + $"Status: {m_factoryState.ToString()}\r\n"
+                  + $"Active Nanites: {m_particleManager.Particles.Count}\r\n");
+
+                if (m_userDefinedNaniteLimit > 0)
+                    details.Append($"Maximum Nanites: {m_userDefinedNaniteLimit}\r\n");
+
+                details.Append(m_invalidTargetDetails);
+                details.Append(m_missingComponentsDetails);
+
+                if (m_syncDetails.Length != details.Length)
+                {
+                    m_syncDetails.Clear();
+                    m_syncDetails.Append(details);
+                    SendDetails();
+                }      
+            }
+            else
+                details.Append(m_syncDetails);
         }
+        #endregion
 
-        public void Unload()
-        {
-            if (m_effects != null)
-                foreach (var item in m_effects)
-                    item.Unload();
-
-            if (m_soundEmitter != null)
-                m_soundEmitter.StopSound(true);
-        }
-
-        public bool IsUserDefinedLimitReached()
-        {
-            if (m_userDefinedNaniteLimit != 0 && Targets.Sum(x => x.TargetList.Count) >= m_userDefinedNaniteLimit)
-                return true;
-
-            return false;
-        }
-
+        #region Power management methods
         private void UpdatePower()
         {
             if (!m_constructionBlock.Enabled || !m_constructionBlock.IsFunctional)
             {
                 MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                    {Sink.SetRequiredInputByType(MyResourceDistributorComponent.ElectricityId, 0.0001f);});
+                    { Sink.SetRequiredInputByType(MyResourceDistributorComponent.ElectricityId, 0.0001f); });
 
                 return;
             }
@@ -522,7 +596,9 @@ namespace NaniteConstructionSystem.Entities
         {
             return Sink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId);
         }
+        #endregion
 
+        #region GridGroup/Inventory management methods
         private void ProcessInventory()
         {
             var inventory = ((MyCubeBlock)m_constructionBlock).GetInventory();
@@ -538,33 +614,45 @@ namespace NaniteConstructionSystem.Entities
             }
         }
 
+        private void CheckIfAGridBlockIsInventory()
+        {
+            MyAPIGateway.Parallel.Start(() =>
+            {
+                IMySlimBlock block = null;
+                m_potentialInventoryBlocks.TryTake(out block);
+                if (block != null)
+                    TryAddToInventoryGroup(block);
+            });
+        }
+
         private void OnBlockAdded(IMySlimBlock block)
         {
             Logging.Instance.WriteLine("Block added to grid. Attempting to add to inventory.");
             MyAPIGateway.Parallel.Start(() =>
-                {TryAddToInventoryGroup(block);});
+                { TryAddToInventoryGroup(block); });
         }
 
         private void TryAddToInventoryGroup(object block)
         {
             IMyInventory inv = null;
+            List<NaniteConstructionBlock> factoryGroup = new List<NaniteConstructionBlock>();
             lock (FactoryGroup)
-            {
-                foreach (var factory in FactoryGroup)
-                    if (GridHelper.IsValidInventoryConnection(m_constructionBlockInventory, block, out inv))
-                        if (!InventoryManager.connectedInventory.Contains(inv))
+                factoryGroup = new List<NaniteConstructionBlock>(FactoryGroup);
+            
+            foreach (var factory in factoryGroup)
+                if (GridHelper.IsValidInventoryConnection(factory.ConstructionBlockInventory, block, out inv))
+                    if (!InventoryManager.connectedInventory.Contains(inv))
+                    {
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                         {
-                            MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                            {
-                                if (!InventoryManager.connectedInventory.Contains(inv))
-                                    InventoryManager.connectedInventory.Add(inv);
-                            });
-                            break;
-                        }  
-            }
+                            if (!InventoryManager.connectedInventory.Contains(inv))
+                                InventoryManager.connectedInventory.Add(inv);
+                        });
+                        break;
+                    }  
         }
 
-        // Checks if the grid group has changed and quickly scans/adds any inventory blocks. Removes event handlers
+        /// <summary> Checks if the grid group has changed and quickly scans/adds any inventory blocks. Manages grid event handlers </summary>
         private void CheckGridGroup()
         {
             MyAPIGateway.Parallel.Start(() =>
@@ -597,7 +685,7 @@ namespace NaniteConstructionSystem.Entities
                     
                     foreach (IMyCubeGrid removalgrid in removalList)
                         MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                            {GridGroup.Remove(removalgrid);});
+                            { GridGroup.Remove(removalgrid); });
 
                     foreach (IMyCubeGrid grid in newGroup)
                     {
@@ -619,7 +707,7 @@ namespace NaniteConstructionSystem.Entities
             });
         }
 
-        //Scans and adds inventory blocks to a grid in the gridgroup. Adds an event handlers
+        /// <summary> Scans and adds inventory blocks to a grid in the gridgroup. Adds event handlers </summary>
         public void BuildConnectedInventory(IMyCubeGrid grid)
         {
             MyAPIGateway.Parallel.Start(() =>
@@ -628,11 +716,23 @@ namespace NaniteConstructionSystem.Entities
                 {                   
                     ConcurrentBag<IMySlimBlock> slimBlocks = new ConcurrentBag<IMySlimBlock>(((MyCubeGrid)grid).GetBlocks());
                     MyAPIGateway.Parallel.ForEach(slimBlocks, SlimBlock => 
-                        {TryAddToInventoryGroup(SlimBlock);});
+                        { TryAddToInventoryGroup(SlimBlock); });
                 }
                 catch (Exception ex)
                     {VRage.Utils.MyLog.Default.WriteLineAndConsole($"BuildConnectedInventory() Error: {ex.ToString()}");}
             });
+        }
+        #endregion
+
+        #region Target processing methods
+
+        /// <summary> Used during target processing to help determine if more targets should be processed </summary>
+        public bool IsUserDefinedLimitReached()
+        {
+            if (m_userDefinedNaniteLimit != 0 && Targets.Sum(x => x.TargetList.Count) >= m_userDefinedNaniteLimit)
+                return true;
+
+            return false;
         }
 
         private void ProcessAssemblerQueue()
@@ -685,7 +785,7 @@ namespace NaniteConstructionSystem.Entities
                                     if (!m_defCache.ContainsKey(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key)))
                                     {
                                         MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                                            {m_defCache.Add(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key), defTest);});
+                                            { m_defCache.Add(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key), defTest); });
 
                                         break;
                                     }
@@ -706,7 +806,7 @@ namespace NaniteConstructionSystem.Entities
                           amount, def.Id, m_constructionBlock.CustomName, blueprintCount, item.Value));
 
                         MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                            {target.InsertQueueItem(0, def, amount);});
+                            { target.InsertQueueItem(0, def, amount); });
                     }
                 });
             },
@@ -797,32 +897,49 @@ namespace NaniteConstructionSystem.Entities
                 {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.ProcessTargetItems() Exception: {ex.ToString()}");}
         }
 
-        private void DrawEffects()
-        { // Draws effects (lightning and center spinning orb)
-            if (!Sync.IsClient)
-                return;
+        /// <summary> Used many times during target processing to determine various factory upgrade attributes </summary>
+        public float UpgradeValue(string upgrade)
+        {
+            string type = "";
 
-            foreach (var item in m_effects)
-                switch (m_factoryState)
-                {
-                    case FactoryStates.Active:
-                        item.ActiveUpdate();
-                        break;
-                    case FactoryStates.SpoolingUp:
-                        item.ActivatingUpdate(m_spoolPosition, m_spoolingTime);
-                        break;
-                    case FactoryStates.SpoolingDown:
-                        item.DeactivatingUpdate(m_spoolPosition, m_spoolingTime);
-                        break;
-                    default:
-                        item.InactiveUpdate();
-                        break;
-                }
-        }
+            if (upgrade == "MinTravelTime")
+                type = "SpeedNanites";
+            else if (upgrade == "ProjectionNanites")
+                type = "ConstructionNanites";
+            else
+                type = upgrade;
 
-        /// <summary>
-        /// Walking the grid looking for target blocks and also checks beacons. All done in a thread
-        /// </summary>
+            float v = (float)m_constructionCubeBlock.UpgradeValues[type];
+            foreach (var slave in Slaves)
+                v += (float)slave.ConstructionCubeBlock.UpgradeValues[type];
+            var s = NaniteConstructionManager.Settings;
+
+            switch (upgrade)
+            {
+                case "SpeedNanites":
+                    return (v * (float)s.SpeedIncreasePerUpgrade);
+                case "PowerNanites":
+                    return (v * (float)s.PowerDecreasePerUpgrade);
+                case "MedicalNanites":
+                    return (v * (float)s.MedicalNanitesPerUpgrade);
+                case "MiningNanites":
+                    return (v * (float)s.MiningNanitesPerUpgrade);
+                case "CleanupNanites":
+                    return (v * (float)s.CleanupNanitesPerUpgrade);
+                case "DeconstructionNanites":
+                    return (v * (float)s.DeconstructionNanitesPerUpgrade);
+                case "ProjectionNanites":
+                    return (v * (float)s.ProjectionNanitesPerUpgrade);
+                case "ConstructionNanites":
+                    return (v * (float)s.ConstructionNanitesPerUpgrade);
+                case "MinTravelTime":
+                    return (v * (float)s.MinTravelTimeReductionPerUpgrade);
+                default:
+                    return 1f;
+            }       
+        } 
+
+        /// <summary> Checks in-range beacons and connected grids for all factories in master-slave group. Runs in parallel </summary>
         private void ProcessTargetsParallel()
         {
             try
@@ -832,29 +949,26 @@ namespace NaniteConstructionSystem.Entities
                     FactoryGroup = new List<NaniteConstructionBlock>(Slaves);
                     FactoryGroup.Add(this);
                 }
+                SendFactoryGroup();
 
                 if (m_scanBlocksCache.Count < 1)
                 {
                     m_totalScanBlocksCount = 0;
-                    m_potentialTargetsCount = 0;
+
+                    foreach (var factory in FactoryGroup)
+                        PotentialTargetsCount = 0;
 
                     List<IMySlimBlock> newGridBlocks = new List<IMySlimBlock>();
 
                     MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         {InventoryManager.ComponentsRequired.Clear();});
 
-                    int DisabledCounter = 0;
 
                     foreach (var target in m_targets)
                     {
                         target.PotentialTargetListCount = 0;
                         if (target is NaniteConstructionTargets || target is NaniteProjectionTargets)
                         {
-                            if (!target.IsEnabled(this))
-                            {
-                                DisabledCounter++;
-                                continue;
-                            }
                             target.CheckBeacons();
                             target.CheckAreaBeacons();
                         }
@@ -866,13 +980,13 @@ namespace NaniteConstructionSystem.Entities
                         grid.GetBlocks(newGridBlocks);
 
                     if (m_potentialInventoryBlocks.Count < 1)
-                        m_potentialInventoryBlocks = new ConcurrentBag<IMySlimBlock>(newGridBlocks.Where((x) => x.FatBlock != null && x.FatBlock is IMyTerminalBlock));
+                        m_potentialInventoryBlocks = new ConcurrentBag<IMySlimBlock>(newGridBlocks.Where(x => x.FatBlock != null && x.FatBlock is IMyTerminalBlock));
 
-                    if (DisabledCounter < 2)
-                        foreach (IMySlimBlock block in newGridBlocks)
-                            m_scanBlocksCache.Add(new BlockTarget(block)); 
+                    foreach (IMySlimBlock block in newGridBlocks)
+                        m_scanBlocksCache.Add(new BlockTarget(block)); 
 
-                    m_totalScanBlocksCount = m_scanBlocksCache.Count;
+                    foreach (var factory in FactoryGroup)
+                        TotalScanBlocksCount = m_scanBlocksCache.Count;
                 }
 
                 int counter = 0;
@@ -923,6 +1037,10 @@ namespace NaniteConstructionSystem.Entities
                 {
                     m_potentialTargetsCount += item.PotentialTargetList.Count;
                     item.PotentialTargetListCount += item.PotentialTargetList.Count;
+
+                    foreach (var slave in Slaves)
+                        PotentialTargetsCount = m_potentialTargetsCount;
+                        
                     item.FindTargets(ref availableComponents, factoryBlockList);
                 }
 
@@ -942,109 +1060,9 @@ namespace NaniteConstructionSystem.Entities
             catch (Exception ex) 
                 {VRage.Utils.MyLog.Default.WriteLineAndConsole($"Nanite Construction Factory: Exception at NaniteConstructionBlock.ProcessTargets:\n{ex.ToString()}");}
         }
+        #endregion
 
-        private void AppendingCustomInfo(IMyTerminalBlock block, StringBuilder details)
-        { // Update custom info of the block
-            if (m_factoryState == FactoryStates.Disabled || m_updateCount % 180 != 0)
-                return;
-            
-            details.Clear();
-
-            if (Sync.IsServer)
-            {    
-                MyAPIGateway.Parallel.Start(() =>
-                {
-                    StringBuilder targetDetailsParallel = new StringBuilder();
-                    StringBuilder invalidTargetDetailsParallel = new StringBuilder();
-                    StringBuilder missingComponentsDetailsParallel = new StringBuilder();
-                    bool invalidTitleAppended = false;
-                    bool missingCompTitleAppended = false;
-                        
-                    foreach (var item in m_targets.ToList())
-                    {
-                        targetDetailsParallel.Append("-----\r\n"
-                          + $"{item.TargetName} Nanites\r\n"
-                          + "-----\r\n"
-                          + $"Possible Targets: {item.PotentialTargetListCount}\r\n"
-                          + $"Current Targets: {item.TargetList.Count}\r\n"
-                          + $"Max Streams: {item.GetMaximumTargets()}\r\n"
-                          + $"MW/Stream: {item.GetPowerUsage()} MW\r\n"
-                          + $"Min. Travel Time: {item.GetMinTravelTime()} s\r\n"
-                          + $"Travel Speed: {item.GetSpeed()} m/s\r\n");
-
-                        if (item.LastInvalidTargetReason != null && item.LastInvalidTargetReason != "")
-                        {
-                            if (!invalidTitleAppended)
-                            {
-                                invalidTargetDetailsParallel.Append("\nTarget information:\r\n");
-                                invalidTitleAppended = true;
-                            }
-                            invalidTargetDetailsParallel.Append($"\n- ({item.TargetName}) " + item.LastInvalidTargetReason);
-                        }
-                    }
-
-                    if (InventoryManager.ComponentsRequired.Count > 0) 
-                        foreach (var component in InventoryManager.ComponentsRequired.ToList())
-                            if (component.Value > 0)
-                            {
-                                if (!missingCompTitleAppended)
-                                {
-                                    missingComponentsDetailsParallel.Append("\r\nMissing components:\r\n");
-                                    missingCompTitleAppended = true;
-                                }
-                                missingComponentsDetailsParallel.Append($"{component.Key}: {component.Value}\r\n");
-                            }
-
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                    {
-                        m_targetDetails = targetDetailsParallel;
-                        m_invalidTargetDetails = invalidTargetDetailsParallel;
-                        m_missingComponentsDetails = missingComponentsDetailsParallel;
-                    });
-                });
-
-                details.Append($"-- Nanite Factory v2.0 --\n");
-                if (m_totalScanBlocksCount > 0)
-                {
-                    if (m_scanBlocksCache.Count == 0)
-                    {
-                        string percent = (((m_totalScanBlocksCount - m_scanBlocksCache.Count)/m_totalScanBlocksCount) * 100).ToString("0.00");
-                        details.Append("Scanning Complete.\nWaiting for next scan ...\n");
-                        details.Append($"{m_totalScanBlocksCount - m_scanBlocksCache.Count}/{m_totalScanBlocksCount} blocks\n");
-                    }
-                    else
-                    {
-                        string percent = (((m_totalScanBlocksCount - m_scanBlocksCache.Count)/m_totalScanBlocksCount) * 100).ToString("0.00");
-                        details.Append($"Scanning targets ... {percent}%\n");
-                        details.Append($"{m_totalScanBlocksCount - m_scanBlocksCache.Count}/{m_totalScanBlocksCount} blocks\n");
-                    }
-                }
-                else
-                    details.Append($"Online and waiting to scan ...");
-
-                details.Append(m_targetDetails
-                  + "-----\r\n"
-                  + $"Current Power Required: {_power} MW\r\n"
-                  + $"Status: {m_factoryState.ToString()}\r\n"
-                  + $"Active Nanites: {m_particleManager.Particles.Count}\r\n");
-
-                if (m_userDefinedNaniteLimit > 0)
-                    details.Append($"Maximum Nanites: {m_userDefinedNaniteLimit}\r\n");
-
-                details.Append(m_invalidTargetDetails);
-                details.Append(m_missingComponentsDetails);
-
-                if (m_syncDetails.Length != details.Length)
-                {
-                    m_syncDetails.Clear();
-                    m_syncDetails.Append(details);
-                    SendDetails();
-                }      
-            }
-            else
-                details.Append(m_syncDetails);
-        }
-
+        #region Emissives, effects and Factory State methods
         private void UpdateSpoolPosition()
         {
             if (m_factoryState == FactoryStates.SpoolingUp && (m_spoolPosition += (int)(1000f / 60f)) >= m_spoolingTime)
@@ -1058,6 +1076,29 @@ namespace NaniteConstructionSystem.Entities
                 m_spoolPosition = 0;
                 m_forceProcessState = true;
             }
+        }
+
+        private void DrawEffects()
+        { // Draws effects (lightning and center spinning orb)
+            if (!Sync.IsClient)
+                return;
+
+            foreach (var item in m_effects)
+                switch (m_factoryState)
+                {
+                    case FactoryStates.Active:
+                        item.ActiveUpdate();
+                        break;
+                    case FactoryStates.SpoolingUp:
+                        item.ActivatingUpdate(m_spoolPosition, m_spoolingTime);
+                        break;
+                    case FactoryStates.SpoolingDown:
+                        item.DeactivatingUpdate(m_spoolPosition, m_spoolingTime);
+                        break;
+                    default:
+                        item.InactiveUpdate();
+                        break;
+                }
         }
 
         private void UpdateClientEmissives()
@@ -1139,12 +1180,10 @@ namespace NaniteConstructionSystem.Entities
 
                 if (!blockEntity.Enabled || !blockEntity.IsFunctional)
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                        {m_factoryState = FactoryStates.Disabled;});
+                        { m_factoryState = FactoryStates.Disabled; });
 
-                if (Master != null && Master.FactoryState != FactoryStates.Disabled)
-                    m_factoryState = Master.FactoryState;
-
-                else if ((m_targetsCount > 0) && IsPowered() || m_particleManager.Particles.Count > 0)
+                if ( (Master != null && (Master.FactoryState == FactoryStates.Active || Master.FactoryState == FactoryStates.SpoolingUp))
+                  ||  ( (m_targetsCount > 0 && IsPowered()) || m_particleManager.Particles.Count > 0 ) )
                 {
                     if (m_spoolPosition == m_spoolingTime)
                         MyAPIGateway.Utilities.InvokeOnGameThread(() => 
@@ -1158,19 +1197,23 @@ namespace NaniteConstructionSystem.Entities
                         MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                             {m_factoryState = FactoryStates.SpoolingUp;});
                 }
+                else if (Master != null && Master.FactoryState != FactoryStates.Disabled)
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                        { m_factoryState = Master.FactoryState; });
+
                 else if (m_targetsCount == 0 && m_potentialTargetsCount > 0 && !IsPowered())
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                        {m_factoryState = FactoryStates.MissingPower;});
+                        { m_factoryState = FactoryStates.MissingPower; });
 
                 else if (m_targetsCount == 0 && m_potentialTargetsCount > 0)
                 {
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                        {m_factoryState = FactoryStates.InvalidTargets;});
+                        { m_factoryState = FactoryStates.InvalidTargets; });
 
                     foreach(var item in InventoryManager.ComponentsRequired.ToList())
                         if (item.Value <= 0)
                             MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                                {InventoryManager.ComponentsRequired.Remove(item.Key);});
+                                { InventoryManager.ComponentsRequired.Remove(item.Key); });
 
                     MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                     {
@@ -1193,11 +1236,11 @@ namespace NaniteConstructionSystem.Entities
 
                     else
                         MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                            {m_factoryState = FactoryStates.SpoolingDown;});
+                            { m_factoryState = FactoryStates.SpoolingDown; });
                 }
                 else
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                        {m_factoryState = FactoryStates.Disabled;});
+                        { m_factoryState = FactoryStates.Disabled; });
 
                 MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                 {
@@ -1212,8 +1255,9 @@ namespace NaniteConstructionSystem.Entities
                 });
             });
         }
+        #endregion
 
-        #region Multiplayer Sync Functions
+        #region Multiplayer Sync methods
 
         private void SendStateUpdate(FactoryStates state)
         {
@@ -1598,10 +1642,37 @@ namespace NaniteConstructionSystem.Entities
             SendToPlayerInSyncRange(8954, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
+        private void SendFactoryGroup()
+        {
+            FactoryGroupData data = new FactoryGroupData();
+            data.EntityId = ConstructionBlock.EntityId;
+            data.FactoryGroup = new List<long>();
+
+            foreach (var factory in FactoryGroup)
+                data.FactoryGroup.Add(factory.EntityId);
+            
+            SendToPlayerInSyncRange(8974, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
+        }
+
         public void SyncDetails(DetailData data)
         {
-            m_syncDetails.Clear();
-            m_syncDetails.Append(data.Details);
+            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+            {
+                m_syncDetails.Clear();
+                m_syncDetails.Append(data.Details);
+            });
+        }
+
+        public void SyncFactoryGroup(FactoryGroupData data)
+        {
+            List<NaniteConstructionBlock> factoryGroup = new List<NaniteConstructionBlock>();
+            foreach (long factoryID in data.FactoryGroup)
+                try
+                    {factoryGroup.Add(NaniteConstructionManager.NaniteBlocks[factoryID]);}
+                catch {}
+                
+            lock (FactoryGroup)
+                FactoryGroup = new List<NaniteConstructionBlock>(factoryGroup);
         }
 
         public void SendStartParticleEffect(long entityId, Vector3I position, int effectId)

@@ -1172,14 +1172,13 @@ namespace NaniteConstructionSystem
 
                     message += $"- Name: {name}\n";
                     message += $"- Init: {item.Value.Initialized}\n";
-                    message += $"- UserDefinedNaniteLimit: {item.Value.UserDefinedNaniteLimit}\n";
                     message += $"- IsUserDefinedLimitReached: {item.Value.IsUserDefinedLimitReached()}\n";
 
                     message += $"- Targets:\n";
                     foreach (var target in item.Value.Targets)
                     {
                         message += $"-- {target.TargetName}:\n";
-                        //message += $"--- Enabled: {target.IsEnabled()}\n";
+                        message += $"--- Enabled: {target.IsEnabled(item.Value)}\n";
                         message += $"--- ComponentsRequired: {target.ComponentsRequired.Count}\n";
                         message += $"--- MaxTargets: {target.GetMaximumTargets()}\n";
                         message += $"--- MinTravelTime: {target.GetMinTravelTime()}\n";
