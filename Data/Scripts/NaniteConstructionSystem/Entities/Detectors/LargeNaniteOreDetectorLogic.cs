@@ -1,8 +1,10 @@
 using NaniteConstructionSystem.Extensions;
 using Sandbox.Common.ObjectBuilders;
+using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.ObjectBuilders;
@@ -30,7 +32,6 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
             base.Init(objectBuilder);
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
-            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_10TH_FRAME;
 
             (Entity as IMyOreDetector).AppendingCustomInfo += m_detector.AppendingCustomInfo;
         }
@@ -40,27 +41,45 @@ namespace NaniteConstructionSystem.Entities.Detectors
             base.UpdateOnceBeforeFrame();
             m_detector.Init();
 
-            if (Sync.IsServer)
-                NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
+            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
 
             if (Sync.IsClient)
                 NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_FRAME;
         }
 
         public override void UpdateBeforeSimulation()
-        {
+        { // CLIENT ONLY
             base.UpdateBeforeSimulation();
 
             m_detector.DrawStatus();
             m_detector.DrawScanningSphere();
         }
-
-        public override void UpdateBeforeSimulation10()
+        
+        public override void UpdateBeforeSimulation100()
         {
-            base.UpdateBeforeSimulation10();
+            base.UpdateBeforeSimulation100();
 
             if (Sync.IsServer)
+            {
+                m_detector.CheckScan();
+
+                bool forceRescan = false;
+                if (OldRange != m_detector.Range)
+                {
+                    forceRescan = true;
+                    OldRange = m_detector.Range;
+                }
+                if (OldOreListSelected != m_detector.OreListSelected)
+                {
+                    forceRescan = true;
+                    OldOreListSelected = m_detector.OreListSelected;
+                }
+                if (forceRescan)
+                    m_detector.DepositGroup.Clear();
+
                 m_detector.UpdateStatus();
+            }
+                
 
             if (Sync.IsClient && MyAPIGateway.Gui?.GetCurrentScreen == MyTerminalPageEnum.ControlPanel)
             {
@@ -69,31 +88,22 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
                 if ((Entity as IMyOreDetector).CustomInfo != oldCustomInfo)
                 {
-                    // Toggle to trigger UI update
-                    (Entity as IMyOreDetector).ShowInToolbarConfig = !(Entity as IMyOreDetector).ShowInToolbarConfig;
-                    (Entity as IMyOreDetector).ShowInToolbarConfig = !(Entity as IMyOreDetector).ShowInToolbarConfig;
+                    MyCubeBlock cubeBlock = (MyCubeBlock)(IMyCubeBlock)m_detector.Block;
+                    MyOwnershipShareModeEnum shareMode;
+                    long ownerId;
+
+                    if (cubeBlock.IDModule != null)
+                    {
+                        ownerId = cubeBlock.IDModule.Owner;
+                        shareMode = cubeBlock.IDModule.ShareMode;
+                    }
+                    else
+                        return;
+
+                    cubeBlock.ChangeOwner(ownerId, shareMode == MyOwnershipShareModeEnum.None ? MyOwnershipShareModeEnum.Faction : MyOwnershipShareModeEnum.None);
+                    cubeBlock.ChangeOwner(ownerId, shareMode);
                 }
-            }
-        }
-
-        public override void UpdateBeforeSimulation100()
-        {
-            base.UpdateBeforeSimulation100();
-            m_detector.CheckScan();
-
-            bool forceRescan = false;
-            if (OldRange != m_detector.Range)
-            {
-                forceRescan = true;
-                OldRange = m_detector.Range;
-            }
-            if (OldOreListSelected != m_detector.OreListSelected)
-            {
-                forceRescan = true;
-                OldOreListSelected = m_detector.OreListSelected;
-            }
-            if (forceRescan)
-                m_detector.DepositGroup.Clear();
+            }           
         }
 
         public override bool IsSerialized()

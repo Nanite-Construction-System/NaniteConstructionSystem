@@ -196,24 +196,6 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             if (Sync.IsServer)
             {
-                /* // NEW 12-1-2018 To save on performance, once nanites are powered and their host factory IsEnabled(), there's no turning back unless there's missing components
-                if (!IsEnabled())
-                {
-                    Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to being disabled");
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                        {CancelTarget(target);});
-                    return;
-                }
-
-                if (!m_constructionBlock.IsPowered())
-                {
-                    Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to power shortage");
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                        {CancelTarget(target);});
-                    return;
-                }
-                */
-
                 if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
                     return;
 
@@ -256,7 +238,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 {
                     Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to target being destroyed");
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                        {CancelTarget(target);});
+                        { CancelTarget(target); });
                     return;
                 }
 
@@ -266,8 +248,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     {
                         target.MoveItemsToConstructionStockpile(((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory());
 
-                        if (!target.HasDeformation && !target.CanContinueBuild(((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory()) 
-                          && !MyAPIGateway.Session.CreativeMode)
+                        if (!target.HasDeformation && !target.CanContinueBuild( ((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory() ) )
                         {
                             Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to missing components");
 
@@ -283,7 +264,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 {
                     Logging.Instance.WriteLine("CANCELLING Repair Target due to target being out of range");
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                        {CancelTarget(target);});
+                        { CancelTarget(target); });
                     return;
                 }
                 

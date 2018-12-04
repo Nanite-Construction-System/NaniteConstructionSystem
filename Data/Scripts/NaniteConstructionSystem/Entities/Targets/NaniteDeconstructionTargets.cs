@@ -233,49 +233,47 @@ namespace NaniteConstructionSystem.Entities.Targets
             int TargetListCount = TargetList.Count;
             string LastInvalidTargetReason = "";
 
-            lock (PotentialTargetList)
+            foreach(IMySlimBlock item in PotentialTargetList.ToList())
             {
-                foreach(IMySlimBlock item in PotentialTargetList.ToList())
+                if (item == null || TargetList.Contains(item)) 
+                    continue;
+
+                if (!m_constructionBlock.HasRequiredPowerForNewTarget(this))
                 {
-                    if (item == null || TargetList.Contains(item)) 
-                        continue;
-
-                    if (!m_constructionBlock.HasRequiredPowerForNewTarget(this))
-                    {
-                        LastInvalidTargetReason = "Insufficient power for another target.";
-                        break;
-                    }
-
-                    if (item.CubeGrid.Closed || item.IsDestroyed || item.IsFullyDismounted || (item.FatBlock != null && item.FatBlock.Closed))
-                    {
-                        LastInvalidTargetReason = "Potential target is destroyed";
-                        continue;
-                    }
-
-                    bool found = false;
-                    foreach (var block in blockList.ToList())
-                    {
-                        if (block != null && block.Targets.First(x => x is NaniteDeconstructionTargets).TargetList.Contains(item as IMySlimBlock))
-                        {
-                            found = true;
-                            LastInvalidTargetReason = "Another factory has this block as a target";
-                            break;
-                        }
-                    }
-
-                    if (found)
-                        continue;
-                    
-                    AddTarget(item);
-
-                    var def = item.BlockDefinition as MyCubeBlockDefinition;
-                    Logging.Instance.WriteLine(string.Format("ADDING Deconstruction Target: conid={0} subtypeid={1} entityID={2} position={3}", 
-                      m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, item.FatBlock != null ? item.FatBlock.EntityId : 0, item.Position));
-
-                    if (++TargetListCount >= maxTargets) 
-                        break;
+                    LastInvalidTargetReason = "Insufficient power for another target.";
+                    break;
                 }
+
+                if (item.CubeGrid.Closed || item.IsDestroyed || item.IsFullyDismounted || (item.FatBlock != null && item.FatBlock.Closed))
+                {
+                    LastInvalidTargetReason = "Potential target is destroyed";
+                    continue;
+                }
+
+                bool found = false;
+                foreach (var block in blockList.ToList())
+                {
+                    if (block != null && block.Targets.First(x => x is NaniteDeconstructionTargets).TargetList.Contains(item as IMySlimBlock))
+                    {
+                        found = true;
+                        LastInvalidTargetReason = "Another factory has this block as a target";
+                        break;
+                    }
+                }
+
+                if (found)
+                    continue;
+                    
+                AddTarget(item);
+
+                var def = item.BlockDefinition as MyCubeBlockDefinition;
+                Logging.Instance.WriteLine(string.Format("ADDING Deconstruction Target: conid={0} subtypeid={1} entityID={2} position={3}", 
+                    m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, item.FatBlock != null ? item.FatBlock.EntityId : 0, item.Position));
+
+                if (++TargetListCount >= maxTargets) 
+                    break;
             }
+
             if (LastInvalidTargetReason != "")
                 InvalidTargetReason(LastInvalidTargetReason);
         }
@@ -314,24 +312,8 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void ProcessItem(IMySlimBlock target)
         {
-            if(Sync.IsServer)
+            if (Sync.IsServer)
             {
-                /*
-                if(!IsEnabled())
-                {
-                    Logging.Instance.WriteLine("CANCELLING Deconstruction Target due to being disabled");
-                    CancelTarget(target);
-                    return;
-                }
-
-                if(!m_constructionBlock.IsPowered())
-                {
-                    Logging.Instance.WriteLine("CANCELLING Deconstruction Target due to power shortage");
-                    CancelTarget(target);
-                    return;
-                }
-                */
-
                 if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
                     return;
 
@@ -446,7 +428,9 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public void CompleteTarget(IMySlimBlock obj)
         {
-            Logging.Instance.WriteLine(string.Format("COMPLETING Deconstruction Target: {0} - {1} (EntityID={2},Position={3})", m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position));
+            Logging.Instance.WriteLine(string.Format("COMPLETING Deconstruction Target: {0} - {1} (EntityID={2},Position={3})",
+              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position));
+
             if (Sync.IsServer)
                 m_constructionBlock.SendCompleteTarget(obj, TargetTypes.Deconstruction);
 
@@ -457,7 +441,9 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public void CancelTarget(IMySlimBlock obj)
         {
-            Logging.Instance.WriteLine(string.Format("CANCELLING Deconstruction Target: {0} - {1} (EntityID={2},Position={3})", m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position));
+            Logging.Instance.WriteLine(string.Format("CANCELLING Deconstruction Target: {0} - {1} (EntityID={2},Position={3})",
+              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position));
+
             if (Sync.IsServer)
                 m_constructionBlock.SendCancelTarget(obj, TargetTypes.Deconstruction);
 
@@ -589,7 +575,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (block == null)
                 return;
 
-            if(beacon != null && mainGrid == beacon.CubeGrid)
+            if (beacon != null && mainGrid == beacon.CubeGrid)
                 block = (IMySlimBlock)beacon.SlimBlock;
 
             CreateRemovalOrder(deconstruct, block);
@@ -765,7 +751,8 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void OnGridSplit(MyCubeGrid original, MyCubeGrid newGrid)
         {
-            Logging.Instance.WriteLine(string.Format("WARNING Split detected: {0} - {1} ({2})", original.EntityId, newGrid.EntityId, newGrid.GetBlocks().Count));
+            Logging.Instance.WriteLine(string.Format("WARNING Split detected: {0} - {1} ({2})",
+              original.EntityId, newGrid.EntityId, newGrid.GetBlocks().Count));
 
             ((IMyCubeGrid)original).Physics.LinearVelocity = Vector3.Zero;
             ((IMyCubeGrid)original).Physics.AngularVelocity = Vector3.Zero;

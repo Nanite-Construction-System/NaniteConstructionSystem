@@ -128,6 +128,8 @@ namespace NaniteConstructionSystem.Entities.Detectors
         internal float m_scanProgress;
         private DetectorStates m_lastDetectorState;
         internal DetectorStates m_detectorState;
+        internal bool m_tooCloseToOtherDetector;
+        bool m_tooCloseOld;
         public DetectorStates DetectorState
         {
             get { return m_detectorState; }
@@ -211,6 +213,12 @@ namespace NaniteConstructionSystem.Entities.Detectors
         {
             sb.Append("Type: Nanite Ore Detector\n");
             sb.Append($"Current Input: {Power} MW\n");
+            if (m_tooCloseToOtherDetector)
+            {
+                sb.Append("WARNING: Unit was too close to another active Nanite Ore Detector and was disabled.");
+                return;
+            }
+                
             sb.Append($"Frequency:\n");
             foreach (var freq in GetScanningFrequencies())
                 sb.Append($" - [{freq}]\n");
@@ -224,22 +232,21 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
         public void UpdateStatus()
         {
-            if (!m_block.Enabled || !m_block.IsFunctional || !Sink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId))
-            {
+            if (!m_block.Enabled || !m_block.IsFunctional || !Sink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId) || m_tooCloseToOtherDetector)
                 m_detectorState = DetectorStates.Disabled;
-            }
-            else if (m_depositGroupsByEntity.Count == 0)
-            {
-                m_detectorState = DetectorStates.Enabled;
-            }
 
-            if (m_detectorState != m_lastDetectorState)
+            else if (m_depositGroupsByEntity.Count == 0)
+                m_detectorState = DetectorStates.Enabled;
+
+            if (m_detectorState != m_lastDetectorState || m_tooCloseToOtherDetector != m_tooCloseOld)
             {
+                m_tooCloseOld = m_tooCloseToOtherDetector;
                 m_lastDetectorState = m_detectorState;
                 MessageHub.SendToPlayerInSyncRange(new MessageOreDetectorStateChange()
                 {
                     EntityId = m_block.EntityId,
                     State = m_lastDetectorState,
+                    TooClose = m_tooCloseToOtherDetector
                 }, m_block.GetPosition());
             }
         }
@@ -316,7 +323,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
             Sink.Update();
 
-            Logging.Instance.WriteLine($"Updated power {_power}");
+            Logging.Instance.WriteLine($"Updated Nanite Ore Detector power {_power}");
         }
 
         public List<string> GetScanningFrequencies()
@@ -359,6 +366,25 @@ namespace NaniteConstructionSystem.Entities.Detectors
             Settings.Load();
         }
 
+        private void CheckIsTooCloseToOtherDetector()
+        {
+            MyAPIGateway.Parallel.Start(() =>
+            {
+                bool result = false;
+                foreach (var detector in NaniteConstructionManager.OreDetectors)
+                    if (detector.Key != m_block.EntityId && detector.Value.Block != null
+                      && Vector3D.Distance(m_block.GetPosition(), detector.Value.Block.GetPosition()) < 300
+                      && detector.Value.DetectorState != DetectorStates.Disabled && detector.Value.Block.IsFunctional)
+                    {
+                        result = true;
+                        break;                            
+                    }
+
+                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                    { m_tooCloseToOtherDetector = result; });     
+            });
+        }
+
         #region Voxel/Ore detection
         public void CheckScan()
         {
@@ -366,6 +392,16 @@ namespace NaniteConstructionSystem.Entities.Detectors
             {
                 m_depositGroupsByEntity.Clear();
                 m_inRangeCache.Clear();
+                return;
+            }
+
+            CheckIsTooCloseToOtherDetector();
+
+            if (m_tooCloseToOtherDetector)
+            {
+                m_depositGroupsByEntity.Clear();
+                m_inRangeCache.Clear();
+                m_block.Enabled = false;
                 return;
             }
 
@@ -381,17 +417,16 @@ namespace NaniteConstructionSystem.Entities.Detectors
             int totalProcessedTasks = m_depositGroupsByEntity.Sum((x) => x.Value.ProcessedTasks);
             float scanProgress = 0f;
             if (totalInitialTasks != 0)
-            {
                 scanProgress = (float)totalProcessedTasks / (float)totalInitialTasks;
-            }
+
             if (scanProgress != m_scanProgress)
             {
                 m_scanProgress = scanProgress;
-                MessageHub.SendMessageToAllPlayers(new MessageOreDetectorScanProgress()
+                MessageHub.SendToPlayerInSyncRange(new MessageOreDetectorScanProgress()
                 {
                     EntityId = m_block.EntityId,
                     Progress = m_scanProgress
-                });
+                }, m_block.GetPosition());
             }
 
             StringBuilder oreListCache = new StringBuilder();
@@ -402,42 +437,38 @@ namespace NaniteConstructionSystem.Entities.Detectors
             if (oreListCache != m_oreListCache)
             {
                 m_oreListCache = oreListCache;
-                MessageHub.SendMessageToAllPlayers(new MessageOreDetectorScanComplete()
+                MessageHub.SendToPlayerInSyncRange(new MessageOreDetectorScanComplete()
                 {
                     EntityId = m_block.EntityId,
                     OreListCache = m_oreListCache.ToString()
-                });
+                }, m_block.GetPosition());
             }
         }
 
         private void UpdateDeposits(ref BoundingSphereD sphere)
         {
             foreach (OreDeposit value in m_depositGroupsByEntity.Values)
-            {
                 value.UpdateDeposits(ref sphere, m_block.EntityId, this);
-            }
 
             var initialTasks = m_depositGroupsByEntity.Sum((x) => x.Value.InitialTasks);
             if (initialTasks != 0)
             {
                 var processedTasks = m_depositGroupsByEntity.Sum((x) => x.Value.ProcessedTasks);
+
                 if (processedTasks == initialTasks)
-                {
                     m_detectorState = DetectorStates.ScanComplete;
-                }
+
                 else
-                {
                     m_detectorState = DetectorStates.Scanning;
-                }
 
                 if (m_detectorState != m_lastDetectorState)
                 {
                     m_lastDetectorState = m_detectorState;
-                    MessageHub.SendMessageToAllPlayers(new MessageOreDetectorStateChange()
+                    MessageHub.SendToPlayerInSyncRange(new MessageOreDetectorStateChange()
                     {
                         EntityId = m_block.EntityId,
                         State = m_lastDetectorState,
-                    });
+                    }, m_block.GetPosition());
                 }
             }
         }
@@ -445,33 +476,20 @@ namespace NaniteConstructionSystem.Entities.Detectors
         private void AddVoxelMapsInRange()
         {
             foreach (MyVoxelBase item in m_inRangeCache)
-            {
-                //if (!m_depositGroupsByEntity.ContainsKey(item.GetTopMostParent() as MyVoxelBase))
-                //{
-                    m_depositGroupsByEntity.TryAdd(item, new OreDeposit(item));
-                //}
-            }
+                m_depositGroupsByEntity.TryAdd(item, new OreDeposit(item));
+
             m_inRangeCache.Clear();
         }
 
         private void RemoveVoxelMapsOutOfRange()
         {
             foreach (MyVoxelBase key in m_depositGroupsByEntity.Keys)
-            {
                 if (!m_inRangeCache.Contains(key.GetTopMostParent() as MyVoxelBase))
-                {
                     m_notInRangeCache.Add(key);
-                }
-            }
+
             foreach (MyVoxelBase item in m_notInRangeCache)
-            {
-                //OreDeposit value;
-                //if (m_depositGroupsByEntity.TryGetValue(item, out value))
-                //{
-                //    //value.RemoveMarks();
-                //}
                 m_depositGroupsByEntity.Remove(item);
-            }
+
             m_notInRangeCache.Clear();
         }
         #endregion

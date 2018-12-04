@@ -339,6 +339,9 @@ namespace NaniteConstructionSystem
         [ProtoMember(11)]
         public DetectorStates State;
 
+        [ProtoMember(12)]
+        public bool TooClose;
+
         public override void ProcessClient()
         {
             IMyEntity ent;
@@ -346,9 +349,11 @@ namespace NaniteConstructionSystem
                 return;
 
             var logic = ent.GameLogic.GetAs<Entities.Detectors.LargeNaniteOreDetectorLogic>();
-            if (logic == null) return;
+            if (logic == null)
+                return;
 
             logic.Detector.m_detectorState = State;
+            logic.Detector.m_tooCloseToOtherDetector = TooClose;
         }
 
         public override void ProcessServer()
