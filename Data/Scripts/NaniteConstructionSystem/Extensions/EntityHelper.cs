@@ -58,10 +58,13 @@ namespace NaniteConstructionSystem.Extensions
             {
                 MyInventory FactoryInv = (MyInventory)FactoryBlockInv;
                 MyEntity TargetInv = null;
+
                 if (TargetBlockInv is IMySlimBlock && ((IMySlimBlock)TargetBlockInv).FatBlock != null)
                     TargetInv = (MyEntity)((IMyEntity)(((IMySlimBlock)TargetBlockInv).FatBlock));
+
                 else if (TargetBlockInv is MyInventory || TargetBlockInv is IMyInventory)
                     TargetInv = ((MyInventory)TargetBlockInv).Owner;
+
                 MyCubeBlock FactoryInvBlock = (MyCubeBlock)FactoryInv.Owner;
                 if (TargetInv == null || FactoryInv == null || FactoryInvBlock == null || !TargetInv.HasInventory)
                     return false;
@@ -74,8 +77,8 @@ namespace NaniteConstructionSystem.Extensions
                 inv = (prodblock != null && prodblock.OutputInventory != null) ? prodblock.OutputInventory : ((IMyEntity)TargetInv).GetInventory();
 
                 if (inv == null || !InvBlock.IsFunctional || NaniteConstructionManager.NaniteBlocks.ContainsKey(TargetInv.EntityId) 
-                || TargetInv is Sandbox.ModAPI.Ingame.IMyReactor || !inv.IsConnectedTo((IMyInventory)FactoryInv)
-                || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(FactoryInvBlock.GetUserRelationToOwner(InvBlock.OwnerId))) 
+                  || TargetInv is Sandbox.ModAPI.Ingame.IMyReactor || !inv.IsConnectedTo((IMyInventory)FactoryInv)
+                  || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(FactoryInvBlock.GetUserRelationToOwner(InvBlock.OwnerId))) 
                     return false;
 
                 return true;

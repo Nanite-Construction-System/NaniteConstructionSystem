@@ -145,6 +145,7 @@ namespace NaniteConstructionSystem.Entities
         public int TotalScanBlocksCount {get { return m_totalScanBlocksCount;} set { m_totalScanBlocksCount = value;}}
 
         private bool m_scanningActive;
+        private bool m_initInventory = true;
         
         private const int m_spoolingTime = 3000;
         private const float m_maxDistance = 300f;
@@ -248,7 +249,7 @@ namespace NaniteConstructionSystem.Entities
 
             if (Sync.IsServer && ConstructionBlock.IsFunctional)
             {
-                if (m_updateCount % 300 == 0)
+                if (m_updateCount % 300 == 0 && m_factoryState != FactoryStates.Disabled)
                 {
                     if (m_updateConnectedInventory)
                     {
@@ -267,13 +268,15 @@ namespace NaniteConstructionSystem.Entities
 
                 if (Master == null)
                 {
-                    if (m_updateCount % 10 == 0)
-                        CheckIfAGridBlockIsInventory();
-
                     if (m_updateCount % 60 == 0)
-                        ToolManager.Update();
+                    {
+                        if (m_factoryState != FactoryStates.Disabled)
+                            CheckIfAGridBlockIsInventory();
 
-                    if (m_updateCount == m_takeComponentsTimer)
+                        ToolManager.Update();
+                    }
+                        
+                    if (m_updateCount == m_takeComponentsTimer && m_factoryState != FactoryStates.Disabled)
                         InventoryManager.TakeRequiredComponents();
 
                     ScanForTargets(out m_scanningActive);
@@ -376,18 +379,20 @@ namespace NaniteConstructionSystem.Entities
                                 Master = factory.Value;
 
                                 if (!Master.Slaves.Contains(this))
+                                {
                                     Master.Slaves.Add(this);
-
-                                Logging.Instance.WriteLine($"Factory {m_entityId} is now slaved to {Master.EntityId}.");
+                                    Logging.Instance.WriteLine($"Factory {m_entityId} is now slaved to {Master.EntityId}.");
+                                }
 
                                 foreach (var slave in Slaves)
                                 {
                                     slave.Master = Master;
 
                                     if (!Master.Slaves.Contains(slave))
+                                    {
                                         Master.Slaves.Add(slave);
-
-                                    Logging.Instance.WriteLine($"Factory {slave.EntityId} is now slaved to {Master.EntityId}.");
+                                        Logging.Instance.WriteLine($"Factory {slave.EntityId} is now slaved to {Master.EntityId}.");
+                                    }
                                 }
                                 Slaves.Clear();
                             }
@@ -492,7 +497,7 @@ namespace NaniteConstructionSystem.Entities
                         {
                             if (!invalidTitleAppended)
                             {
-                                invalidTargetDetailsParallel.Append("\nTarget information:\r\n");
+                                invalidTargetDetailsParallel.Append("\nTarget info:\r\n");
                                 invalidTitleAppended = true;
                             }
                             invalidTargetDetailsParallel.Append($"\n- ({item.TargetName}) " + item.LastInvalidTargetReason);
@@ -505,7 +510,7 @@ namespace NaniteConstructionSystem.Entities
                             {
                                 if (!missingCompTitleAppended)
                                 {
-                                    missingComponentsDetailsParallel.Append("\r\nMissing components:\r\n");
+                                    missingComponentsDetailsParallel.Append("\r\nNeeded parts:\r\n");
                                     missingCompTitleAppended = true;
                                 }
                                 missingComponentsDetailsParallel.Append($"{component.Key}: {component.Value}\r\n");
@@ -520,32 +525,27 @@ namespace NaniteConstructionSystem.Entities
                 });
 
                 details.Append($"-- Nanite Factory v2.0 --\n");
+
+                if (m_initInventory && Master == null)
+                    details.Append($"\n-INITIALIZING-\nTasks left: {m_potentialInventoryBlocks.Count}\n");
+
                 if (m_totalScanBlocksCount > 0)
                 {
-                    if (m_scanBlocksCache.Count == 0)
-                    {
-                        string percent = (((m_totalScanBlocksCount - m_scanBlocksCache.Count)/m_totalScanBlocksCount) * 100).ToString("0.00");
-                        details.Append("Scanning Complete.\nWaiting for next scan ...\n");
-                        details.Append($"{m_totalScanBlocksCount - m_scanBlocksCache.Count}/{m_totalScanBlocksCount} blocks\n");
-                    }
-                    else
-                    {
-                        string percent = (((m_totalScanBlocksCount - m_scanBlocksCache.Count)/m_totalScanBlocksCount) * 100).ToString("0.00");
-                        details.Append($"Scanning targets ... {percent}%\n");
-                        details.Append($"{m_totalScanBlocksCount - m_scanBlocksCache.Count}/{m_totalScanBlocksCount} blocks\n");
-                    }
+                    string percent = (((m_totalScanBlocksCount - m_scanBlocksCache.Count)/m_totalScanBlocksCount) * 100).ToString("0.00");
+                    details.Append($"\nScanning ... {percent}%\n"
+                      + "{m_totalScanBlocksCount - m_scanBlocksCache.Count}/{m_totalScanBlocksCount} blocks\n\n");
                 }
                 else
-                    details.Append($"Online and waiting to scan ...");
+                    details.Append($"\nWaiting ...\n\n");
 
                 details.Append(m_targetDetails
                   + "-----\r\n"
-                  + $"Current Power Required: {_power} MW\r\n"
+                  + $"Power Required: {_power} MW\r\n"
                   + $"Status: {m_factoryState.ToString()}\r\n"
                   + $"Active Nanites: {m_particleManager.Particles.Count}\r\n");
 
                 if (m_userDefinedNaniteLimit > 0)
-                    details.Append($"Maximum Nanites: {m_userDefinedNaniteLimit}\r\n");
+                    details.Append($"Max Nanites: {m_userDefinedNaniteLimit}\r\n");
 
                 details.Append(m_invalidTargetDetails);
                 details.Append(m_missingComponentsDetails);
@@ -627,14 +627,29 @@ namespace NaniteConstructionSystem.Entities
 
         private void OnBlockAdded(IMySlimBlock block)
         {
-            Logging.Instance.WriteLine("Block added to grid. Attempting to add to inventory.");
             MyAPIGateway.Parallel.Start(() =>
-                { TryAddToInventoryGroup(block); });
+            {
+                if (Master != null || m_factoryState == FactoryStates.Disabled
+                  || block.FatBlock == null || !(block.FatBlock is IMyTerminalBlock))
+                    return;
+
+                Logging.Instance.WriteLine("Block added to grid. Adding to inventory checking queue.");
+
+                m_potentialInventoryBlocks.Add(block);
+            });
         }
 
         private void TryAddToInventoryGroup(object block)
         {
             IMyInventory inv = null;
+
+            if (block is IMySlimBlock)
+            {
+                var slimBlock = block as IMySlimBlock;
+                if (slimBlock.FatBlock == null || !(slimBlock.FatBlock is IMyTerminalBlock))
+                    return;
+            }
+
             List<NaniteConstructionBlock> factoryGroup = new List<NaniteConstructionBlock>();
             lock (FactoryGroup)
                 factoryGroup = new List<NaniteConstructionBlock>(FactoryGroup);
@@ -655,13 +670,13 @@ namespace NaniteConstructionSystem.Entities
         /// <summary> Checks if the grid group has changed and quickly scans/adds any inventory blocks. Manages grid event handlers </summary>
         private void CheckGridGroup()
         {
+            if (Master != null)
+                return;
+
             MyAPIGateway.Parallel.Start(() =>
             {
                 try
                 {
-                    if (Master != null)
-                        return;
-                    
                     List<IMyCubeGrid> removalList = new List<IMyCubeGrid>();
                     List<IMyCubeGrid> newGroup = new List<IMyCubeGrid>(MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)m_constructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical));
 
@@ -694,7 +709,7 @@ namespace NaniteConstructionSystem.Entities
                             Logging.Instance.WriteLine("Adding new grid to grid group.");
 
                             MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                                {GridGroup.Add(grid);});
+                                { GridGroup.Add(grid); });
 
                             BuildConnectedInventory(grid);
                             grid.OnBlockAdded += OnBlockAdded;
@@ -715,8 +730,10 @@ namespace NaniteConstructionSystem.Entities
                 try
                 {                   
                     ConcurrentBag<IMySlimBlock> slimBlocks = new ConcurrentBag<IMySlimBlock>(((MyCubeGrid)grid).GetBlocks());
-                    MyAPIGateway.Parallel.ForEach(slimBlocks, SlimBlock => 
-                        { TryAddToInventoryGroup(SlimBlock); });
+
+                    foreach (var block in slimBlocks)
+                        if (block.FatBlock != null && block.FatBlock is IMyTerminalBlock)
+                            m_potentialInventoryBlocks.Add(block);
                 }
                 catch (Exception ex)
                     {VRage.Utils.MyLog.Default.WriteLineAndConsole($"BuildConnectedInventory() Error: {ex.ToString()}");}
@@ -980,7 +997,13 @@ namespace NaniteConstructionSystem.Entities
                         grid.GetBlocks(newGridBlocks);
 
                     if (m_potentialInventoryBlocks.Count < 1)
+                    {
+                        if (m_initInventory)
+                            m_initInventory = false;
+
                         m_potentialInventoryBlocks = new ConcurrentBag<IMySlimBlock>(newGridBlocks.Where(x => x.FatBlock != null && x.FatBlock is IMyTerminalBlock));
+                    }
+                        
 
                     foreach (IMySlimBlock block in newGridBlocks)
                         m_scanBlocksCache.Add(new BlockTarget(block)); 
