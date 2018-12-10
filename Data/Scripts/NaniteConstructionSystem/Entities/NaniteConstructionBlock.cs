@@ -1247,6 +1247,8 @@ namespace NaniteConstructionSystem.Entities
                         else
                             newState = FactoryStates.SpoolingUp;
                     }
+                    else if (Master != null && m_spoolPosition > 0)
+                        newState = FactoryStates.SpoolingDown;
                     else if (Master != null && Master.FactoryState != FactoryStates.Disabled && Master.FactoryState != FactoryStates.SpoolingDown)
                         newState = Master.FactoryState;
 
@@ -1262,9 +1264,7 @@ namespace NaniteConstructionSystem.Entities
                             foreach (var item in InventoryManager.ComponentsRequired.ToList())
                                 if (item.Value <= 0)
                                     MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                                    { 
-                                        InventoryManager.ComponentsRequired.Remove(item.Key); 
-                                    });
+                                        { InventoryManager.ComponentsRequired.Remove(item.Key); });
 
                             MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                             {
@@ -1296,7 +1296,11 @@ namespace NaniteConstructionSystem.Entities
                     {
                         if (m_factoryState != FactoryStates.Active && m_factoryState != FactoryStates.SpoolingUp 
                           && m_factoryState != FactoryStates.SpoolingDown && m_spoolPosition > 0f)
+                        {
                             m_factoryState = FactoryStates.SpoolingDown;
+                            newState = FactoryStates.SpoolingDown;
+                        }
+                            
 
                         if (m_lastState != m_factoryState)
                             m_lastState = m_factoryState;
