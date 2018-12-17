@@ -48,7 +48,6 @@ namespace NaniteConstructionSystem.Entities
             List<IMyInventory> removalList = new List<IMyInventory>();
             try
             {
-                
                 foreach (IMyInventory inventory in connectedInventory)
                 {
                     IMyInventory inv = null;
