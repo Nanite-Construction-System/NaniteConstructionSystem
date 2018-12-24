@@ -65,7 +65,7 @@
       <SensorOffset>0</SensorOffset>
       <PCU>2500</PCU>
     </Definition>
-    <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
+  <!--   <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
       <Id>
         <TypeId>ShipWelder</TypeId>
         <SubtypeId>SmallNaniteControlFacility</SubtypeId>
@@ -130,7 +130,7 @@
       <SensorRadius>.2</SensorRadius>
       <SensorOffset>0</SensorOffset>
       <PCU>2000</PCU>
-    </Definition>
+    </Definition> -->
     <!-- Nanite Upgrades -->
     <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
       <Id>
@@ -294,7 +294,7 @@
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\NaniteBeaconSmall_Constr2.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteBeaconConstruct</BlockPairName>
-      <Description>Nanite beacon for construction nanites to lock onto, place these on grids to take apart.</Description>
+      <Description>Nanite beacon for construction nanites to lock onto, place these on grids to build or repair them.</Description>
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <EdgeType>Light</EdgeType>
@@ -1329,7 +1329,7 @@
       <PCU>2500</PCU>
     </Definition>
 	
-	<Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
+	<!-- <Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
       <Id>
         <TypeId>OreDetector</TypeId>
 		<SubtypeId>NaniteMiningStation</SubtypeId>
@@ -1392,7 +1392,7 @@
       <ResourceSinkGroup>Utility</ResourceSinkGroup>
       <EmissiveColorPreset>Default</EmissiveColorPreset>
       <PCU>5000</PCU>
-</Definition>
+</Definition> -->
 
     <!-- Migration: block only, no function -->
     <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
