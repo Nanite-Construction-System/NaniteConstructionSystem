@@ -203,6 +203,26 @@ namespace NaniteConstructionSystem.Entities.Targets
                     return;
                 }
 
+                List<IMySlimBlock> blocksinTargetGrid = new List<IMySlimBlock>();
+                List<IMySlimBlock> blocksinProjectorGrid = new List<IMySlimBlock>();
+
+                // Cancel the projection welding if the gird size would be greater than grid max size in world settings
+                foreach (var item in NaniteConstructionManager.ProjectorBlocks)
+                {
+                    IMyProjector projector = item.Value as IMyProjector;
+                    if (projector.ProjectedGrid != null && projector.ProjectedGrid.EntityId == target.CubeGrid.EntityId)
+                    {
+                        projector.CubeGrid.GetBlocks(blocksinProjectorGrid);
+
+                        if (blocksinProjectorGrid.Count >= MyAPIGateway.Session.SessionSettings.MaxGridSize)
+                        {
+                            Logging.Instance.WriteLine("CANCELLING Projection Target due to max grid size violation");
+                            CancelTarget(target);
+                            return;
+                        }
+                    }
+                }                
+
                 if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
                     return;
 
