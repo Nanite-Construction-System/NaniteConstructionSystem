@@ -570,7 +570,7 @@
       <GuiVisible>false</GuiVisible>
       <PCU>5</PCU>
     </Definition>
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+<!--    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
       <Id>
         <TypeId>UpgradeModule</TypeId>
         <SubtypeId>NaniteProjectionUpgrade</SubtypeId>
@@ -618,7 +618,7 @@
       <EmissiveColorPreset>Default</EmissiveColorPreset>
       <GuiVisible>false</GuiVisible>
       <PCU>5</PCU>
-    </Definition>
+    </Definition> -->
     <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
       <Id>
         <TypeId>UpgradeModule</TypeId>
