@@ -34,6 +34,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             get { return "Mining"; }
         }
 
+        private List<NaniteMiningItem> m_potentialMiningTargets = new List<NaniteMiningItem>();
         private float m_maxDistance = 500f;
         private Dictionary<NaniteMiningItem, NaniteMiningTarget> m_targetTracker;
         private static HashSet<Vector3D> m_globalPositionList;
@@ -92,7 +93,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> gridBlocks)
         {
             DateTime start = DateTime.Now;
-            List<object> finalAddList = new List<object>();
+            List<NaniteMiningItem> finalAddList = new List<NaniteMiningItem>();
 
             foreach (var oreDetector in NaniteConstructionManager.OreDetectors.Where( x => IsInRange( x.Value.Block.GetPosition() ) ) )
             {
@@ -118,7 +119,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         for (int i = 0; i < material.WorldPosition.Count; i++)
                         {
                             bool alreadyMined = false;
-                            foreach (var minedPos in oreDetector.Value.minedPositions)
+                            foreach (var minedPos in m_globalPositionList)
                             {
                                 if (material.WorldPosition[i] == minedPos)
                                 {
@@ -136,7 +137,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                             miningItem.Definition = material.Definition;
                             miningItem.VoxelMaterial = material.Material;
                             miningItem.VoxelId = material.EntityId;
-                            miningItem.Amount = 1f; // * 3.9f;
+                            miningItem.Amount = 1f * 3.9f;
                             miningItem.OreDetectorId = ((MyEntity)item).EntityId;
                             finalAddList.Add(miningItem);
                         }
@@ -150,10 +151,11 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
                 if (m_oldMinedPositionsCount == m_minedPositionsCount && m_minedPositionsCount > 0)
                 {
-                    if (m_scannertimeout++ > 2)
+                    if (m_scannertimeout++ > 20)
                     {
                         m_scannertimeout = 0;
                         oreDetector.Value.DepositGroup.Clear(); //we've mined all the scanned stuff. Try a rescan.
+                        Logging.Instance.WriteLine("Clearing deposit groups due to mining target timeout.");
                         m_minedPositionsCount = 0;
                     }
                 }
@@ -163,9 +165,19 @@ namespace NaniteConstructionSystem.Entities.Targets
                     m_scannertimeout = 0;
                 }
             }
-            var listToAdd = finalAddList.Take(1000).ToList();
-            listToAdd.Reverse();
-            PotentialTargetList.AddRange(listToAdd);
+
+            m_potentialMiningTargets.Clear();
+
+            Random rnd = new Random();
+
+            PotentialTargetListCount = finalAddList.Count;
+
+            while(finalAddList.Count > 0)
+            {
+                int r = rnd.Next(finalAddList.Count);
+                m_potentialMiningTargets.Add(finalAddList[r]);
+                finalAddList.RemoveAt(r);
+            }
         }
 
         private void DistributeList(List<object> listToAdd, List<object> finalList, int count)
@@ -193,7 +205,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             if (TargetList.Count >= maxTargets)
             {
-                if (PotentialTargetList.Count > 0)
+                if (m_potentialMiningTargets.Count > 0)
                     InvalidTargetReason("Maximum targets reached. Add more upgrades!");
 
                 return;
@@ -203,19 +215,22 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             int targetListCount = m_targetList.Count;
 
-            foreach(NaniteMiningItem item in m_potentialTargetList.ToList())
+            HashSet<Vector3D> usedPositions = new HashSet<Vector3D>();
+            List<NaniteMiningItem> removeList = new List<NaniteMiningItem>();
+
+            foreach(NaniteMiningItem item in m_potentialMiningTargets.ToList())
             {
                 if (item == null || TargetList.Contains(item))
                     continue;
 
-                if (m_globalPositionList.Contains(item.Position))
+                if (m_globalPositionList.Contains(item.Position) || usedPositions.Contains(item.Position))
                 {
-                    LastInvalidTargetReason = "Another factory has this voxel as a target";
+                    LastInvalidTargetReason = "Mining position was already targeted";
                     continue;
                 }
                 else if (!m_constructionBlock.HasRequiredPowerForNewTarget(this))
                 {
-                    LastInvalidTargetReason = "Insufficient power for another target.";
+                    LastInvalidTargetReason = "Insufficient power for another target";
                     break;
                 }
                     
@@ -234,10 +249,14 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (found)
                     continue;
 
-                if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), item.Position) < m_maxDistance * m_maxDistance)
+                var nearestFactory = GetNearestFactory(TargetName, item.Position);
+                if (Vector3D.DistanceSquared(nearestFactory.ConstructionBlock.GetPosition(), item.Position) < m_maxDistance * m_maxDistance)
                 {
                     Logging.Instance.WriteLine(string.Format("ADDING Mining Target: conid={0} pos={1} type={2}", 
                         m_constructionBlock.ConstructionBlock.EntityId, item.Position, MyDefinitionManager.Static.GetVoxelMaterialDefinition(item.VoxelMaterial).MinedOre));
+
+                    removeList.Add(item);
+                    usedPositions.Add(item.Position);
 
                     MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                     {
@@ -253,7 +272,13 @@ namespace NaniteConstructionSystem.Entities.Targets
                     if (targetListCount++ >= maxTargets)
                         break;
                 }
+                else
+                    removeList.Add(item);
             }
+
+            foreach (var item in removeList)
+                m_potentialMiningTargets.Remove(item);
+
             if (LastInvalidTargetReason != "")
                 InvalidTargetReason(LastInvalidTargetReason);
         }
@@ -272,25 +297,6 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             if (Sync.IsServer)
             {
-                /*
-                if (!IsEnabled())
-                {
-                    Logging.Instance.WriteLine("CANCELLING Mining Target due to being disabled");
-                    CancelTarget(target);
-                    return;
-                }
-
-                if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
-                    return;
-
-                if (!m_constructionBlock.IsPowered())
-                {
-                    Logging.Instance.WriteLine("CANCELLING Mining Target due to power shortage");
-                    CancelTarget(target);
-                    return;
-                }
-                */
-
                 if (!m_targetTracker.ContainsKey(target))
                     m_constructionBlock.SendAddTarget(target);
 
@@ -334,15 +340,16 @@ namespace NaniteConstructionSystem.Entities.Targets
                     {
                         nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target, null);
                     });
-                    
                 }
-                catch {}
+                catch (Exception e)
+                    {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteMiningTargets.CreateMiningParticles() exception: {e.ToString()}");}
             }); 
         }
 
         private void CreateTrackerItem(NaniteMiningItem target)
         {
-            double distance = Vector3D.Distance(m_constructionBlock.ConstructionBlock.GetPosition(), target.Position);
+            var nearestFactory = GetNearestFactory(TargetName, target.Position);
+            double distance = Vector3D.Distance(nearestFactory.ConstructionBlock.GetPosition(), target.Position);
             int time = (int)Math.Max(GetMinTravelTime() * 1000f, (distance / GetSpeed()) * 1000f);
 
             NaniteMiningTarget miningTarget = new NaniteMiningTarget();
@@ -485,7 +492,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (m_targetTracker.ContainsKey(target))
                 m_targetTracker.Remove(target);
 
-            m_globalPositionList.Remove(target.Position);
+            //m_globalPositionList.Remove(target.Position);
             Remove(obj);
         }
 
@@ -494,15 +501,13 @@ namespace NaniteConstructionSystem.Entities.Targets
             var target = obj as NaniteMiningItem;
             Logging.Instance.WriteLine(string.Format("COMPLETED Mining Target: {0} - {1} (VoxelID={2},Position={3})", m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, target.VoxelId, target.Position));
             if (Sync.IsServer)
-            {
                 m_constructionBlock.SendCompleteTarget((NaniteMiningItem)obj);
-            }
 
             m_constructionBlock.ParticleManager.CompleteTarget(target);
             if (m_targetTracker.ContainsKey(target))
                 m_targetTracker.Remove(target);
 
-            m_globalPositionList.Remove(target.Position);
+            //m_globalPositionList.Remove(target.Position);
             Remove(obj);
         }
     }

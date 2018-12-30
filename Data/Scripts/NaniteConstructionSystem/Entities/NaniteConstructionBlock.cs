@@ -518,55 +518,61 @@ namespace NaniteConstructionSystem.Entities
             {    
                 MyAPIGateway.Parallel.Start(() =>
                 {
-                    StringBuilder targetDetailsParallel = new StringBuilder();
-                    StringBuilder invalidTargetDetailsParallel = new StringBuilder();
-                    StringBuilder missingComponentsDetailsParallel = new StringBuilder();
-                    bool invalidTitleAppended = false;
-                    bool missingCompTitleAppended = false;
+                    try
+                    {
+                        StringBuilder targetDetailsParallel = new StringBuilder();
+                        StringBuilder invalidTargetDetailsParallel = new StringBuilder();
+                        StringBuilder missingComponentsDetailsParallel = new StringBuilder();
+                        bool invalidTitleAppended = false;
+                        bool missingCompTitleAppended = false;
 
-                    NaniteConstructionBlock factory = Master != null ? Master : this;
+                        NaniteConstructionBlock factory = Master != null ? Master : this;
                         
-                    foreach (var item in factory.Targets.ToList())
-                    {
-                        targetDetailsParallel.Append("-----\r\n"
-                          + $"{item.TargetName} Nanites\r\n"
-                          + "-----\r\n"
-                          + $"Possible Targets: {item.PotentialTargetListCount}\r\n"
-                          + $"Current Targets: {item.TargetList.Count}\r\n"
-                          + $"Max Streams: {item.GetMaximumTargets()}\r\n" // TO DO: Retrieve a cached value for these instead of invoking a method
-                          + $"MW/Stream: {item.GetPowerUsage()} MW\r\n"
-                          + $"Min. Travel Time: {item.GetMinTravelTime()} s\r\n"
-                          + $"Travel Speed: {item.GetSpeed()} m/s\r\n");
-
-                        if (item.LastInvalidTargetReason != null && item.LastInvalidTargetReason != "")
+                        foreach (var item in factory.Targets.ToList())
                         {
-                            if (!invalidTitleAppended)
-                            {
-                                invalidTargetDetailsParallel.Append("\nTarget info:\r\n");
-                                invalidTitleAppended = true;
-                            }
-                            invalidTargetDetailsParallel.Append($"\n- ({item.TargetName}) " + item.LastInvalidTargetReason);
-                        }
-                    }
+                            targetDetailsParallel.Append("-----\r\n"
+                              + $"{item.TargetName} Nanites\r\n"
+                              + "-----\r\n"
+                              + $"Possible Targets: {item.PotentialTargetListCount}\r\n"
+                              + $"Current Targets: {item.TargetList.Count}\r\n"
+                              + $"Max Streams: {item.GetMaximumTargets()}\r\n" // TO DO: Retrieve a cached value for these instead of invoking a method
+                              + $"MW/Stream: {item.GetPowerUsage()} MW\r\n"
+                              + $"Min. Travel Time: {item.GetMinTravelTime()} s\r\n"
+                              + $"Travel Speed: {item.GetSpeed()} m/s\r\n");
 
-                    if (factory.InventoryManager.ComponentsRequired.Count > 0) 
-                        foreach (var component in factory.InventoryManager.ComponentsRequired.ToList())
-                            if (component.Value > 0)
+                            if (item.LastInvalidTargetReason != null && item.LastInvalidTargetReason != "")
                             {
-                                if (!missingCompTitleAppended)
+                                if (!invalidTitleAppended)
                                 {
-                                    missingComponentsDetailsParallel.Append("\r\nNeeded parts:\r\n");
-                                    missingCompTitleAppended = true;
+                                    invalidTargetDetailsParallel.Append("\nTarget info:\r\n");
+                                    invalidTitleAppended = true;
                                 }
-                                missingComponentsDetailsParallel.Append($"{component.Key}: {component.Value}\r\n");
+                                invalidTargetDetailsParallel.Append($"\n- ({item.TargetName}) " + item.LastInvalidTargetReason);
                             }
+                        }
 
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                    {
-                        m_targetDetails = targetDetailsParallel;
-                        m_invalidTargetDetails = invalidTargetDetailsParallel;
-                        m_missingComponentsDetails = missingComponentsDetailsParallel;
-                    });
+                        if (factory.InventoryManager.ComponentsRequired.Count > 0) 
+                            foreach (var component in factory.InventoryManager.ComponentsRequired.ToList())
+                                if (component.Value > 0)
+                                {
+                                    if (!missingCompTitleAppended)
+                                    {
+                                        missingComponentsDetailsParallel.Append("\r\nNeeded parts:\r\n");
+                                        missingCompTitleAppended = true;
+                                    }
+                                    missingComponentsDetailsParallel.Append($"{component.Key}: {component.Value}\r\n");
+                                }
+
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {
+                            m_targetDetails = targetDetailsParallel;
+                            m_invalidTargetDetails = invalidTargetDetailsParallel;
+                            m_missingComponentsDetails = missingComponentsDetailsParallel;
+                        });
+                    }
+                    catch (Exception e)
+                        {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.AppendingCustomInfo() exception: {e.ToString()}");}
+                    
                 });
 
                 details.Append($"-- Nanite Factory v2.0 --\n");

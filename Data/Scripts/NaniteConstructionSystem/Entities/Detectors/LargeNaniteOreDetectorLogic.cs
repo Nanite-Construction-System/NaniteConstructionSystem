@@ -2,6 +2,7 @@ using NaniteConstructionSystem.Extensions;
 using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
+using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using VRage.Game;
@@ -31,9 +32,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
             m_detector = new LargeNaniteOreDetector((IMyFunctionalBlock)Entity);
 
             base.Init(objectBuilder);
-            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
-
-            (Entity as IMyOreDetector).AppendingCustomInfo += m_detector.AppendingCustomInfo;
+            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;         
         }
 
         public override void UpdateOnceBeforeFrame()
@@ -44,7 +43,10 @@ namespace NaniteConstructionSystem.Entities.Detectors
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
 
             if (Sync.IsClient)
+            {
                 NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_FRAME;
+                (Entity as IMyOreDetector).AppendingCustomInfo += m_detector.AppendingCustomInfo;
+            }
         }
 
         public override void UpdateBeforeSimulation()
@@ -61,7 +63,13 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
             if (Sync.IsServer)
             {
-                m_detector.CheckScan();
+                MyAPIGateway.Parallel.Start(() =>
+                {
+                    try
+                        { m_detector.CheckScan(); }
+                    catch (Exception e)
+                        {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteOreDetector.CheckScan exception: {e.ToString()}");}
+                });
 
                 bool forceRescan = false;
                 if (OldRange != m_detector.Range)
