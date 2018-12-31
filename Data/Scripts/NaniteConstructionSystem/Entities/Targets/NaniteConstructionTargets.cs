@@ -183,12 +183,17 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             MyAPIGateway.Parallel.Start(() =>
             {
-                foreach (var item in m_targetList.ToList())
+                try
                 {
-                    var block = item as IMySlimBlock;
-                    if (block != null)
-                        ProcessConstructionItem(block);
+                    foreach (var item in m_targetList.ToList())
+                    {
+                        var block = item as IMySlimBlock;
+                        if (block != null)
+                            ProcessConstructionItem(block);
+                    }
                 }
+                catch (Exception e)
+                    {Logging.Instance.WriteLine($"{e}");}
             });
         }
 
@@ -209,6 +214,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                     int time = (int)Math.Max(GetMinTravelTime() * 1000f, (distance / GetSpeed()) * 1000f);
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                     {
+                        if (target == null)
+                            return;
+
                         welder = new NaniteWelder(m_constructionBlock, target, (int)(time / 2.5f), false);
                         m_constructionBlock.ToolManager.Tools.Add(welder);
                         m_constructionBlock.SendAddTarget(target, TargetTypes.Construction);
@@ -218,7 +226,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (target.IsFullIntegrity && !target.HasDeformation)
                 {
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                        {CompleteTarget(target);});
+                    {
+                        if (target != null)
+                            CompleteTarget(target);
+                    });
                     return;
                 }
 
@@ -229,7 +240,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                     if (!m_areaTargetBlocks[target].IsInsideBox(bb))
                     {
                         MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                            {CancelTarget(target);});
+                        {
+                            if (target != null)
+                                CancelTarget(target);
+                        });
                         return;
                     }
                 }
@@ -238,7 +252,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                 {
                     Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to target being destroyed");
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                        { CancelTarget(target); });
+                    {
+                        if (target != null)
+                            CancelTarget(target);
+                    });
                     return;
                 }
 
@@ -246,6 +263,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                 {
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                     {
+                        if (target == null)
+                            return;
+
                         target.MoveItemsToConstructionStockpile(((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory());
 
                         if (!target.HasDeformation && !target.CanContinueBuild( ((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory() ) )
@@ -267,7 +287,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                         { CancelTarget(target); });
                     return;
                 }
-                
             }
 
             CreateConstructionParticle(target);
@@ -277,9 +296,6 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             if (!m_targetBlocks.ContainsKey(target))
                 m_targetBlocks.Add(target, 0);
-
-            if (NaniteParticleManager.TotalParticleCount > NaniteParticleManager.MaxTotalParticles)
-                return;
 
             Vector4 startColor = new Vector4(0.55f, 0.55f, 0.95f, 0.75f);
             Vector4 endColor = new Vector4(0.05f, 0.05f, 0.35f, 0.75f);
@@ -296,10 +312,12 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
 
             var nearestFactory = GetNearestFactory(TargetName, targetPosition);
-            MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-            {
-                nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
-            });
+
+            if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles)
+                MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                {
+                    nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
+                });
         }
 
         public void CompleteTarget(IMySlimBlock obj)

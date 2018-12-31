@@ -773,7 +773,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
             Vector3I lodVoxelRangeMax = vector3I + 7;
 
             // Advice cache because of performance issues
-            var flag = MyVoxelRequestFlags.AdviseCache;
+            var flag = MyVoxelRequestFlags.ContentCheckedDeep;
 
             Stopwatch stopwatch = Stopwatch.StartNew();
             storage.ReadRange(cache, MyStorageDataTypeFlags.Content, 0, vector3I, lodVoxelRangeMax, ref flag);
@@ -820,13 +820,11 @@ namespace NaniteConstructionSystem.Entities.Detectors
                                 {
                                     var voxelDefinition = MyDefinitionManager.Static.GetVoxelMaterialDefinition(b);
                                     foreach (string mat in OreListSelected)
-                                    {
                                         if (voxelDefinition.MinedOre.ToLower() == mat.ToLower())
                                         {
                                             Materials.AddMaterial(b, vector3I + p);
                                             break;
                                         }
-                                    }
                                 }
                                 else
                                     Materials.AddMaterial(b, vector3I + p);
@@ -899,8 +897,8 @@ namespace NaniteConstructionSystem.Entities.Detectors
                         m_materials[i].VoxelPosition.Clear();
                     }
                 }
-                catch{}
-                
+                catch (Exception e)
+                    {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteOreDetector.OreDepositMaterials.Clear exception: {e.ToString()}");}
             });
         }
 

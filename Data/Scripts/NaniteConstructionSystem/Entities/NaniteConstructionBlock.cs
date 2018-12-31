@@ -256,6 +256,8 @@ namespace NaniteConstructionSystem.Entities
                     catch (Exception e)
                         { VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception while logging Nanite Factory status: {e.ToString()}"); }
                 });
+
+                m_scanningActive = false;
             }
 
             if (Sync.IsServer)
@@ -274,6 +276,7 @@ namespace NaniteConstructionSystem.Entities
                     {
                         Master = null;
                         Slaves.Clear();
+                        m_scanBlocksCache.Clear();
                     }
                 }
 
@@ -935,9 +938,9 @@ namespace NaniteConstructionSystem.Entities
 
                 MyAPIGateway.Parallel.StartBackground(() =>
                 {
-                    Stopwatch stopwatch = Stopwatch.StartNew();
                     try
                     {
+                        Stopwatch stopwatch = Stopwatch.StartNew();
                         SendFactoryGroup();
                         ProcessTargetsParallel();
                         ProcessTargets();
@@ -1756,10 +1759,8 @@ namespace NaniteConstructionSystem.Entities
                 
                 SendToPlayerInSyncRange(8974, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
             }
-            catch
-            {
-
-            }
+            catch (Exception e)
+                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.SendFactoryGroup exception: {e}");}
         }
 
         public void SyncDetails(DetailData data)
@@ -1777,7 +1778,8 @@ namespace NaniteConstructionSystem.Entities
             foreach (long factoryID in data.FactoryGroup)
                 try
                     {factoryGroup.Add(NaniteConstructionManager.NaniteBlocks[factoryID]);}
-                catch {}
+                catch (Exception e)
+                    {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.SyncFactoryGroup exception: {e}");}
                 
             FactoryGroup = factoryGroup.ToList();
         }

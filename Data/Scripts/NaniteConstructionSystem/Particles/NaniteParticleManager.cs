@@ -42,45 +42,48 @@ namespace NaniteConstructionSystem.Particles
 
         public void AddParticle(Vector4 startColor, Vector4 endColor, float minTime, float distanceDivisor, object target, IMyTerminalBlock miningHammer = null)
         {
-            Vector3D targetPosition = Vector3D.Zero;
-            if (target is IMyEntity)
+            try
             {
-                targetPosition = ((IMyEntity)target).GetPosition();
-            }
-            else if (target is IMySlimBlock)
-            {
-                IMySlimBlock slimBlock = (IMySlimBlock)target;
-                if (slimBlock.FatBlock != null)
+                Vector3D targetPosition = Vector3D.Zero;
+                if (target is IMyEntity)
                 {
-                    targetPosition = slimBlock.FatBlock.GetPosition();
+                    targetPosition = ((IMyEntity)target).GetPosition();
                 }
-                else
+                else if (target is IMySlimBlock)
                 {
-                    var size = slimBlock.CubeGrid.GridSizeEnum == MyCubeSize.Small ? 0.5f : 2.5f;
-                    var destinationPosition = new Vector3D(slimBlock.Position * size);
-                    targetPosition = Vector3D.Transform(destinationPosition, slimBlock.CubeGrid.WorldMatrix);
+                    IMySlimBlock slimBlock = (IMySlimBlock)target;
+                    if (slimBlock.FatBlock != null)
+                    {
+                        targetPosition = slimBlock.FatBlock.GetPosition();
+                    }
+                    else
+                    {
+                        var size = slimBlock.CubeGrid.GridSizeEnum == MyCubeSize.Small ? 0.5f : 2.5f;
+                        var destinationPosition = new Vector3D(slimBlock.Position * size);
+                        targetPosition = Vector3D.Transform(destinationPosition, slimBlock.CubeGrid.WorldMatrix);
+                    }
                 }
-            }
-            else if (target is NaniteMiningItem)
-            {
-                var miningTarget = target as NaniteMiningItem;
-                targetPosition = miningTarget.Position;
-            }
-            else if (target is IMyPlayer)
-            {
-                var destinationPosition = new Vector3D(0f, 2f, 0f);
-                targetPosition = Vector3D.Transform(destinationPosition, (target as IMyPlayer).Controller.ControlledEntity.Entity.WorldMatrix);
-            }
+                else if (target is NaniteMiningItem)
+                {
+                    var miningTarget = target as NaniteMiningItem;
+                    targetPosition = miningTarget.Position;
+                }
+                else if (target is IMyPlayer)
+                {
+                    var destinationPosition = new Vector3D(0f, 2f, 0f);
+                    targetPosition = Vector3D.Transform(destinationPosition, (target as IMyPlayer).Controller.ControlledEntity.Entity.WorldMatrix);
+                }
 
-            double distance = Vector3D.Distance(m_constructionBlock.ConstructionBlock.GetPosition(), targetPosition);
-            int time = (int)Math.Max(minTime, (distance / distanceDivisor) * 1000f);
-            int tailLength = Math.Max(1, 15 - ((int)(m_particles.Count / 40f)));
-            NaniteParticle particle = new NaniteParticle(time, (IMyCubeBlock)m_constructionBlock.ConstructionBlock, target, startColor, endColor, tailLength, 0.05f);
-            m_particles.Add(particle);
+                double distance = Vector3D.Distance(m_constructionBlock.ConstructionBlock.GetPosition(), targetPosition);
+                int time = (int)Math.Max(minTime, (distance / distanceDivisor) * 1000f);
+                int tailLength = Math.Max(1, 15 - ((int)(m_particles.Count / 40f)));
+                NaniteParticle particle = new NaniteParticle(time, (IMyCubeBlock)m_constructionBlock.ConstructionBlock, target, startColor, endColor, tailLength, 0.05f);
+                m_particles.Add(particle);
 
-            particle.Start();
-
-            TotalParticleCount++;
+                particle.Start();
+            }
+            catch (Exception e)
+                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"AddParticle() exception: {e}");}
         }
 
         public void Update()
@@ -109,7 +112,10 @@ namespace NaniteConstructionSystem.Particles
                             particlesToRemove.Add(particle);
                     foreach (var particle in particlesToRemove)
                         MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                            {m_particles.Remove(particle);});
+                        {
+                            particle.Complete(true);
+                            m_particles.Remove(particle);
+                        });
                 }
                 catch (Exception ex)
                     {VRage.Utils.MyLog.Default.WriteLineAndConsole($"CheckParticleLife() Error: {ex.ToString()}");}

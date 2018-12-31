@@ -391,9 +391,6 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (!m_targetBlocks.ContainsKey(target))
                 m_targetBlocks.Add(target, 0);
 
-            if (NaniteParticleManager.TotalParticleCount > NaniteParticleManager.MaxTotalParticles)
-                return;
-
             m_targetBlocks[target] = 0;
             
             MyAPIGateway.Parallel.Start(() =>
@@ -416,12 +413,14 @@ namespace NaniteConstructionSystem.Entities.Targets
                     Vector4 startColor = new Vector4(0.55f, 0.95f, 0.95f, 0.75f);
                     Vector4 endColor = new Vector4(0.05f, 0.35f, 0.35f, 0.75f);
 
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                    {
-                        nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
-                    });
+                    if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles)
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {
+                            nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
+                        });
                 }
-                catch{}
+                catch (Exception e)
+                    {Logging.Instance.WriteLine($"{e}");}
             });
             
         }
