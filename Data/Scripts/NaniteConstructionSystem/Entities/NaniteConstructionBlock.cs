@@ -977,8 +977,14 @@ namespace NaniteConstructionSystem.Entities
                 foreach (var item in m_targets)
                     item.Update();
             }
-            catch (Exception ex)
-                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.ProcessTargetItems() Exception: {ex.ToString()}");}
+            catch (InvalidOperationException e)
+            {
+                Logging.Instance.WriteLine("ProcessTargetItems InvalidOperationException: "
+                    + "A list was modified during enumeration in a parallel thread, "
+                    + "which is likely harmless and can be ignored.");
+            }
+            catch (Exception e)
+                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.ProcessTargetItems() Exception: {e}");}
         }
 
         /// <summary> Used many times during target processing to determine various factory upgrade attributes </summary>
@@ -1141,8 +1147,13 @@ namespace NaniteConstructionSystem.Entities
                           item.PotentialTargetList.Cast<IMySlimBlock>().ToList(), item.GetMaximumTargets(), 
                           ref availableComponents, item is NaniteProjectionTargets);
             }
-            catch (Exception ex) 
-                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"Nanite Construction Factory: Exception at NaniteConstructionBlock.ProcessTargets:\n{ex.ToString()}");}
+            catch (InvalidOperationException e)
+            {
+                Logging.Instance.WriteLine("ProcessTargets InvalidOperationException: "
+                  + "A list was modified during enumeration in a parallel thread, which is likely harmless.");
+            }
+            catch (Exception e) 
+                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"Nanite Construction Factory: Exception at NaniteConstructionBlock.ProcessTargets:\n{e}");}
         }
         #endregion
 
