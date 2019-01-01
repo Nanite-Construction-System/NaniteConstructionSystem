@@ -243,19 +243,29 @@ namespace NaniteConstructionSystem.Entities.Tools
 
         private void WeldTarget()
         {
-            if (m_targetBlock.HasDeformation)
-                m_targetBlock.FixBones(0f, 1f);
-
-            float damage = (MyAPIGateway.Session.WelderSpeedMultiplier * MyShipGrinderConstants.GRINDER_AMOUNT_PER_SECOND) * 8f * NaniteConstructionManager.Settings.ConstructionEfficiency;
-            IMyInventory inventory = ((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory();
-            if (m_targetBlock.CanContinueBuild(inventory) || MyAPIGateway.Session.CreativeMode)
+            try
             {
-                var functional = m_targetBlock as IMyFunctionalBlock;
-                if (functional != null && !functional.Enabled)
-                    functional.Enabled = true;
+                if (m_targetBlock == null)
+                    return;
+            
+                if (m_targetBlock.HasDeformation)
+                    m_targetBlock.FixBones(0f, 1f);
 
-                m_targetBlock.MoveItemsToConstructionStockpile(inventory);
-                m_targetBlock.IncreaseMountLevel(damage, m_constructionBlock.ConstructionBlock.OwnerId, inventory, maxAllowedBoneMovement: 1.0f);
+                float damage = (MyAPIGateway.Session.WelderSpeedMultiplier * MyShipGrinderConstants.GRINDER_AMOUNT_PER_SECOND) * 8f * NaniteConstructionManager.Settings.ConstructionEfficiency;
+                IMyInventory inventory = ((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory();
+                if (m_targetBlock.CanContinueBuild(inventory) || MyAPIGateway.Session.CreativeMode)
+                {
+                    var functional = m_targetBlock as IMyFunctionalBlock;
+                    if (functional != null && !functional.Enabled)
+                        functional.Enabled = true;
+
+                    m_targetBlock.MoveItemsToConstructionStockpile(inventory);
+                    m_targetBlock.IncreaseMountLevel(damage, m_constructionBlock.ConstructionBlock.OwnerId, inventory, maxAllowedBoneMovement: 1.0f);
+                }
+            }
+            catch (Exception e)
+            {
+                Logging.Instance.WriteLine($"{e}");
             }
         }
 
