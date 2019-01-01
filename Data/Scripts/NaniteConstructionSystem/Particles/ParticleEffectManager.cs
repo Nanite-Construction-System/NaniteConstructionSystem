@@ -70,7 +70,7 @@ namespace NaniteConstructionSystem.Particles
             HashSet<TargetEntity> remove = new HashSet<TargetEntity>();
 
             MyAPIGateway.Parallel.ForEach(m_particles, item => 
-            {
+            { // Invocation 0
                 try
                 {
                     IMyEntity entity;
@@ -94,21 +94,28 @@ namespace NaniteConstructionSystem.Particles
                         return;
                     }
                 }
+                catch (System.Exception e) when (e.ToString().Contains("IndexOutOfRangeException"))
+                    { Logging.Instance.WriteLine("IndexOutOfRangeException occurred in ParticleEffectManager.Cleanup. This is likely harmless and can be ignored."); }
                 catch (System.Exception e)
-                    {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Cleanup:\n{e.ToString()}");}
+                    {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Cleanup (Invocation 0): \n{e}");}
             });
 
             if (remove.Count < 1)
                 return;
 
             MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-            {
-                foreach (var item in remove)
-                    if(item != null)
-                    {
-                        item.Unload();
-                        m_particles.Remove(item);
-                    }
+            { // Invocation 1
+                try
+                {
+                    foreach (var item in remove)
+                        if (item != null)
+                        {
+                            item.Unload();
+                            m_particles.Remove(item);
+                        }
+                }
+                catch (System.Exception e)
+                    {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Cleanup (Invocation 1): \n{e}");}
             });
         }
     }

@@ -805,12 +805,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
                         p.X = 0;
                         while (p.X < 8)
                         {
-                            Stopwatch stopwatch3 = Stopwatch.StartNew();
                             int linearIdx = cache.ComputeLinear(ref p);
-                            stopwatch3.Stop();
-
-                            if (m_miningDebug)
-                                Logging.Instance.WriteLine($"ProcessCell.ComputeLinear took {(stopwatch3.ElapsedTicks * 1000000)/Stopwatch.Frequency} microseconds");
 
                             if (cache.Content(linearIdx) > 127)
                             {
