@@ -68,7 +68,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
                     try
                         { m_detector.CheckScan(); }
                     catch (Exception e)
-                        {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteOreDetector.CheckScan exception: {e.ToString()}");}
+                        {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteOreDetector.CheckScan exception: {e}");}
                 });
 
                 bool forceRescan = false;

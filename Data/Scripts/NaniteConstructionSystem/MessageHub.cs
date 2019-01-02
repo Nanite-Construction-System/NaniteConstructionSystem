@@ -285,7 +285,8 @@ namespace NaniteConstructionSystem
                 return;
 
             var logic = ent.GameLogic.GetAs<Entities.Detectors.LargeNaniteOreDetectorLogic>();
-            if (logic == null) return;
+            if (logic == null)
+                return;
 
             logic.Detector.Settings.Settings = Settings;
         }
@@ -297,7 +298,8 @@ namespace NaniteConstructionSystem
                 return;
 
             var logic = ent.GameLogic.GetAs<Entities.Detectors.LargeNaniteOreDetectorLogic>();
-            if (logic == null) return;
+            if (logic == null)
+                return;
 
             
             if (Settings == null)

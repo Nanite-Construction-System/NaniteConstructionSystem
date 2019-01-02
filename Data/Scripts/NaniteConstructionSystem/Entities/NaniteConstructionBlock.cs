@@ -254,7 +254,7 @@ namespace NaniteConstructionSystem.Entities
                           m_entityId, m_targetsCount, m_potentialTargetsCount, _power, m_factoryState, upgrades));
                     }
                     catch (Exception e)
-                        { VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception while logging Nanite Factory status: {e.ToString()}"); }
+                        { VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception while logging Nanite Factory status: {e}"); }
                 });
 
                 m_scanningActive = false;
@@ -270,7 +270,7 @@ namespace NaniteConstructionSystem.Entities
                             try
                                 { CheckSlaveMaster(); }
                             catch (Exception e)
-                                { VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception: CheckSlaveMaster: {e.ToString()}"); }
+                                { VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception: CheckSlaveMaster: {e}"); }
                         });
                     else
                     {
@@ -460,11 +460,13 @@ namespace NaniteConstructionSystem.Entities
             
             if (Vector3D.Distance(ConstructionBlock.GetPosition(), factory.ConstructionBlock.GetPosition()) > m_maxDistance)
             {
+                //Logging.Instance.WriteLine("Possible master was out of range ...");
                 bool isInGroup = false;
                 List<IMyCubeGrid> grids = useOtherGridGroup ? factory.GridGroup : GridGroup;
                 foreach (var grid in grids.ToList())
-                    if (ConstructionBlock.CubeGrid == grid)
+                    if ( (useOtherGridGroup && ConstructionBlock.CubeGrid == grid) || (!useOtherGridGroup && factory.ConstructionBlock.CubeGrid == grid) )
                     {
+                        //Logging.Instance.WriteLine("... but was found in the grid group anyway?");
                         isInGroup = true;
                         break;
                     }
@@ -924,12 +926,12 @@ namespace NaniteConstructionSystem.Entities
         }
 
         /// <summary>
-        /// Scans for block targets including projections. This can be intensive, so we're only doing it once every 5 seconds.
+        /// Scans for block targets including projections. This can be intensive, so we're only doing it once every 5 seconds at most.
         /// </summary>
         private void ScanForTargets(out bool scanningActive)
         {
             scanningActive = m_scanningActive;
-            if (m_factoryState != FactoryStates.Disabled && m_factoryState != FactoryStates.MissingPower && m_updateCount % 300 == 0)
+            if (!m_scanningActive && m_factoryState != FactoryStates.Disabled && m_factoryState != FactoryStates.MissingPower && m_updateCount % 300 == 0)
             {
                 scanningActive = true; 
                 FactoryGroup.Clear();

@@ -44,6 +44,9 @@ namespace NaniteConstructionSystem.Particles
         {
             try
             {
+                if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
+                    return;
+                
                 Vector3D targetPosition = Vector3D.Zero;
                 if (target is IMyEntity)
                 {
@@ -78,9 +81,12 @@ namespace NaniteConstructionSystem.Particles
                 int time = (int)Math.Max(minTime, (distance / distanceDivisor) * 1000f);
                 int tailLength = Math.Max(1, 15 - ((int)(m_particles.Count / 40f)));
                 NaniteParticle particle = new NaniteParticle(time, (IMyCubeBlock)m_constructionBlock.ConstructionBlock, target, startColor, endColor, tailLength, 0.05f);
-                m_particles.Add(particle);
 
-                particle.Start();
+                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                {
+                    m_particles.Add(particle);
+                    particle.Start();
+                });
             }
             catch (Exception e)
                 {VRage.Utils.MyLog.Default.WriteLineAndConsole($"AddParticle() exception: {e}");}

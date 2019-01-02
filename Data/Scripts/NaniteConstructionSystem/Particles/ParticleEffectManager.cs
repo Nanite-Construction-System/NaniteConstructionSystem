@@ -56,7 +56,7 @@ namespace NaniteConstructionSystem.Particles
                         try
                             {particle.UpdateMatrix();}
                         catch (System.Exception e)
-                            {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Update:\n{e.ToString()}");}
+                            {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Update: {e}");}
                     }); 
 
                     if (Sync.IsClient)

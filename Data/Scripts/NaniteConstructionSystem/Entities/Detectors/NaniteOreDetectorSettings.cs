@@ -1,4 +1,4 @@
-﻿using NaniteConstructionSystem.Extensions;
+using NaniteConstructionSystem.Extensions;
 using ProtoBuf;
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
@@ -35,7 +35,8 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
         public bool Load()
         {
-            if (Detector.Storage == null) return false;
+            if (Detector.Storage == null)
+                return false;
 
             string rawData;
             bool success = false;
