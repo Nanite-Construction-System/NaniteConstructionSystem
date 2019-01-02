@@ -111,6 +111,7 @@ namespace NaniteConstructionSystem.Entities
 
         private int m_assemblerUpdateTimer;
         private int m_takeComponentsTimer;
+        private int m_lastScanStatusUpdate;
         
         private StringBuilder m_syncDetails;
         private StringBuilder m_targetDetails;
@@ -240,7 +241,7 @@ namespace NaniteConstructionSystem.Entities
             if (!m_initialize)
                 Initialize();
 
-            if (m_updateCount % 1800 == 0 && m_isFunctional)
+            if (m_updateCount % 1800 == 0 && ConstructionBlock.IsFunctional)
             { // Log some status info. Should include some process time profiling in the future
                 MyAPIGateway.Parallel.Start(() =>
                 {
@@ -257,7 +258,8 @@ namespace NaniteConstructionSystem.Entities
                         { VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception while logging Nanite Factory status: {e}"); }
                 });
 
-                m_scanningActive = false;
+                if (m_scanningActive && m_updateCount - m_lastScanStatusUpdate > 3600)
+                    m_scanningActive = false;
             }
 
             if (Sync.IsServer)
@@ -310,8 +312,11 @@ namespace NaniteConstructionSystem.Entities
                             ProcessAssemblerQueue();
 
                         m_scanningActive = false;
+                        m_lastScanStatusUpdate = m_updateCount;
                     }
                 }
+                else
+                    m_scanningActive = false;
 
                 if (m_forceProcessState || !m_scanningActive || m_updateCount > m_assemblerUpdateTimer + 600)
                     ProcessState();                          // ^Prevent factorystate deadlocks
@@ -933,7 +938,8 @@ namespace NaniteConstructionSystem.Entities
             scanningActive = m_scanningActive;
             if (!m_scanningActive && m_factoryState != FactoryStates.Disabled && m_factoryState != FactoryStates.MissingPower && m_updateCount % 300 == 0)
             {
-                scanningActive = true; 
+                scanningActive = true;
+                m_lastScanStatusUpdate = m_updateCount;
                 FactoryGroup.Clear();
                 FactoryGroup = Slaves.ToList();
                 FactoryGroup.Add(this);
@@ -967,7 +973,7 @@ namespace NaniteConstructionSystem.Entities
                 () => { //callback
                     m_takeComponentsTimer = m_updateCount + 100; //  These timers give the parallel threads time to finish
                     m_assemblerUpdateTimer = m_updateCount + 200; // computing and then finding components/lists.
-                    m_scanningActive = false; // This bool forces the m_factorystate to wait for at least one attempt at 
+                    //m_scanningActive = false; // This bool forces the m_factorystate to wait for at least one attempt at 
                 });                           // finding components before moving to the MissingParts state
             }
         }

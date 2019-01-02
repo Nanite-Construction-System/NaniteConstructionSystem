@@ -506,7 +506,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
         private void AddVoxelMapsInRange()
         {
-            foreach (MyVoxelBase item in m_inRangeCache)
+            foreach (MyVoxelBase item in m_inRangeCache.ToList())
                 m_depositGroupsByEntity.TryAdd(item, new OreDeposit(item));
 
             MyAPIGateway.Utilities.InvokeOnGameThread(() =>
