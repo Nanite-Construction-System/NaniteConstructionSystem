@@ -264,9 +264,7 @@ namespace NaniteConstructionSystem.Entities.Tools
                 }
             }
             catch (Exception e)
-            {
-                Logging.Instance.WriteLine($"{e}");
-            }
+                { Logging.Instance.WriteLine($"{e}"); }
         }
 
         private void CreateTool()

@@ -157,6 +157,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                                     break;
                                 }
                             }
+
                             if (alreadyMined)
                             {
                                 MyAPIGateway.Utilities.InvokeOnGameThread(() =>
@@ -186,8 +187,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                                         voxelEntities.Add(material.EntityId, entity);
 
                                     MyAPIGateway.Parallel.Start(() =>
-                                        {PrepareTarget(entity, target);});
+                                        { PrepareTarget(entity, target); });
                                 });
+
+                            MyAPIGateway.Parallel.Sleep(1);
                         }
                     }
                     catch (Exception ex) when (ex.ToString().Contains("ArgumentOutOfRangeException")) 

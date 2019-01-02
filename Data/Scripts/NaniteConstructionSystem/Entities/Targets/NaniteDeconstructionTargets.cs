@@ -138,7 +138,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                 // Add 
                 foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteBeaconDeconstruct))
                 {
-                    IMyCubeBlock item = (IMyCubeBlock)beaconBlock.Value.BeaconBlock;
+                    
+                    IMyCubeBlock item = (IMyCubeBlock)beaconBlock.Value.BeaconBlock;                        
 
                     if (item == null || !((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional || gridList.Contains(item.CubeGrid) 
                       || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId))
@@ -146,12 +147,19 @@ namespace NaniteConstructionSystem.Entities.Targets
 						continue;
 
                     NaniteDeconstructionGrid deconstruct = new NaniteDeconstructionGrid(item.CubeGrid);
+
+                    if (item.CubeGrid == null)
+                        return;
+
                     m_validBeaconedGrids.Add(deconstruct);
                     CreateGridStack(deconstruct, (MyCubeGrid)item.CubeGrid, (MyCubeBlock)item);
 
                     foreach (var slimBlock in deconstruct.RemoveList)
-                        PotentialTargetList.Add(slimBlock);
-
+                    {
+                        if (slimBlock != null)
+                            PotentialTargetList.Add(slimBlock);
+                    }
+                        
                     deconstruct.RemoveList.Clear();
                 }
 
@@ -160,20 +168,17 @@ namespace NaniteConstructionSystem.Entities.Targets
                 {
                     foreach (IMySlimBlock item in PotentialTargetList.ToList())
                     {
-                        if (item.CubeGrid.Closed || item.IsDestroyed || item.IsFullyDismounted || (item.FatBlock != null && item.FatBlock.Closed))
-                            PotentialTargetList.Remove(item);
-                        
-                        if (EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, item) > m_maxDistance)
+                        if (item == null || item.CubeGrid == null || item.CubeGrid.Closed || item.IsDestroyed || item.IsFullyDismounted
+                          || (item.FatBlock != null && item.FatBlock.Closed)
+                          || EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, item) > m_maxDistance)
                             PotentialTargetList.Remove(item);
                     }
                 }
                 else if (TargetList.Count == 0 && PotentialTargetList.Count == 0)
                     m_validBeaconedGrids.Clear();
             }
-            catch (Exception ex)
-            {
-                VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception in NaniteDeconstructionTargets.ParallelUpdate: {ex.ToString()}");
-            }
+            catch (Exception e)
+                { VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception in NaniteDeconstructionTargets.ParallelUpdate: {e}"); }
         }
 
         private void CheckAreaBeacons()
@@ -209,7 +214,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                             m_areaTargetBlocks[grid] = item;
 
                         foreach (var block in deconstruct.RemoveList)
-                            if(!PotentialTargetList.Contains(block))
+                            if (!PotentialTargetList.Contains(block))
                                 PotentialTargetList.Add(block);
                     }
                 }
@@ -268,7 +273,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 var def = item.BlockDefinition as MyCubeBlockDefinition;
                 Logging.Instance.WriteLine(string.Format("ADDING Deconstruction Target: conid={0} subtypeid={1} entityID={2} position={3}", 
-                    m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, item.FatBlock != null ? item.FatBlock.EntityId : 0, item.Position));
+                  m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, item.FatBlock != null ? item.FatBlock.EntityId : 0, item.Position));
 
                 if (++TargetListCount >= maxTargets) 
                     break;
