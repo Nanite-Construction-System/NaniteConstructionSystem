@@ -227,7 +227,7 @@ namespace NaniteConstructionSystem.Entities
 
         private bool FactoryIsRunning()
         {
-            return m_isFunctional && m_factoryState != FactoryStates.Disabled;
+            return (ConstructionBlock.IsFunctional && m_factoryState != FactoryStates.Disabled);
         }
 
         public void Update()
@@ -1282,10 +1282,15 @@ namespace NaniteConstructionSystem.Entities
                     m_targetsCount = m_targets.Sum(x => x.TargetList.Count);
                     FactoryStates newState = m_factoryState;
 
-                    if (!blockEntity.Enabled || !m_isFunctional)
-                        newState = FactoryStates.Disabled;
+                    if (!blockEntity.Enabled || !ConstructionBlock.IsFunctional)
+                    {
+                        if (m_spoolPosition > 0f)
+                            newState = FactoryStates.SpoolingDown;
+                        else
+                            newState = FactoryStates.Disabled;
+                    }   
 
-                    if ( (Master != null && (Master.FactoryState == FactoryStates.Active || Master.FactoryState == FactoryStates.SpoolingUp))
+                    else if ( (Master != null && (Master.FactoryState == FactoryStates.Active || Master.FactoryState == FactoryStates.SpoolingUp))
                       ||  ( (m_targetsCount > 0 && IsPowered()) || m_particleManager.Particles.Count > 0 ) )
                     {
                         if (m_spoolPosition == m_spoolingTime)
@@ -1367,7 +1372,7 @@ namespace NaniteConstructionSystem.Entities
                     });
                 }
                 catch (Exception e)
-                    { VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.ProcessState exception: {e.ToString()}"); }
+                    { VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.ProcessState exception: {e}"); }
             });
         }
         #endregion

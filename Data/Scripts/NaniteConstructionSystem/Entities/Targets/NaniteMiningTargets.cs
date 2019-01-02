@@ -234,6 +234,8 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                     if (!allow)
                         removeList.Add(target);
+
+                    MyAPIGateway.Parallel.Sleep(1);
                 }
 
                 foreach (var target in removeList)

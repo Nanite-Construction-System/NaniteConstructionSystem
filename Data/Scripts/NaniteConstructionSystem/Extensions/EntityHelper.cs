@@ -83,9 +83,9 @@ namespace NaniteConstructionSystem.Extensions
 
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                VRage.Utils.MyLog.Default.WriteLineAndConsole($"IsValidInventoryConnection exception \n{ex.ToString()}.");
+                VRage.Utils.MyLog.Default.WriteLineAndConsole($"IsValidInventoryConnection exception: {e}.");
                 return false;
             }
         }
@@ -105,6 +105,9 @@ namespace NaniteConstructionSystem.Extensions
                         removalList.Add(inv);
                         continue;
                     }
+
+                    if ((IMyEntity)(targetInventory.Owner) is IMyProductionBlock)
+                        continue; // Dont push to assembler inventories
 
                     List<VRage.Game.Entity.MyPhysicalInventoryItem> items = sourceInventory.GetItems();
                     for (int i = 0; i < items.Count; i++)
