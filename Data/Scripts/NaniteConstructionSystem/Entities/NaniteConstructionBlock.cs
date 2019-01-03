@@ -581,7 +581,7 @@ namespace NaniteConstructionSystem.Entities
                         });
                     }
                     catch (Exception e)
-                        {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.AppendingCustomInfo() exception: {e.ToString()}");}
+                        {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.AppendingCustomInfo() exception: {e}");}
                     
                 });
 
@@ -1184,10 +1184,14 @@ namespace NaniteConstructionSystem.Entities
 
         private void DrawEffects()
         { // Draws effects (lightning and center spinning orb)
-            if (!Sync.IsClient)
+            if (!Sync.IsClient || m_effects == null)
                 return;
 
             foreach (var item in m_effects)
+            {
+                if (item == null)
+                    continue;
+                
                 switch (m_factoryState)
                 {
                     case FactoryStates.Active:
@@ -1203,6 +1207,7 @@ namespace NaniteConstructionSystem.Entities
                         item.InactiveUpdate();
                         break;
                 }
+            } 
         }
 
         private void UpdateClientEmissives()
