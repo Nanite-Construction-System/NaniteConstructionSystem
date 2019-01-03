@@ -585,7 +585,8 @@ namespace NaniteConstructionSystem.Entities
                     
                 });
 
-                details.Append($"-- Nanite Factory v2.0 --\n");
+                details.Append("-- Nanite Factory v2.0 --\n");
+                details.Append($"# {m_entityId}\n");
 
                 if (m_initInventory && Master == null)
                     details.Append($"\n-INITIALIZING-\nTasks left: {m_potentialInventoryBlocks.Count}\n");
