@@ -233,7 +233,7 @@ namespace NaniteConstructionSystem.Entities
 
         public void Update()
         { // Main update loop. Called each frame during game block logic
-            if (ConstructionBlock.Closed)
+            if (ConstructionBlock.Closed || m_constructionBlock == null)
                 return;
             
             m_updateCount++;
@@ -1208,9 +1208,14 @@ namespace NaniteConstructionSystem.Entities
         { // Change color of emissives on the block model to appropriate color. Client only.
             float emissivity = 1.0f;
             IMyFunctionalBlock blockEntity = (IMyFunctionalBlock)m_constructionBlock;
+            if (blockEntity == null || m_constructionBlock == null)
+                return;
+            
             if (!blockEntity.Enabled || !m_isFunctional)
             {
-                m_soundEmitter.StopSound(true);
+                if (m_soundEmitter != null)
+                    m_soundEmitter.StopSound(true);
+
                 MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.Red, Color.White);
             }
             else
@@ -1223,7 +1228,7 @@ namespace NaniteConstructionSystem.Entities
                         break;
 
                     case FactoryStates.SpoolingUp:
-                        if (m_spoolPosition >= m_spoolingTime)
+                        if (m_spoolPosition >= m_spoolingTime && m_soundEmitter != null)
                             m_soundEmitter.PlaySound(m_soundPair, true);
 
                         MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, 
@@ -1232,7 +1237,9 @@ namespace NaniteConstructionSystem.Entities
                         break;
 
                     case FactoryStates.SpoolingDown:
-                        m_soundEmitter.StopSound(true);
+                        if (m_soundEmitter != null)
+                            m_soundEmitter.StopSound(true);
+                        
                         MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, 
                           Color.FromNonPremultiplied(new Vector4(0.05f, 0.05f, 0.35f, 0.75f)) 
                           * (((float)m_spoolPosition / m_spoolingTime) + 0.1f), Color.White);
@@ -1258,7 +1265,8 @@ namespace NaniteConstructionSystem.Entities
                         break;
 
                     default:
-                        m_soundEmitter.StopSound(true);
+                        if (m_soundEmitter != null)
+                            m_soundEmitter.StopSound(true);
                         MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, Color.Red, Color.White);
                         break;
                 }

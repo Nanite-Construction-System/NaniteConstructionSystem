@@ -80,7 +80,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override bool IsEnabled(NaniteConstructionBlock factory)
         {
-            if (!((IMyFunctionalBlock)factory.ConstructionBlock).Enabled
+            if ( ( (IMyFunctionalBlock)factory.ConstructionBlock ) == null || !( (IMyFunctionalBlock)factory.ConstructionBlock ).Enabled
               || !((IMyFunctionalBlock)factory.ConstructionBlock).IsFunctional 
               || (NaniteConstructionManager.TerminalSettings.ContainsKey(factory.ConstructionBlock.EntityId) 
               && !NaniteConstructionManager.TerminalSettings[factory.ConstructionBlock.EntityId].AllowMining))
@@ -95,161 +95,167 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> gridBlocks)
         {
-            DateTime start = DateTime.Now;
-
-            if (!IsEnabled(m_constructionBlock))
+            try
             {
-                m_potentialMiningTargets.Clear();
-                return;
-            }
+                DateTime start = DateTime.Now;
 
-            List<string> allowedMats = new List<string>();
+                if (!IsEnabled(m_constructionBlock))
+                {
+                    m_potentialMiningTargets.Clear();
+                    return;
+                }
+
+                List<string> allowedMats = new List<string>();
                 
-            foreach (var oreDetector in NaniteConstructionManager.OreDetectors.Where( x => IsInRange( x.Value.Block.GetPosition() ) ) )
-            {
-                if (oreDetector.Value.DetectorState == NaniteOreDetector.DetectorStates.Disabled)
-                    continue;
+                foreach (var oreDetector in NaniteConstructionManager.OreDetectors)
+                {
+                    if (oreDetector.Value.Block == null || m_constructionBlock.ConstructionBlock == null
+                      || !IsInRange( oreDetector.Value.Block.GetPosition() ) || oreDetector.Value.DetectorState == NaniteOreDetector.DetectorStates.Disabled)
+                        continue;
                 
-                if (m_potentialMiningTargets.Count > 0)
-                { // Do not attempt to add more potential targets unless we're done with the current list. This will enhance performance.
-                    if (oreDetector.Value.HasFilterUpgrade)
-                    {
-                        foreach (string mat in oreDetector.Value.OreListSelected)
-                            if (!allowedMats.Contains(mat))
-                                allowedMats.Add(mat);
-                    }  
-                    else if (!allowedMats.Contains("all"))
-                        allowedMats.Add("all");
+                    if (m_potentialMiningTargets.Count > 0)
+                    { // Do not attempt to add more potential targets unless we're done with the current list. This will enhance performance.
+                        if (oreDetector.Value.HasFilterUpgrade)
+                        {
+                            foreach (string mat in oreDetector.Value.OreListSelected)
+                                if (!allowedMats.Contains(mat))
+                                    allowedMats.Add(mat);
+                        }  
+                        else if (!allowedMats.Contains("all"))
+                            allowedMats.Add("all");
                     
-                    break;
-                }
+                        break;
+                    }
                 
-                IMyCubeBlock item = oreDetector.Value.Block;
+                    IMyCubeBlock item = oreDetector.Value.Block;
       
-                if (!MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
-                    continue;
+                    if (!MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly( item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId) ))
+                        continue;
 
-                var materialList = oreDetector.Value.DepositGroup.SelectMany((x) => x.Value.Materials.MiningMaterials());
-                if (materialList.Count() == 0 && oreDetector.Value.minedPositions.Count > 0)
-                {
-                    Logging.Instance.WriteLine("Clearing deposit groups due to no new minable targets.");
-                    oreDetector.Value.ClearMinedPositions();
-                    oreDetector.Value.DepositGroup.Clear();
-                    continue;
-                }
-
-                foreach (var material in materialList.ToList())
-                {
-                    try
+                    var materialList = oreDetector.Value.DepositGroup.SelectMany((x) => x.Value.Materials.MiningMaterials());
+                    if (materialList.Count() == 0 && oreDetector.Value.minedPositions.Count > 0)
                     {
-                        for (int i = 0; i < material.WorldPosition.Count; i++)
+                        Logging.Instance.WriteLine("Clearing deposit groups due to no new minable targets.");
+                        oreDetector.Value.ClearMinedPositions();
+                        oreDetector.Value.DepositGroup.Clear();
+                        continue;
+                    }
+
+                    foreach (var material in materialList.ToList())
+                    {
+                        try
                         {
-                            try
+                            for (int i = 0; i < material.WorldPosition.Count; i++)
                             {
-                                bool alreadyMined = false;
-                                Vector3D removePos = Vector3D.Zero;
-                                foreach (var minedPos in m_globalPositionList.ToList())
+                                try
                                 {
-                                    if (material.WorldPosition[i] == minedPos)
+                                    bool alreadyMined = false;
+                                    Vector3D removePos = Vector3D.Zero;
+                                    foreach (var minedPos in m_globalPositionList.ToList())
                                     {
-                                        alreadyMined = true;
-                                        material.WorldPosition.RemoveAt(i);
-                                        removePos = minedPos;
-                                        //Logging.Instance.WriteLine($"Found an already mined position {minedPos}");
-                                        break;
+                                        if (material.WorldPosition[i] == minedPos)
+                                        {
+                                            alreadyMined = true;
+                                            material.WorldPosition.RemoveAt(i);
+                                            removePos = minedPos;
+                                            //Logging.Instance.WriteLine($"Found an already mined position {minedPos}");
+                                            break;
+                                        }
                                     }
-                                }
 
-                                if (alreadyMined)
-                                {
-                                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                                        { m_globalPositionList.Remove(removePos); });
-                                    continue;
-                                }
+                                    if (alreadyMined)
+                                    {
+                                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                                            { m_globalPositionList.Remove(removePos); });
+                                        continue;
+                                    }
                                 
-                                NaniteMiningItem target = new NaniteMiningItem();
-                                target.Position = material.WorldPosition[i];
-                                target.VoxelPosition = material.VoxelPosition[i];
-                                target.Definition = material.Definition;
-                                target.VoxelMaterial = material.Material;
-                                target.VoxelId = material.EntityId;
-                                target.Amount = 1f;
-                                target.OreDetectorId = ((MyEntity)item).EntityId;
+                                    NaniteMiningItem target = new NaniteMiningItem();
+                                    target.Position = material.WorldPosition[i];
+                                    target.VoxelPosition = material.VoxelPosition[i];
+                                    target.Definition = material.Definition;
+                                    target.VoxelMaterial = material.Material;
+                                    target.VoxelId = material.EntityId;
+                                    target.Amount = 1f;
+                                    target.OreDetectorId = ((MyEntity)item).EntityId;
 
-                                if (voxelEntities.ContainsKey(material.EntityId))
-                                {
-                                    PrepareTarget(voxelEntities[material.EntityId], target);
-                                    MyAPIGateway.Parallel.Sleep(1);
+                                    if (voxelEntities.ContainsKey(material.EntityId))
+                                    {
+                                        PrepareTarget(voxelEntities[material.EntityId], target);
+                                        MyAPIGateway.Parallel.Sleep(1);
+                                    }
+                                    else
+                                    {
+                                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                                            { TryAddNewVoxelEntity(material.EntityId, oreDetector.Value); });
+
+                                        break;
+                                    }      
                                 }
-                                else
-                                {
-                                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                                        { TryAddNewVoxelEntity(material.EntityId, oreDetector.Value); });
-
-                                    break;
-                                }      
-                            }
-                            catch (Exception e)
-                                { Logging.Instance.WriteLine($"{e}"); }
+                                catch (Exception e)
+                                    { Logging.Instance.WriteLine($"{e}"); }
                                                      
-                        }                            
-                    }
-                    catch (Exception e) when (e.ToString().Contains("ArgumentOutOfRangeException")) 
-                    { // because Keen thinks we shouldn't have access to this exception^ ...
-                        Logging.Instance.WriteLine("Caught an ArgumentOutOfRangeException while processing mining targets. This is probably harmless");
-                    }
-                }
-
-                if (m_oldMinedPositionsCount == m_minedPositionsCount && m_minedPositionsCount > 0)
-                {
-                    if (m_scannertimeout++ > 20)
-                    {
-                        m_scannertimeout = 0;
-                        oreDetector.Value.DepositGroup.Clear(); //we've mined all the scanned stuff. Try a rescan.
-                        Logging.Instance.WriteLine("Clearing deposit groups due to mining target timeout.");
-                        m_minedPositionsCount = 0;
-                    }
-                }
-                else
-                {
-                    m_oldMinedPositionsCount = m_minedPositionsCount;
-                    m_scannertimeout = 0;
-                }
-            }
-
-            if (allowedMats.Count > 0 && !allowedMats.Contains("all"))
-            {
-                List<NaniteMiningItem> removeList = new List<NaniteMiningItem>();
-                foreach (var target in m_potentialMiningTargets)
-                {
-                    bool allow = false;
-
-                    foreach (string mat in allowedMats)
-                        if (target.Definition.MinedOre.ToLower() == mat.ToLower())
-                        {
-                            allow = true;
-                            break;
+                            }                            
                         }
+                        catch (Exception e) when (e.ToString().Contains("ArgumentOutOfRangeException")) 
+                        { // because Keen thinks we shouldn't have access to this exception^ ...
+                            Logging.Instance.WriteLine("Caught an ArgumentOutOfRangeException while processing mining targets. This is probably harmless");
+                        }
+                    }
 
-                    if (!allow)
-                        removeList.Add(target);
-
-                    MyAPIGateway.Parallel.Sleep(1);
+                    if (m_oldMinedPositionsCount == m_minedPositionsCount && m_minedPositionsCount > 0)
+                    {
+                        if (m_scannertimeout++ > 20)
+                        {
+                            m_scannertimeout = 0;
+                            oreDetector.Value.DepositGroup.Clear(); //we've mined all the scanned stuff. Try a rescan.
+                            Logging.Instance.WriteLine("Clearing deposit groups due to mining target timeout.");
+                            m_minedPositionsCount = 0;
+                        }
+                    }
+                    else
+                    {
+                        m_oldMinedPositionsCount = m_minedPositionsCount;
+                        m_scannertimeout = 0;
+                    }
                 }
 
-                foreach (var target in removeList)
-                    m_potentialMiningTargets.Remove(target);
-            }
+                if (allowedMats.Count > 0 && !allowedMats.Contains("all"))
+                {
+                    List<NaniteMiningItem> removeList = new List<NaniteMiningItem>();
+                    foreach (var target in m_potentialMiningTargets)
+                    {
+                        bool allow = false;
 
-            while(finalAddList.Count > 0)
-            {
-                NaniteMiningItem miningTarget;
-                if (finalAddList.TryTake(out miningTarget))
-                    m_potentialMiningTargets.Add(miningTarget);
-            }
+                        foreach (string mat in allowedMats)
+                            if (target.Definition.MinedOre.ToLower() == mat.ToLower())
+                            {
+                                allow = true;
+                                break;
+                            }
 
-            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                {PotentialTargetListCount = m_potentialMiningTargets.Count;});
+                        if (!allow)
+                            removeList.Add(target);
+
+                        MyAPIGateway.Parallel.Sleep(1);
+                    }
+
+                    foreach (var target in removeList)
+                        m_potentialMiningTargets.Remove(target);
+                }
+
+                while (finalAddList.Count > 0)
+                {
+                    NaniteMiningItem miningTarget;
+                    if (finalAddList.TryTake(out miningTarget))
+                        m_potentialMiningTargets.Add(miningTarget);
+                }
+
+                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                    {PotentialTargetListCount = m_potentialMiningTargets.Count;});
+            }
+            catch (Exception e)
+                { Logging.Instance.WriteLine($"{e}"); }
         }
 
         private void TryAddNewVoxelEntity(long entityId, NaniteOreDetector naniteOreDetector)
