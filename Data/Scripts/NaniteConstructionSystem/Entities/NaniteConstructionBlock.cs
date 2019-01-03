@@ -1249,6 +1249,7 @@ namespace NaniteConstructionSystem.Entities
                         MyCubeBlockEmissive.SetEmissiveParts((MyEntity)m_constructionBlock, emissivity, 
                           Color.FromNonPremultiplied(new Vector4(0.05f, 0.05f, 0.35f, 0.75f)) 
                           * (((float)m_spoolPosition / m_spoolingTime) + 0.1f), Color.White);
+
                         break;
 
                     case FactoryStates.MissingPower:
@@ -1313,7 +1314,7 @@ namespace NaniteConstructionSystem.Entities
                     }   
 
                     else if ( (Master != null && (Master.FactoryState == FactoryStates.Active || Master.FactoryState == FactoryStates.SpoolingUp))
-                      ||  ( (m_targetsCount > 0 && IsPowered()) || m_particleManager.Particles.Count > 0 ) )
+                      || ( (m_targetsCount > 0 && IsPowered()) || m_particleManager.Particles.Count > 0 ) )
                     {
                         if (m_spoolPosition == m_spoolingTime)
                         {

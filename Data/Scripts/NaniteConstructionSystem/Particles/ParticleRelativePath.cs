@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using VRageMath;
@@ -163,52 +163,74 @@ namespace NaniteConstructionSystem.Particles
 
         private Vector3D GetPosition(object item)
         {
-            if (item is IMyEntity)
+            try
             {
-                IMyEntity entity = (IMyEntity)item;
-                if(item is MyCubeBlock)
+                if (item == null)
+                    return Vector3D.Zero;
+            
+                if (item is IMyEntity)
                 {
-                    MyCubeBlock block = (MyCubeBlock)item;
-                    if(block.BlockDefinition.Id.SubtypeName == "LargeNaniteFactory")
+                    IMyEntity entity = (IMyEntity)item;
+
+                    if (entity == null)
+                        return Vector3D.Zero;
+
+                    if (item is MyCubeBlock)
                     {
-                        return Vector3D.Transform(new Vector3D(0f, 1.5f, 0f), entity.WorldMatrix);
+                        MyCubeBlock block = (MyCubeBlock)item;
+
+                        if (block == null)
+                            return Vector3D.Zero;
+
+                        if (block.BlockDefinition.Id.SubtypeName == "LargeNaniteFactory")
+                            return Vector3D.Transform(new Vector3D(0f, 1.5f, 0f), entity.WorldMatrix);
+
+                        else if (block.BlockDefinition.Id.SubtypeName == "NaniteUltrasonicHammer")
+                            return Vector3D.Transform(new Vector3D(0f, 3.5f, -0.5f), entity.WorldMatrix);
                     }
-                    else if(block.BlockDefinition.Id.SubtypeName == "NaniteUltrasonicHammer")
-                    {
-                        return Vector3D.Transform(new Vector3D(0f, 3.5f, -0.5f), entity.WorldMatrix);
-                    }
+
+                    return entity.GetPosition();
+                }
+                else if (item is IMySlimBlock)
+                {
+                    IMySlimBlock slimBlock = (IMySlimBlock)item;
+
+                    if (slimBlock == null)
+                        return Vector3D.Zero;
+                    
+                    if (slimBlock.FatBlock != null)
+                        return slimBlock.FatBlock.GetPosition();
+
+                    var size = slimBlock.CubeGrid.GridSizeEnum == MyCubeSize.Small ? 0.5f : 2.5f;
+                    var destinationPosition = new Vector3D(slimBlock.Position * size);
+                    return Vector3D.Transform(destinationPosition, slimBlock.CubeGrid.WorldMatrix);
+                }
+                else if (item is NaniteMiningItem)
+                {
+                    return (item as NaniteMiningItem).Position;
+                }
+                else if (item is Vector3D)
+                {
+                    return (Vector3D)item;
+                }
+                else if (item is IMyPlayer)
+                {
+                    var player = item as IMyPlayer;
+                    if (player == null)
+                        return Vector3D.Zero;
+
+                    var destinationPosition = new Vector3D(0f, 2f, 0f);
+                    var targetPosition = Vector3D.Transform(destinationPosition, player.Controller.ControlledEntity.Entity.WorldMatrix);
+                    return targetPosition;
                 }
 
-                return entity.GetPosition();
+                return Vector3D.Zero;
             }
-            else if (item is IMySlimBlock)
+            catch (Exception e)
             {
-                IMySlimBlock slimBlock = (IMySlimBlock)item;
-                if (slimBlock.FatBlock != null)
-                    return slimBlock.FatBlock.GetPosition();
-
-                var size = slimBlock.CubeGrid.GridSizeEnum == MyCubeSize.Small ? 0.5f : 2.5f;
-                var destinationPosition = new Vector3D(slimBlock.Position * size);
-                return Vector3D.Transform(destinationPosition, slimBlock.CubeGrid.WorldMatrix);
+                Logging.Instance.WriteLine($"{e}");
+                return Vector3D.Zero;
             }
-            else if(item is NaniteMiningItem)
-            {
-                return (item as NaniteMiningItem).Position;
-            }
-            else if (item is Vector3D)
-            {
-                return (Vector3D)item;
-            }
-            else if (item is IMyPlayer)
-            {
-                var destinationPosition = new Vector3D(0f, 2f, 0f);
-                var targetPosition = Vector3D.Transform(destinationPosition, (item as IMyPlayer).Controller.ControlledEntity.Entity.WorldMatrix);
-                return targetPosition;
-
-                //return (item as IMyPlayer).GetPosition();
-            }
-
-            return Vector3D.Zero;
         }
     }
 }
