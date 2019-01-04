@@ -178,7 +178,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     m_validBeaconedGrids.Clear();
             }
             catch (Exception e)
-                { VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception in NaniteDeconstructionTargets.ParallelUpdate: {e}"); }
+                { Logging.Instance.WriteLine($"Exception in NaniteDeconstructionTargets.ParallelUpdate:\n{e}"); }
         }
 
         private void CheckAreaBeacons()
@@ -273,7 +273,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 var def = item.BlockDefinition as MyCubeBlockDefinition;
                 Logging.Instance.WriteLine(string.Format("ADDING Deconstruction Target: conid={0} subtypeid={1} entityID={2} position={3}", 
-                  m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, item.FatBlock != null ? item.FatBlock.EntityId : 0, item.Position));
+                  m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, item.FatBlock != null ? item.FatBlock.EntityId : 0, item.Position), 1);
 
                 if (++TargetListCount >= maxTargets) 
                     break;
@@ -357,14 +357,14 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 if (target.CubeGrid.Closed)
                 {
-                    Logging.Instance.WriteLine("CANCELLING Deconstruction Target due to grid being closed");
+                    Logging.Instance.WriteLine("CANCELLING Deconstruction Target due to grid being closed", 1);
                     CancelTarget(target);
                     return;
                 }
 
                 if (EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target) > MyAPIGateway.Session.SessionSettings.SyncDistance)
                 {
-                    Logging.Instance.WriteLine("CANCELLING Deconstruction Target due to target being out of range");
+                    Logging.Instance.WriteLine("CANCELLING Deconstruction Target due to target being out of range", 1);
                     CancelTarget(target);
                     return;
                 }
@@ -433,7 +433,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         public void CompleteTarget(IMySlimBlock obj)
         {
             Logging.Instance.WriteLine(string.Format("COMPLETING Deconstruction Target: {0} - {1} (EntityID={2},Position={3})",
-              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position));
+              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position), 1);
 
             if (Sync.IsServer)
                 m_constructionBlock.SendCompleteTarget(obj, TargetTypes.Deconstruction);
@@ -446,7 +446,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         public void CancelTarget(IMySlimBlock obj)
         {
             Logging.Instance.WriteLine(string.Format("CANCELLING Deconstruction Target: {0} - {1} (EntityID={2},Position={3})",
-              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position));
+              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position), 1);
 
             if (Sync.IsServer)
                 m_constructionBlock.SendCancelTarget(obj, TargetTypes.Deconstruction);
@@ -586,7 +586,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             DateTime end = DateTime.Now;
             deconstruct.AddingGridList.Clear();
             deconstruct.AddingList.Clear();
-            Logging.Instance.WriteLine($"PROCESS Creating Grid Stack. Total Process Time: {(end - start).TotalMilliseconds}ms");
+            Logging.Instance.WriteLine($"PROCESS Creating Grid Stack. Total Process Time: {(end - start).TotalMilliseconds}ms", 1);
         }
 
         private void CreateRemovalOrder(NaniteDeconstructionGrid deconstruct, IMySlimBlock currentBlock)
@@ -629,8 +629,8 @@ namespace NaniteConstructionSystem.Entities.Targets
             // Find user defined priority blocks for deconstruction.  
             FindPriorityBlocks(deconstruct, currentBlock);
 
-            Logging.Instance.WriteLine($"Block Count: {deconstruct.RemoveList.Count}");
-            Logging.Instance.WriteLine($"Grid Count: {deconstruct.GridsProcessed.Count}");
+            Logging.Instance.WriteLine($"Block Count: {deconstruct.RemoveList.Count}", 1);
+            Logging.Instance.WriteLine($"Grid Count: {deconstruct.GridsProcessed.Count}", 1);
         }
 
         private void FindPriorityBlocks(NaniteDeconstructionGrid deconstruct, IMySlimBlock startBlock)
@@ -756,7 +756,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         private void OnGridSplit(MyCubeGrid original, MyCubeGrid newGrid)
         {
             Logging.Instance.WriteLine(string.Format("WARNING Split detected: {0} - {1} ({2})",
-              original.EntityId, newGrid.EntityId, newGrid.GetBlocks().Count));
+              original.EntityId, newGrid.EntityId, newGrid.GetBlocks().Count), 1);
 
             ((IMyCubeGrid)original).Physics.LinearVelocity = Vector3.Zero;
             ((IMyCubeGrid)original).Physics.AngularVelocity = Vector3.Zero;

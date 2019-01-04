@@ -252,10 +252,10 @@ namespace NaniteConstructionSystem.Entities
                             upgrades += string.Format("({0} - {1}) ", item.Key, item.Value);
 
                         Logging.Instance.WriteLine(string.Format("STATUS Nanite Factory: {0} - (t: {1}  pt: {2}  pw: {3} st: {4}) - {5}", 
-                          m_entityId, m_targetsCount, m_potentialTargetsCount, _power, m_factoryState, upgrades));
+                          m_entityId, m_targetsCount, m_potentialTargetsCount, _power, m_factoryState, upgrades), 1);
                     }
                     catch (Exception e)
-                        { VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception while logging Nanite Factory status: {e}"); }
+                        { Logging.Instance.WriteLine($"Exception while logging Nanite Factory status: {e}", 1); }
                 });
 
                 if (m_scanningActive && m_updateCount - m_lastScanStatusUpdate > 3600)
@@ -272,7 +272,7 @@ namespace NaniteConstructionSystem.Entities
                             try
                                 { CheckSlaveMaster(); }
                             catch (Exception e)
-                                { VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception: CheckSlaveMaster: {e}"); }
+                                { Logging.Instance.WriteLine($"Exception: CheckSlaveMaster:\n{e}"); }
                         });
                     else
                     {
@@ -376,13 +376,13 @@ namespace NaniteConstructionSystem.Entities
                 {
                     try
                     {
-                        Logging.Instance.WriteLine($"Slave factory {m_entityId} is no longer slaved to {Master.EntityId}. Reason: Master {reason}");
+                        Logging.Instance.WriteLine($"Slave factory {m_entityId} is no longer slaved to {Master.EntityId}. Reason: Master {reason}", 1);
                         Master.Slaves.Remove(this);
                         Master = null; 
                     }
                     catch (Exception e)
                     {
-                        VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception: CheckSlaveMaster, second InvokeOnGameThread: {e}");
+                        Logging.Instance.WriteLine($"Exception: CheckSlaveMaster, second InvokeOnGameThread: {e}");
                     }
                 });
 
@@ -406,7 +406,7 @@ namespace NaniteConstructionSystem.Entities
                                     if (!Master.Slaves.Contains(this))
                                     {
                                         Master.Slaves.Add(this);
-                                        Logging.Instance.WriteLine($"Factory {m_entityId} is now slaved to {Master.EntityId}.");
+                                        Logging.Instance.WriteLine($"Factory {m_entityId} is now slaved to {Master.EntityId}.", 1);
                                     }
 
                                     foreach (var slave in Slaves)
@@ -417,7 +417,7 @@ namespace NaniteConstructionSystem.Entities
                                         if (!Master.Slaves.Contains(slave))
                                         {
                                             Master.Slaves.Add(slave);
-                                            Logging.Instance.WriteLine($"Factory {slave.EntityId} is now slaved to {Master.EntityId}.");
+                                            Logging.Instance.WriteLine($"Factory {slave.EntityId} is now slaved to {Master.EntityId}.", 1);
                                         }
                                     }
                                     Slaves.Clear();
@@ -425,7 +425,7 @@ namespace NaniteConstructionSystem.Entities
                             }
                             catch (Exception e)
                             {
-                                VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception: CheckSlaveMaster, third InvokeOnGameThread: {e.ToString()}");
+                                Logging.Instance.WriteLine($"Exception: CheckSlaveMaster, third InvokeOnGameThread: {e.ToString()}");
                             }
                         });
 
@@ -446,13 +446,13 @@ namespace NaniteConstructionSystem.Entities
                             {
                                 try
                                 {
-                                    Logging.Instance.WriteLine($"Slave factory {slave.EntityId} is no longer slaved to {m_entityId}. Reason: Slave {reason2}");
+                                    Logging.Instance.WriteLine($"Slave factory {slave.EntityId} is no longer slaved to {m_entityId}. Reason: Slave {reason2}", 1);
                                     Slaves.Remove(slave);
                                     slave.Master = null;
                                 }
                                 catch (Exception e)
                                 {
-                                    VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception: CheckSlaveMaster, second InvokeOnGameThread: {e}");
+                                    Logging.Instance.WriteLine($"Exception: CheckSlaveMaster, second InvokeOnGameThread: {e}");
                                 }
                             });
                     }  
@@ -486,13 +486,13 @@ namespace NaniteConstructionSystem.Entities
             
             if (Vector3D.Distance(ConstructionBlock.GetPosition(), factory.ConstructionBlock.GetPosition()) > m_maxDistance)
             {
-                //Logging.Instance.WriteLine("Possible master was out of range ...");
+                Logging.Instance.WriteLine("Possible master was out of range ...", 2);
                 bool isInGroup = false;
                 List<IMyCubeGrid> grids = useOtherGridGroup ? factory.GridGroup : GridGroup;
                 foreach (var grid in grids.ToList())
                     if ( (useOtherGridGroup && ConstructionBlock.CubeGrid == grid) || (!useOtherGridGroup && factory.ConstructionBlock.CubeGrid == grid) )
                     {
-                        //Logging.Instance.WriteLine("... but was found in the grid group anyway?");
+                        Logging.Instance.WriteLine("... but was found in the grid group anyway?", 2);
                         isInGroup = true;
                         break;
                     }
@@ -605,7 +605,7 @@ namespace NaniteConstructionSystem.Entities
                         });
                     }
                     catch (Exception e)
-                        {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.AppendingCustomInfo() exception: {e}");}
+                        { Logging.Instance.WriteLine($"NaniteConstructionBlock.AppendingCustomInfo() exception: {e}"); }
                     
                 });
 
@@ -672,7 +672,7 @@ namespace NaniteConstructionSystem.Entities
                 Sink.SetRequiredInputByType(MyResourceDistributorComponent.ElectricityId, _power);
             });
 
-            Logging.Instance.WriteLine($"Factory {ConstructionBlock.EntityId} updated power usage to {_power} MegaWatts");
+            Logging.Instance.WriteLine($"Factory {ConstructionBlock.EntityId} updated power usage to {_power} MegaWatts", 1);
         }
 
         internal bool HasRequiredPowerForNewTarget(NaniteTargetBlocksBase target)
@@ -698,7 +698,7 @@ namespace NaniteConstructionSystem.Entities
                     connectedInventory = Master.InventoryManager.connectedInventory;
                 
                 GridHelper.TryMoveToFreeCargo((MyCubeBlock)m_constructionBlock, connectedInventory, true);
-                Logging.Instance.WriteLine($"PUSHING Factory inventory over 75% full: {m_constructionBlock.EntityId}");
+                Logging.Instance.WriteLine($"PUSHING Factory inventory over 75% full: {m_constructionBlock.EntityId}", 1);
             }
         }
 
@@ -720,7 +720,7 @@ namespace NaniteConstructionSystem.Entities
                 if (Master != null || m_factoryState == FactoryStates.Disabled)
                     return;
                 
-                Logging.Instance.WriteLine("Block added to grid.");
+                Logging.Instance.WriteLine("Block added to grid.", 2);
 
                 TryAddPotentialInventoryBlock(block);
             });
@@ -731,7 +731,7 @@ namespace NaniteConstructionSystem.Entities
             if (block.FatBlock == null || !(block.FatBlock is IMyTerminalBlock)) //|| block.FatBlock is MyDeviceBase)
                 return;
 
-            //Logging.Instance.WriteLine($"Block {block.FatBlock.DisplayNameText} added to inventory check queue.");
+            Logging.Instance.WriteLine($"Block {block.FatBlock.DisplayNameText} added to inventory check queue.", 2);
             m_potentialInventoryBlocks.Add(block);
         }
 
@@ -781,7 +781,7 @@ namespace NaniteConstructionSystem.Entities
                     {
                         if (!newGroup.Contains(grid))
                         {
-                            Logging.Instance.WriteLine("Removing disconnected grid from grid group.");
+                            Logging.Instance.WriteLine("Removing disconnected grid from grid group.", 1);
                             removalList.Add(grid);
                             grid.OnBlockAdded -= OnBlockAdded;
                         }
@@ -795,7 +795,7 @@ namespace NaniteConstructionSystem.Entities
                     {
                         if (!GridGroup.Contains(grid))
                         {
-                            Logging.Instance.WriteLine("Adding new grid to grid group.");
+                            Logging.Instance.WriteLine("Adding new grid to grid group.", 1);
 
                             MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                                 { GridGroup.Add(grid); });
@@ -807,7 +807,7 @@ namespace NaniteConstructionSystem.Entities
                     
                 }
                 catch (Exception ex)
-                    {VRage.Utils.MyLog.Default.WriteLineAndConsole($"CheckGridGroup() Error: {ex.ToString()}");}
+                    { Logging.Instance.WriteLine($"CheckGridGroup() Error: {ex.ToString()}"); }
             });
         }
 
@@ -823,8 +823,8 @@ namespace NaniteConstructionSystem.Entities
                     foreach (var block in slimBlocks)
                         TryAddPotentialInventoryBlock(block);
                 }
-                catch (Exception ex)
-                    {VRage.Utils.MyLog.Default.WriteLineAndConsole($"BuildConnectedInventory() Error: {ex.ToString()}");}
+                catch (Exception e)
+                    { Logging.Instance.WriteLine($"BuildConnectedInventory() Error: {e.ToString()}"); }
             });
         }
         #endregion
@@ -910,14 +910,14 @@ namespace NaniteConstructionSystem.Entities
                             return;
 
                         Logging.Instance.WriteLine(string.Format("ASSEMBLER Queuing {0} {1} for factory {2} ({4} - {3})", 
-                          amount, def.Id, m_constructionBlock.CustomName, blueprintCount, item.Value));
+                          amount, def.Id, m_constructionBlock.CustomName, blueprintCount, item.Value), 1);
 
                         MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                             { target.InsertQueueItem(0, def, amount); });
                     }
 
                     stopwatch.Stop();
-                    //Logging.Instance.WriteLine($"ProcessAssemblerQueue {ConstructionBlock.EntityId}: {(stopwatch.ElapsedTicks * 1000000)/Stopwatch.Frequency} microseconds");
+                    Logging.Instance.WriteLine($"ProcessAssemblerQueue {ConstructionBlock.EntityId}: {(stopwatch.ElapsedTicks * 1000000)/Stopwatch.Frequency} microseconds", 1);
                 });
             },
             () => { // callback runs after parallel task finishes
@@ -978,28 +978,29 @@ namespace NaniteConstructionSystem.Entities
                         ProcessTargetsParallel();
                         ProcessTargets();
                         stopwatch.Stop();
-                        Logging.Instance.WriteLine($"ScanForTargets {ConstructionBlock.EntityId}: {(stopwatch.ElapsedTicks * 1000000)/Stopwatch.Frequency} microseconds");
+                        Logging.Instance.WriteLine($"ScanForTargets {ConstructionBlock.EntityId}: {(stopwatch.ElapsedTicks * 1000000)/Stopwatch.Frequency} microseconds", 1);
                     }
-                    catch (InvalidOperationException ex)
+                    catch (InvalidOperationException e)
                     {
                         Logging.Instance.WriteLine("ScanForTargets InvalidOperationException: "
                           + "This is likely due to a list being modified during enumeration in a parallel thread, "
-                          + $"which is probably harmless.\n{ex.ToString()}");
+                          + $"which is probably harmless.");
+                        Logging.Instance.WriteLine($"{e.ToString()}", 2);
                     }
-                    catch (Exception ex) when (ex.ToString().Contains("IndexOutOfRangeException")) 
+                    catch (Exception e) when (e.ToString().Contains("IndexOutOfRangeException")) 
                     { // because Keen thinks we shouldn't have access to IndexOutOfRangeException ...
                         Logging.Instance.WriteLine("ScanForTargets IndexOutOfRangeException: "
                           + "This is likely due to a list being modified during enumeration in a parallel thread, "
-                          + $"which is probably harmless.\n{ex.ToString()}");
+                          + $"which is probably harmless.");
+                        Logging.Instance.WriteLine($"{e.ToString()}", 2);
                     }
-                    catch (Exception ex)
-                        {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.ScanForTargets Error: {ex.ToString()}");}
+                    catch (Exception e)
+                        {Logging.Instance.WriteLine($"NaniteConstructionBlock.ScanForTargets Error: {e.ToString()}");}
                 },
                 () => { //callback
                     m_takeComponentsTimer = m_updateCount + 100; //  These timers give the parallel threads time to finish
                     m_assemblerUpdateTimer = m_updateCount + 200; // computing and then finding components/lists.
-                    //m_scanningActive = false; // This bool forces the m_factorystate to wait for at least one attempt at 
-                });                           // finding components before moving to the MissingParts state
+                });                           
             }
         }
 
@@ -1015,9 +1016,10 @@ namespace NaniteConstructionSystem.Entities
                 Logging.Instance.WriteLine("ProcessTargetItems InvalidOperationException: "
                     + "A list was modified during enumeration in a parallel thread, "
                     + "which is likely harmless and can be ignored.");
+                Logging.Instance.WriteLine($"{e.ToString()}", 2);
             }
             catch (Exception e)
-                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.ProcessTargetItems() Exception: {e}");}
+                {Logging.Instance.WriteLine($"NaniteConstructionBlock.ProcessTargetItems() Exception:\n{e}");}
         }
 
         /// <summary> Used many times during target processing to determine various factory upgrade attributes </summary>
@@ -1130,15 +1132,16 @@ namespace NaniteConstructionSystem.Entities
                     if (!(item is NaniteDeconstructionTargets))
                         item.ParallelUpdate(GridGroup, blocksToGo);
             }
-            catch (InvalidOperationException ex)
+            catch (InvalidOperationException e)
             {
                 Logging.Instance.WriteLine("NaniteConstructionBlock.ProcessTargetsParallel InvalidOperationException: "
                   + "This is likely due to a list being modified during enumeration in a parallel thread, "
-                  + $"which is probably harmless.\n{ex.ToString()}");
+                  + "which is probably harmless.");
+                Logging.Instance.WriteLine($"{e.ToString()}", 2);
             }
-            catch (Exception ex) 
+            catch (Exception e) 
             {
-                VRage.Utils.MyLog.Default.WriteLineAndConsole($"ProcessTargetsParallel() Error. Clearing blockcache. {ex.ToString()}");
+                Logging.Instance.WriteLine($"ProcessTargetsParallel() Error. Clearing blockcache.\n{e.ToString()}");
                 m_scanBlocksCache.Clear();
             }
         }
@@ -1184,9 +1187,10 @@ namespace NaniteConstructionSystem.Entities
             {
                 Logging.Instance.WriteLine("ProcessTargets InvalidOperationException: "
                   + "A list was modified during enumeration in a parallel thread, which is likely harmless.");
+                Logging.Instance.WriteLine($"{e.ToString()}", 2);
             }
             catch (Exception e) 
-                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"Nanite Construction Factory: Exception at NaniteConstructionBlock.ProcessTargets:\n{e}");}
+                { Logging.Instance.WriteLine($"Nanite Construction Factory: Exception at NaniteConstructionBlock.ProcessTargets:\n{e}"); }
         }
         #endregion
 
@@ -1419,7 +1423,7 @@ namespace NaniteConstructionSystem.Entities
                     });
                 }
                 catch (Exception e)
-                    { VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.ProcessState exception: {e}"); }
+                    { Logging.Instance.WriteLine($"NaniteConstructionBlock.ProcessState exception: {e}"); }
             });
         }
         #endregion
@@ -1485,7 +1489,7 @@ namespace NaniteConstructionSystem.Entities
 
         public void SyncAddTarget(TargetData data)
         {
-            Logging.Instance.WriteLine(string.Format("SYNCADD Target: {0} - {1} | {2} - {3}", data.EntityId, data.PositionI, data.PositionD, data.TargetType.ToString()));
+            Logging.Instance.WriteLine(string.Format("SYNCADD Target: {0} - {1} | {2} - {3}", data.EntityId, data.PositionI, data.PositionD, data.TargetType.ToString()), 1);
 
             try
             {
@@ -1544,7 +1548,7 @@ namespace NaniteConstructionSystem.Entities
                             Logging.Instance.WriteLine(string.Format("SyncAddTarget Error: Can't get projection target block: {0}", data.PositionI.ToString()));
                             return;
                         }
-                        Logging.Instance.WriteLine(string.Format("SyncAddTarget: Found block: {0}", slimBlock.Position.ToString()));
+                        Logging.Instance.WriteLine(string.Format("SyncAddTarget: Found block: {0}", slimBlock.Position.ToString()), 1);
                     }
                     else
                     {
@@ -1621,7 +1625,7 @@ namespace NaniteConstructionSystem.Entities
         {
             try
             {
-                Logging.Instance.WriteLine(string.Format("SYNCCOMPLETE Target: {0} - {1} | {2} - {3}", data.EntityId, data.PositionI, data.PositionD, data.TargetType.ToString()));
+                Logging.Instance.WriteLine(string.Format("SYNCCOMPLETE Target: {0} - {1} | {2} - {3}", data.EntityId, data.PositionI, data.PositionD, data.TargetType.ToString()), 1);
 
                 if (data.TargetType == TargetTypes.Floating)
                 {
@@ -1726,7 +1730,7 @@ namespace NaniteConstructionSystem.Entities
 
         public void SyncCancelTarget(TargetData data)
         {
-            Logging.Instance.WriteLine(string.Format("SYNCCANCEL Target: {0} - {1} | {2} - {3}", data.EntityId, data.PositionI, data.PositionD, data.TargetType.ToString()));
+            Logging.Instance.WriteLine(string.Format("SYNCCANCEL Target: {0} - {1} | {2} - {3}", data.EntityId, data.PositionI, data.PositionD, data.TargetType.ToString()), 1);
             try
             {
                 if (data.TargetType == TargetTypes.Floating)
@@ -1823,7 +1827,7 @@ namespace NaniteConstructionSystem.Entities
                 SendToPlayerInSyncRange(8974, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
             }
             catch (Exception e)
-                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.SendFactoryGroup exception: {e}");}
+                { Logging.Instance.WriteLine($"NaniteConstructionBlock.SendFactoryGroup exception:\n{e}"); }
         }
 
         public void SyncDetails(DetailData data)
@@ -1842,7 +1846,7 @@ namespace NaniteConstructionSystem.Entities
                 try
                     {factoryGroup.Add(NaniteConstructionManager.NaniteBlocks[factoryID]);}
                 catch (Exception e)
-                    {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.SyncFactoryGroup exception: {e}");}
+                    { Logging.Instance.WriteLine($"NaniteConstructionBlock.SyncFactoryGroup exception:\n{e}"); }
                 
             FactoryGroup = factoryGroup.ToList();
         }
@@ -1889,15 +1893,12 @@ namespace NaniteConstructionSystem.Entities
 
                             else if(item is NaniteConstructionTargets && target.IsFullIntegrity && !target.HasDeformation)
                                 MyAPIGateway.Utilities.InvokeOnGameThread(() => {item.CompleteTarget(target);});
-
-                            //else if(!item.IsEnabled())
-                                //MyAPIGateway.Utilities.InvokeOnGameThread(() => {item.CancelTarget(target);});
                         }
                     }
                 });
             }
-            catch(Exception ex)
-                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionBlock.CleanupTargets Exception: {ex.ToString()}");}
+            catch(Exception e)
+                { Logging.Instance.WriteLine($"NaniteConstructionBlock.CleanupTargets Exception: {e.ToString()}"); }
         }
 
         public T GetTarget<T>() where T : NaniteTargetBlocksBase

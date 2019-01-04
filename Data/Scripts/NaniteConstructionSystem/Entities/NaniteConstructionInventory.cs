@@ -94,7 +94,7 @@ namespace NaniteConstructionSystem.Entities
                                 }
                                 catch (Exception ex)
                                 {
-                                    VRage.Utils.MyLog.Default.WriteLineAndConsole($"Nanite Control Factory: Exception in NaniteConstructionInventory.TakeRequiredComponents:\n{ex.ToString()}");
+                                    Logging.Instance.WriteLine($"Nanite Control Factory: Exception in NaniteConstructionInventory.TakeRequiredComponents:\n{ex.ToString()}");
                                 }
                             });
                         }
@@ -103,11 +103,11 @@ namespace NaniteConstructionSystem.Entities
             }
             catch (InvalidOperationException ex)
             {
-                Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Aborting.");
+                Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Aborting.", 1);
             }
             catch (Exception ex) when (ex.ToString().Contains("IndexOutOfRangeException")) //because Keen thinks we shouldn't have access to this exception ...
             {
-                Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Aborting.");
+                Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Aborting.", 1);
             }
 
             foreach (IMyInventory inv in removalList)
@@ -310,7 +310,7 @@ namespace NaniteConstructionSystem.Entities
                 IMyInventory inventory = GetConstructionInventory();
                 if (inventory == null)
                 {
-                    Logging.Instance.WriteLine($"Inventory is null = {(inventory == null)}.");
+                    Logging.Instance.WriteLine($"NaniteConstructionInventory.ProcessMissingComponents(): Inventory is null = {(inventory == null)}.");
                     return false;
                 }
 
@@ -331,7 +331,7 @@ namespace NaniteConstructionSystem.Entities
                     }
                     catch (Exception ex)
                     {
-                        VRage.Utils.MyLog.Default.WriteLineAndConsole($"Process Error: {ex.ToString()}");
+                        Logging.Instance.WriteLine($"NaniteConstructionInventory.ProcessMissingComponents():\n{ex.ToString()}");
                         return false;
                     }
 

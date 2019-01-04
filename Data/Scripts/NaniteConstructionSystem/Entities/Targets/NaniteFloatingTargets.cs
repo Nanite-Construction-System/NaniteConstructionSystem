@@ -85,7 +85,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     AddTarget(item);
                     
                     Logging.Instance.WriteLine(string.Format("ADDING Floating Object Target: conid={0} type={1} entityID={2} position={3}", 
-                        m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.EntityId, item.GetPosition()));
+                        m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.EntityId, item.GetPosition()), 1);
 
                     if (++TargetListCount >= maxTargets) 
                         break;
@@ -173,7 +173,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         trackedItem.LastUpdate = MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds;
                         if (!TransferFromTarget((IMyEntity)target))
                         {
-                            Logging.Instance.WriteLine("CANCELLING Cleanup Target due to insufficient storage");
+                            Logging.Instance.WriteLine("CANCELLING Cleanup Target due to insufficient storage", 1);
                             CancelTarget(floating);
                         }
                     }
@@ -272,7 +272,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         public void CancelTarget(IMyEntity obj)
         {
             Logging.Instance.WriteLine(string.Format("CANCELLING Floating Object Target: {0} - {1} (EntityID={2},Position={3})", 
-              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.EntityId, obj.GetPosition()));
+              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.EntityId, obj.GetPosition()), 1);
 
             if (Sync.IsServer)
                 m_constructionBlock.SendCancelTarget(obj);
@@ -294,7 +294,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             foreach (IMyEntity item in TargetList.Where(x => ((IMyEntity)x).EntityId == entityId))
                 Logging.Instance.WriteLine(string.Format("COMPLETING Floating Object Target: {0} - {1} (EntityID={2},Position={3})", 
-                  m_constructionBlock.ConstructionBlock.EntityId, item.EntityId, item.GetPosition()));
+                  m_constructionBlock.ConstructionBlock.EntityId, item.EntityId, item.GetPosition()), 1);
 
             TargetList.RemoveAll(x => ((IMyEntity)x).EntityId == entityId);
             PotentialTargetList.RemoveAll(x => ((IMyEntity)x).EntityId == entityId);            
@@ -317,7 +317,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         public void CompleteTarget(IMyEntity obj)
         {
             Logging.Instance.WriteLine(string.Format("COMPLETING Floating Object Target: {0} - {1} (EntityID={2},Position={3})", 
-              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.EntityId, obj.GetPosition()));
+              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.EntityId, obj.GetPosition()), 1);
 
             if (Sync.IsServer)
                 m_constructionBlock.SendCompleteTarget(obj);
@@ -339,7 +339,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             foreach(IMyEntity item in TargetList.Where(x => ((IMyEntity)x).EntityId == entityId))
                 Logging.Instance.WriteLine(string.Format("COMPLETING Floating Object Target: {0} - {1} (EntityID={2},Position={3})", 
-                  m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.EntityId, item.GetPosition()));
+                  m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.EntityId, item.GetPosition()), 1);
 
             TargetList.RemoveAll(x => ((IMyEntity)x).EntityId == entityId);
             PotentialTargetList.RemoveAll(x => ((IMyEntity)x).EntityId == entityId);
@@ -347,7 +347,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void CreateFloatingParticle(IMyEntity target)
         {
-            Logging.Instance.WriteLine("COMPLETING Floating Object Target: CreateFloatingParticle");
+            Logging.Instance.WriteLine("COMPLETING Floating Object Target: CreateFloatingParticle", 1);
             double distance = Vector3D.Distance(m_constructionBlock.ConstructionBlock.GetPosition(), target.GetPosition());
             int time = (int)Math.Max(GetMinTravelTime() * 1000f, (distance / GetSpeed()) * 1000f);
 
@@ -391,7 +391,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
             catch
             {
-                Logging.Instance.WriteLine("Error getting entities, skipping");
+                Logging.Instance.WriteLine("NaniteFloatingTargets.ParallelUpdate: Error getting entities, skipping.");
                 return; 
             }
 

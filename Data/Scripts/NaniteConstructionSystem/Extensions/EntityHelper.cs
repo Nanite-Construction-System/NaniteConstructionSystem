@@ -85,7 +85,7 @@ namespace NaniteConstructionSystem.Extensions
             }
             catch (Exception e)
             {
-                VRage.Utils.MyLog.Default.WriteLineAndConsole($"IsValidInventoryConnection exception: {e}.");
+                Logging.Instance.WriteLine($"IsValidInventoryConnection exception:\n{e}.");
                 return false;
             }
         }
@@ -130,7 +130,7 @@ namespace NaniteConstructionSystem.Extensions
                                     targetInventory.Add(subItem, amountFits);
                             }
                             catch (Exception e)
-                                {Logging.Instance.WriteLine($"NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo:{e.ToString()}");}
+                                {Logging.Instance.WriteLine($"NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo:\n{e.ToString()}");}
                         });
                     }
                 }
@@ -141,11 +141,11 @@ namespace NaniteConstructionSystem.Extensions
             }
             catch (InvalidOperationException ex)
             {
-                Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Aborting.");
+                Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Aborting.", 1);
             }
             catch (Exception ex) when (ex.ToString().Contains("IndexOutOfRangeException")) //because Keen thinks we shouldn't have access to this exception ...
             {
-                Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Aborting.");
+                Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Aborting.", 1);
             }
         }
     }

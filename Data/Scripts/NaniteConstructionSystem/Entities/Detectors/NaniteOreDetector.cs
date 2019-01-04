@@ -343,7 +343,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
             MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                 { Sink.Update(); });
 
-            Logging.Instance.WriteLine($"Updated Nanite Ore Detector power {_power}");
+            Logging.Instance.WriteLine($"Updated Nanite Ore Detector power {_power}", 1);
         }
 
         public List<string> GetScanningFrequencies()
@@ -570,7 +570,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
         public void UpdateDeposits(ref BoundingSphereD sphere, long detectorId, NaniteOreDetector detectorComponent)
         { // Invoked from parallel task
-            Logging.Instance.WriteLine($"UpdateDeposits Tasks: Running:{m_tasksRunning} Initial tasks:{m_initialTasks} Processed tasks:{m_processedTasks} Timeout:{m_tasksTimeout}");
+            Logging.Instance.WriteLine($"UpdateDeposits Tasks: Running:{m_tasksRunning} Initial tasks:{m_initialTasks} Processed tasks:{m_processedTasks} Timeout:{m_tasksTimeout}", 1);
 
             if (m_tasksRunning > 0)
             {
@@ -623,7 +623,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
             if (m_lastDetectionMin == null || m_lastDetectionMax == null)
             { // First scan
-                Logging.Instance.WriteLine($"UpdateDeposits First scan");
+                Logging.Instance.WriteLine($"UpdateDeposits First scan", 1);
 
                 detectorComponent.ClearMinedPositions();
                 
@@ -632,13 +632,13 @@ namespace NaniteConstructionSystem.Entities.Detectors
             }
             else if (m_lastDetectionMin == minCorner && m_lastDetectionMax == maxCorner)
             { // sphere still at some position
-                Logging.Instance.WriteLine($"UpdateDeposits sphere still at some position");
+                Logging.Instance.WriteLine($"UpdateDeposits sphere still at some position", 1);
                 SpawnQueueWorker();
                 return;
             }
             else if (m_lastDetectionMin != minCorner || m_lastDetectionMax != maxCorner)
             { // sphere moved, RESET QUEUES
-                Logging.Instance.WriteLine($"UpdateDeposits sphere moved");
+                Logging.Instance.WriteLine($"UpdateDeposits sphere moved", 1);
                 m_lastDetectionMin = minCorner;
                 m_lastDetectionMax = maxCorner;
                 Materials.Clear();
@@ -668,14 +668,14 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 cell.Z++;
             }
 
-            Logging.Instance.WriteLine($"UpdateDeposits setup queue {m_taskQueue.Count}");
+            Logging.Instance.WriteLine($"UpdateDeposits setup queue {m_taskQueue.Count}", 1);
             MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                 { m_initialTasks = m_taskQueue.Count; });
         }
 
         private void SpawnQueueWorker()
         {
-            Logging.Instance.WriteLine($"SpawnQueueWorker {Math.Min(m_taskQueue.Count, 10)}");
+            Logging.Instance.WriteLine($"SpawnQueueWorker {Math.Min(m_taskQueue.Count, 10)}", 1);
             for (int i = 0; i < Math.Min(m_taskQueue.Count, 10); i++)
             {
                 Vector3I vector;
@@ -764,7 +764,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
         private void ProcessCell(MyStorageData cache, IMyStorage storage, Vector3I cell, long detectorId)
         {
-            bool m_miningDebug = false;
+            //bool m_miningDebug = false;
 
             if (cache == null || storage == null)
                 return;
@@ -783,17 +783,17 @@ namespace NaniteConstructionSystem.Entities.Detectors
             if (readingTime > 1000)
                 MyAPIGateway.Parallel.Sleep((int)(readingTime / 1000));
 
-            if (m_miningDebug)
-                Logging.Instance.WriteLine($"ProcessCell.ReadRange(1) took {(stopwatch.ElapsedTicks * 1000000)/Stopwatch.Frequency} microseconds");
+            //if (m_miningDebug)
+                //Logging.Instance.WriteLine($"ProcessCell.ReadRange(1) took {(stopwatch.ElapsedTicks * 1000000)/Stopwatch.Frequency} microseconds");
 
             if (cache.ContainsVoxelsAboveIsoLevel())
             {
-                Stopwatch stopwatch2 = Stopwatch.StartNew();
+                //Stopwatch stopwatch2 = Stopwatch.StartNew();
                 storage.ReadRange(cache, MyStorageDataTypeFlags.Material, 0, vector3I, lodVoxelRangeMax, ref flag);
-                stopwatch2.Stop();
+                //stopwatch2.Stop();
 
-                if (m_miningDebug)
-                    Logging.Instance.WriteLine($"ProcessCell.ReadRange(2) took {(stopwatch2.ElapsedTicks * 1000000)/Stopwatch.Frequency} microseconds");
+                //if (m_miningDebug)
+                    //Logging.Instance.WriteLine($"ProcessCell.ReadRange(2) took {(stopwatch2.ElapsedTicks * 1000000)/Stopwatch.Frequency} microseconds");
 
                 Vector3I p = default(Vector3I);
                 p.Z = 0;

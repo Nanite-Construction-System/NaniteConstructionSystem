@@ -32,7 +32,7 @@ namespace NaniteConstructionSystem.Entities
 
             IMySlimBlock slimBlock = ((MyCubeBlock)m_block.ConstructionBlock).SlimBlock as IMySlimBlock;
             Logging.Instance.WriteLine(string.Format("ADDING Nanite Factory: conid={0} physics={1} ratio={2}", 
-              Entity.EntityId, m_block.ConstructionBlock.CubeGrid.Physics == null, slimBlock.BuildLevelRatio));
+              Entity.EntityId, m_block.ConstructionBlock.CubeGrid.Physics == null, slimBlock.BuildLevelRatio), 1);
 
             if (NaniteConstructionManager.NaniteSync != null)
                 NaniteConstructionManager.NaniteSync.SendNeedTerminalSettings(Entity.EntityId);
@@ -43,7 +43,7 @@ namespace NaniteConstructionSystem.Entities
             try
                 {m_block.Update();}
             catch (System.Exception e)
-                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"LargeControlFacilityLogic.UpdateBeforeSimulation Exception: {e.ToString()}");}
+                { Logging.Instance.WriteLine($"LargeControlFacilityLogic.UpdateBeforeSimulation Exception: {e.ToString()}"); }
         }
 
         public override void Close()
@@ -51,7 +51,7 @@ namespace NaniteConstructionSystem.Entities
             if (NaniteConstructionManager.NaniteBlocks != null && Entity != null)
             {
                 NaniteConstructionManager.NaniteBlocks.Remove(Entity.EntityId);
-                Logging.Instance.WriteLine(string.Format("REMOVING Nanite Factory: {0}", Entity.EntityId));
+                Logging.Instance.WriteLine(string.Format("REMOVING Nanite Factory: {0}", Entity.EntityId), 1);
             }
 
             if (m_block != null)

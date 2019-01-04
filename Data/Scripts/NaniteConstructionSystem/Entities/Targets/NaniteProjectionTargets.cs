@@ -138,7 +138,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     IMySlimBlock slimBlock = (IMySlimBlock)item;
                     var def = slimBlock.BlockDefinition as MyCubeBlockDefinition;
                     Logging.Instance.WriteLine(string.Format("ADDING Projection Target: conid={0} subtypeid={1} entityID={2} position={3}", 
-                        m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, slimBlock.FatBlock != null ? slimBlock.FatBlock.EntityId : 0, slimBlock.Position));
+                        m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, slimBlock.FatBlock != null ? slimBlock.FatBlock.EntityId : 0, slimBlock.Position), 1);
 
                     if (++TargetListCount >= maxTargets) 
                         break;
@@ -173,26 +173,10 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 if (target.CubeGrid.GetPosition() == Vector3D.Zero)
                 {
-                    Logging.Instance.WriteLine("CANCELLING Projection Target due to invalid position");
+                    Logging.Instance.WriteLine("CANCELLING Projection Target due to invalid position", 1);
                     CancelTarget(target);
                     return;
                 }
-
-                /*
-                if (!IsEnabled())
-                {
-                    Logging.Instance.WriteLine("CANCELLING Projection Target due to being disabled");
-                    CancelTarget(target);
-                    return;
-                }
-
-                if (!m_constructionBlock.IsPowered())
-                {
-                    Logging.Instance.WriteLine("CANCELLING Projection Target due to power shortage");
-                    CancelTarget(target);
-                    return;
-                }
-                */
 
                 if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
                     return;
@@ -213,7 +197,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     m_targetBlocks[target].CheckInventory = true;
                     if (!m_constructionBlock.InventoryManager.ProcessMissingComponents(target))
                     {
-                        Logging.Instance.WriteLine("CANCELLING Projection Target due to missing components");
+                        Logging.Instance.WriteLine("CANCELLING Projection Target due to missing components", 1);
                         CancelTarget(target);
                         return;
                     }
@@ -232,7 +216,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         public void CancelTarget(IMySlimBlock target)
         {
             Logging.Instance.WriteLine(string.Format("CANCELLING Projection Target: {0} - {1} (EntityID={2},Position={3})", 
-              m_constructionBlock.ConstructionBlock.EntityId, target.GetType().Name, target.FatBlock != null ? target.FatBlock.EntityId : 0, target.Position));
+              m_constructionBlock.ConstructionBlock.EntityId, target.GetType().Name, target.FatBlock != null ? target.FatBlock.EntityId : 0, target.Position), 1);
 
             if (Sync.IsServer)
                 m_constructionBlock.SendCancelTarget(target, TargetTypes.Projection, GetProjectorByBlock(target));
@@ -264,7 +248,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         public void CompleteTarget(IMySlimBlock target)
         {
             Logging.Instance.WriteLine(string.Format("COMPLETING Projection Target: {0} - {1} (EntityID={2},Position={3})", 
-              m_constructionBlock.ConstructionBlock.EntityId, target.GetType().Name, target.FatBlock != null ? target.FatBlock.EntityId : 0, target.Position));
+              m_constructionBlock.ConstructionBlock.EntityId, target.GetType().Name, target.FatBlock != null ? target.FatBlock.EntityId : 0, target.Position), 1);
 
             if (Sync.IsServer)
                 m_constructionBlock.SendCompleteTarget(target, TargetTypes.Projection, GetProjectorByBlock(target));
@@ -279,7 +263,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             if (!m_targetBlocks.ContainsKey(target))
             {
-                Logging.Instance.WriteLine($"ADD ProjectionParticle Target: {target.Position}");
+                Logging.Instance.WriteLine($"ADD ProjectionParticle Target: {target.Position}", 1);
                 NaniteProjectionTarget projectionTarget = new NaniteProjectionTarget();
                 projectionTarget.ParticleCount = 0;
                 projectionTarget.StartTime = (int)MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds;
@@ -479,7 +463,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (slimBlock == null || slimBlock.FatBlock == null)
                     return false;
 
-                Logging.Instance.WriteLine(string.Format("Can not add block: {0}: {1} - {2} {3} {4} {5}", slimBlock.FatBlock.EntityId, blockDefinition.Id, projectedMin, projectedMax, blockMin, blockMax)); //, slimBlock.FatBlock.EntityId));
+                Logging.Instance.WriteLine(string.Format("Can not add block: {0}: {1} - {2} {3} {4} {5}",
+                  slimBlock.FatBlock.EntityId, blockDefinition.Id, projectedMin, projectedMax, blockMin, blockMax), 1);
                 return false;
             }
 
@@ -517,9 +502,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
             }
 
-            if(projectorBuilder == null)
+            if (projectorBuilder == null)
             {
-                Logging.Instance.WriteLine("PROBLEM Can not locate projector that is projecting target!");
+                Logging.Instance.WriteLine("PROBLEM Can not locate projector that is projecting target!", 1);
                 return;
             }
 

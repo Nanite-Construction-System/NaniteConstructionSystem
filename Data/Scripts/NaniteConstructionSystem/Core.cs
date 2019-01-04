@@ -204,7 +204,7 @@ namespace NaniteConstructionSystem
 
             try
             {
-                Logging.Instance.WriteLine($"Logging Started");
+                Logging.Instance.WriteLine("Logging Started");
 
                 if (!Sync.IsServer)
                 {
@@ -249,15 +249,9 @@ namespace NaniteConstructionSystem
                 ProjectorBlocks.Clear();
                 AssemblerBlocks.Clear();
 
-                //foreach (var item in BeaconList.ToList())
-                //    item.Value.Close();
-
                 BeaconList.Clear();
 
                 Logging.Instance.Close();
-
-                //if(Logging.Instance != null)
-                //    Logging.Instance.Close();
             }
             catch (Exception ex) { Logging.Instance.WriteLine($"Exception in BeforeStart: {ex}"); }
         }

@@ -252,7 +252,13 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
 
                 MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                    {PotentialTargetListCount = m_potentialMiningTargets.Count;});
+                    { PotentialTargetListCount = m_potentialMiningTargets.Count; });
+            }
+            catch (ArgumentException e)
+            {
+                Logging.Instance.WriteLine("NaniteMiningTargets.ParallelUpdate: An ArgumentException "
+                    + "('Destination array is not long enough') was caught. This is probably harmless and can be ignored.");
+                Logging.Instance.WriteLine($"{e}", 2);
             }
             catch (Exception e)
                 { Logging.Instance.WriteLine($"{e}"); }
@@ -312,7 +318,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             MyVoxelBase voxelBase = voxel as MyVoxelBase;
 
             minVoxel += voxelBase.StorageMin;
-            maxVoxel += voxelBase.StorageMin;// + 4;
+            maxVoxel += voxelBase.StorageMin;
 
             voxel.Storage.ClampVoxel(ref minVoxel);
             voxel.Storage.ClampVoxel(ref maxVoxel);
@@ -332,23 +338,23 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             if (original == MyVoxelConstants.VOXEL_CONTENT_EMPTY)
             {
-                Logging.Instance.WriteLine("Content is empty!");
+                Logging.Instance.WriteLine("Content is empty!", 2);
                 MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                     {AddMinedPosition(target);});
                 return false;
             }
 
-            Logging.Instance.WriteLine($"Material: SizeLinear: {cache.SizeLinear}, Size3D: {cache.Size3D}, AboveISO: {cache.ContainsVoxelsAboveIsoLevel()}");
+            Logging.Instance.WriteLine($"Material: SizeLinear: {cache.SizeLinear}, Size3D: {cache.Size3D}, AboveISO: {cache.ContainsVoxelsAboveIsoLevel()}", 2);
             cache.Content(0, 0);
 
             var voxelMat = target.Definition;
             target.Amount = CalculateAmount(voxelMat, original * 8f);
 
-            Logging.Instance.WriteLine($"Removing: {target.Position} ({material2} {amount})");
+            Logging.Instance.WriteLine($"Removing: {target.Position} ({material2} {amount})", 2);
 
             if (material2 == 0)
             {
-                Logging.Instance.WriteLine(string.Format("Material is 0", target.VoxelId));
+                Logging.Instance.WriteLine("Material is 0", 2);
                 MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                     {AddMinedPosition(target);});
                 return false;
@@ -356,7 +362,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             if (target.Amount == 0f)
             {
-                Logging.Instance.WriteLine(string.Format("Amount is 0", target.VoxelId));
+                Logging.Instance.WriteLine("Amount is 0", 2);
                 MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                     {AddMinedPosition(target);});
                 return false;
@@ -421,7 +427,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (Vector3D.DistanceSquared(nearestFactory.ConstructionBlock.GetPosition(), item.Position) < m_maxDistance * m_maxDistance)
                 {
                     Logging.Instance.WriteLine(string.Format("ADDING Mining Target: conid={0} pos={1} type={2}", 
-                        m_constructionBlock.ConstructionBlock.EntityId, item.Position, MyDefinitionManager.Static.GetVoxelMaterialDefinition(item.VoxelMaterial).MinedOre));
+                        m_constructionBlock.ConstructionBlock.EntityId, item.Position, MyDefinitionManager.Static.GetVoxelMaterialDefinition(item.VoxelMaterial).MinedOre), 1);
 
                     removeList.Add(item);
                     usedPositions.Add(item.Position);
@@ -579,7 +585,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                                 var ownerName = targetInventory.Owner as IMyTerminalBlock;
                                 if (ownerName != null)
-                                    Logging.Instance.WriteLine($"TRANSFER Adding {target.Amount} {item.GetId().SubtypeName} to {ownerName.CustomName}");
+                                    Logging.Instance.WriteLine($"TRANSFER Adding {target.Amount} {item.GetId().SubtypeName} to {ownerName.CustomName}", 1);
 
                                 if (!targetInventory.AddItems((MyFixedPoint)(target.Amount), item))
                                 {
@@ -597,7 +603,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                                 return;
                             }
 
-                            Logging.Instance.WriteLine("Mined materials could not be moved. No free cargo space (probably)!");
+                            Logging.Instance.WriteLine("Mined materials could not be moved. No free cargo space (probably)!", 1);
                             CancelTarget(target);
                         }
                         catch (Exception e)
@@ -617,7 +623,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             foreach (var oreDetector in NaniteConstructionManager.OreDetectors)
                 if ((long)target.OreDetectorId == (long)((MyEntity)oreDetector.Value.Block).EntityId)
                 {
-                    Logging.Instance.WriteLine($"Adding a mined position{target.Position}");
+                    Logging.Instance.WriteLine($"Adding a mined position{target.Position}", 2);
                     oreDetector.Value.minedPositions.Add(target.Position);
                 }
         }
@@ -640,7 +646,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             var target = obj as NaniteMiningItem;
             Logging.Instance.WriteLine(string.Format("CANCELLED Mining Target: {0} - {1} (VoxelID={2},Position={3})",
-              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, target.VoxelId, target.Position));
+              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, target.VoxelId, target.Position), 1);
 
             if (Sync.IsServer)
                 m_constructionBlock.SendCompleteTarget((NaniteMiningItem)obj);
@@ -656,7 +662,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             var target = obj as NaniteMiningItem;
             Logging.Instance.WriteLine(string.Format("COMPLETED Mining Target: {0} - {1} (VoxelID={2},Position={3})",
-              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, target.VoxelId, target.Position));
+              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, target.VoxelId, target.Position), 1);
 
             if (Sync.IsServer)
                 m_constructionBlock.SendCompleteTarget((NaniteMiningItem)obj);

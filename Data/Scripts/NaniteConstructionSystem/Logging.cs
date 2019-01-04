@@ -41,8 +41,11 @@ namespace NaniteConstructionSystem
             catch { }
         }
 
-        public void WriteLine(string text)
+        public void WriteLine(string text, int logging = 0)
         {
+            if (logging != 0 && NaniteConstructionManager.Settings != null && NaniteConstructionManager.Settings.DebugLogging != null && NaniteConstructionManager.Settings.DebugLogging < logging)
+                return;
+            
             MyAPIGateway.Parallel.Start(() =>
             {
                 try

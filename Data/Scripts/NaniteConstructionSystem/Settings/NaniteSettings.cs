@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ProtoBuf;
 using Sandbox.ModAPI;
 
@@ -137,6 +137,8 @@ namespace NaniteConstructionSystem.Settings
         public float UpgradeComponentMultiplier { get; set; }
         [ProtoMember(64)]
         public float OreDetectorPowerMultiplicator { get; set; }
+        [ProtoMember(65)]
+        public int DebugLogging { get; set; }
 
         public string Version { get; set; }
 
@@ -206,10 +208,12 @@ namespace NaniteConstructionSystem.Settings
             FactoryComponentMultiplier = 1f;
             UpgradeComponentMultiplier = 1f;
             OreDetectorPowerMultiplicator = 1f;
-            Version = "1.0";
+            DebugLogging = 0;
+            Version = "2.0";
         }
 
-        public static NaniteSettings Load() {
+        public static NaniteSettings Load()
+        {
 			if (MyAPIGateway.Utilities.FileExistsInWorldStorage(SettingsFile, typeof(NaniteSettings)))
             {
                 try

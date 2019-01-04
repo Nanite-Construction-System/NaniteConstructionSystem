@@ -35,7 +35,7 @@ namespace NaniteConstructionSystem
             if (MyAPIGateway.Session.Player != null)
                 message.SenderSteamId = MyAPIGateway.Session.Player.SteamUserId;
             var byteData = MyAPIGateway.Utilities.SerializeToBinary<MessageBase>(message);
-            Logging.Instance.WriteLine(string.Format("SendMessageToServer {0} {1} {2}, {3}b", message.SenderSteamId, message.Side, message.GetType().Name, byteData.Length));
+            Logging.Instance.WriteLine(string.Format("SendMessageToServer {0} {1} {2}, {3}b", message.SenderSteamId, message.Side, message.GetType().Name, byteData.Length), 1);
             MyAPIGateway.Multiplayer.SendMessageToServer(MessageId, byteData);
         }
 
@@ -103,7 +103,7 @@ namespace NaniteConstructionSystem
             message.Side = MessageSide.ClientSide;
             var byteData = MyAPIGateway.Utilities.SerializeToBinary(message);
 
-            Logging.Instance.WriteLine(string.Format("SendMessageToPlayer {0} {1} {2}, {3}b", steamId, message.Side, message.GetType().Name, byteData.Length));
+            Logging.Instance.WriteLine(string.Format("SendMessageToPlayer {0} {1} {2}, {3}b", steamId, message.Side, message.GetType().Name, byteData.Length), 1);
 
             MyAPIGateway.Multiplayer.SendMessageTo(MessageId, byteData, steamId);
         }
@@ -114,10 +114,10 @@ namespace NaniteConstructionSystem
             {
                 var message = MyAPIGateway.Utilities.SerializeFromBinary<MessageBase>(data);
 
-                Logging.Instance.WriteLine("HandleMessage()");
+                Logging.Instance.WriteLine("HandleMessage()", 1);
                 if (message != null)
                 {
-                    Logging.Instance.WriteLine(string.Format("HandleMessage() {0} {1} {2}, {3}b", message.SenderSteamId, message.Side, message.GetType().Name, data.Length));
+                    Logging.Instance.WriteLine(string.Format("HandleMessage() {0} {1} {2}, {3}b", message.SenderSteamId, message.Side, message.GetType().Name, data.Length), 1);
                     message.InvokeProcessing();
                 }
                 return;
@@ -180,7 +180,7 @@ namespace NaniteConstructionSystem
 
         private void InvokeClientProcessing()
         {
-            Logging.Instance.WriteLine(string.Format("START - Processing [Client] {0}", this.GetType().Name));
+            Logging.Instance.WriteLine(string.Format("START - Processing [Client] {0}", this.GetType().Name), 1);
             try
             {
                 ProcessClient();
@@ -189,12 +189,12 @@ namespace NaniteConstructionSystem
             {
                 Logging.Instance.WriteLine(ex.ToString());
             }
-            Logging.Instance.WriteLine(string.Format("END - Processing [Client] {0}", this.GetType().Name));
+            Logging.Instance.WriteLine(string.Format("END - Processing [Client] {0}", this.GetType().Name), 1);
         }
 
         private void InvokeServerProcessing()
         {
-            Logging.Instance.WriteLine(string.Format("START - Processing [Server] {0}", this.GetType().Name));
+            Logging.Instance.WriteLine(string.Format("START - Processing [Server] {0}", this.GetType().Name), 1);
 
             try
             {
@@ -205,7 +205,7 @@ namespace NaniteConstructionSystem
                 Logging.Instance.WriteLine(ex.ToString());
             }
 
-            Logging.Instance.WriteLine(string.Format("END - Processing [Server] {0}", this.GetType().Name));
+            Logging.Instance.WriteLine(string.Format("END - Processing [Server] {0}", this.GetType().Name), 1);
         }
 
         public abstract void ProcessClient();
@@ -221,12 +221,12 @@ namespace NaniteConstructionSystem
         public override void ProcessClient()
         {
             NaniteConstructionManager.Settings = Settings;
-            Logging.Instance.WriteLine(string.Format("Received Settings Data - {0}x {1}x", NaniteConstructionManager.Settings.FactoryComponentMultiplier, NaniteConstructionManager.Settings.UpgradeComponentMultiplier));
+            Logging.Instance.WriteLine(string.Format("Received Settings Data - {0}x {1}x", NaniteConstructionManager.Settings.FactoryComponentMultiplier, NaniteConstructionManager.Settings.UpgradeComponentMultiplier), 1);
 
             foreach (var item in NaniteConstructionManager.NaniteBlocks)
             {
                 IMySlimBlock slimBlock = ((MyCubeBlock)item.Value.ConstructionBlock).SlimBlock as IMySlimBlock;
-                Logging.Instance.WriteLine(string.Format("Here: {0} / {1}", slimBlock.BuildIntegrity, slimBlock.MaxIntegrity));
+                Logging.Instance.WriteLine(string.Format("Here: {0} / {1}", slimBlock.BuildIntegrity, slimBlock.MaxIntegrity), 1);
             }
 
             var def = MyDefinitionManager.Static.GetCubeBlockDefinition(new MyDefinitionId(typeof(MyObjectBuilder_ShipWelder), "LargeNaniteControlFacility"));
@@ -240,7 +240,7 @@ namespace NaniteConstructionSystem
             foreach (var item in NaniteConstructionManager.NaniteBlocks)
             {
                 IMySlimBlock slimBlock = ((MyCubeBlock)item.Value.ConstructionBlock).SlimBlock as IMySlimBlock;
-                Logging.Instance.WriteLine(string.Format("Here: {0} / {1}", slimBlock.BuildIntegrity, slimBlock.MaxIntegrity));
+                Logging.Instance.WriteLine(string.Format("Here: {0} / {1}", slimBlock.BuildIntegrity, slimBlock.MaxIntegrity), 1);
             }
 
             NaniteConstructionManager.Instance.UpdateSettingsChanges();
@@ -263,7 +263,7 @@ namespace NaniteConstructionSystem
 
         public override void ProcessServer()
         {
-            Logging.Instance.WriteLine(string.Format("Sending config to new client: {0}", SenderSteamId));
+            Logging.Instance.WriteLine(string.Format("Sending config to new client: {0}", SenderSteamId), 1);
             // Send new clients the configuration
             MessageHub.SendMessageToPlayer(SenderSteamId, new MessageConfig() { Settings = NaniteConstructionManager.Settings });
         }
@@ -305,7 +305,7 @@ namespace NaniteConstructionSystem
             if (Settings == null)
             {
                 // Client request settings{
-                Logging.Instance.WriteLine(string.Format("Sending ore detector settings to client: {0}", SenderSteamId));
+                Logging.Instance.WriteLine(string.Format("Sending ore detector settings to client: {0}", SenderSteamId), 1);
                 MessageHub.SendMessageToPlayer(SenderSteamId, new MessageOreDetectorSettings()
                 {
                     EntityId = ent.EntityId,
@@ -322,7 +322,7 @@ namespace NaniteConstructionSystem
             {
                 // Client update Settings
                 logic.Detector.Settings.Settings = Settings;
-                Logging.Instance.WriteLine(string.Format("Sending ore detector settings to other client: {0}", SenderSteamId));
+                Logging.Instance.WriteLine(string.Format("Sending ore detector settings to other client: {0}", SenderSteamId), 1);
                 MessageHub.SendMessageToAllOtherPlayers(SenderSteamId, new MessageOreDetectorSettings()
                 {
                     EntityId = ent.EntityId,
