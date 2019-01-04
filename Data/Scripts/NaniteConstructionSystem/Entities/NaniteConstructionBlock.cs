@@ -369,54 +369,31 @@ namespace NaniteConstructionSystem.Entities
 		#region Master-slave connection methods
         /// <summary> Checks existing slave-master connections and tries to make new ones. Runs on parallel thread </summary>
         private void CheckSlaveMaster()
-        { 
-            if (Master != null && !MasterSlaveIsValid(Master, true))
+        {
+            string reason = "";
+            if (Master != null && !MasterSlaveIsValid(Master, out reason, true))
                 MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                 {
                     try
                     {
-                        Logging.Instance.WriteLine($"Factory {m_entityId} is no longer slaved to {Master.EntityId}.");
+                        Logging.Instance.WriteLine($"Slave factory {m_entityId} is no longer slaved to {Master.EntityId}. Reason: Master {reason}");
                         Master.Slaves.Remove(this);
                         Master = null; 
                     }
                     catch (Exception e)
                     {
-                        VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception: CheckSlaveMaster, second InvokeOnGameThread: {e.ToString()}");
+                        VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception: CheckSlaveMaster, second InvokeOnGameThread: {e}");
                     }
                 });
 
             else if (Master == null)
             {
-                if (Slaves.Count > 1)
-                {
-                    List<NaniteConstructionBlock> removeList = new List<NaniteConstructionBlock>();
-
-                    foreach (var slave in Slaves)
-                        if (!MasterSlaveIsValid(slave))
-                            removeList.Add(slave);
-
-                    if (removeList.Count > 0)
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                        {
-                            try
-                            {
-                                foreach (var slave in removeList)
-                                {
-                                    Logging.Instance.WriteLine($"Factory {slave.EntityId} is no longer slaved to {m_entityId}.");
-                                    Slaves.Remove(slave);
-                                    slave.Master = null;
-                                } 
-                            }
-                            catch (Exception e)
-                            {
-                                VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception: CheckSlaveMaster, second InvokeOnGameThread: {e.ToString()}");
-                            }
-                        });
-                }
-
+                bool newMasterFound = false;
                 foreach (var factory in NaniteConstructionManager.NaniteBlocks)
                 { // Check for a valid master and then become slave/move all slaves over
-                    if (factory.Value != this && factory.Value.Master == null && MasterSlaveIsValid(factory.Value))
+                    string reason3 = "";
+
+                    if (factory.Value != this && factory.Value.Master == null && MasterSlaveIsValid(factory.Value, out reason3))
                     {
                         MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         {
@@ -434,7 +411,8 @@ namespace NaniteConstructionSystem.Entities
 
                                     foreach (var slave in Slaves)
                                     {
-                                        slave.Master = Master;
+                                        slave.Slaves.Clear();
+                                        slave.Master = factory.Value;
 
                                         if (!Master.Slaves.Contains(slave))
                                         {
@@ -451,17 +429,60 @@ namespace NaniteConstructionSystem.Entities
                             }
                         });
 
+                        newMasterFound = true;
                         break;
                     }
+                }
+
+                if (!newMasterFound && Slaves.Count > 0)
+                {
+                    foreach (var slave in Slaves)
+                    {
+                        string reason2 = "";
+                        slave.Slaves.Clear();
+
+                        if (!MasterSlaveIsValid(slave, out reason2))
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                            {
+                                try
+                                {
+                                    Logging.Instance.WriteLine($"Slave factory {slave.EntityId} is no longer slaved to {m_entityId}. Reason: Slave {reason2}");
+                                    Slaves.Remove(slave);
+                                    slave.Master = null;
+                                }
+                                catch (Exception e)
+                                {
+                                    VRage.Utils.MyLog.Default.WriteLineAndConsole($"Exception: CheckSlaveMaster, second InvokeOnGameThread: {e}");
+                                }
+                            });
+                    }  
                 }
             }
         }
 
-        private bool MasterSlaveIsValid(NaniteConstructionBlock factory, bool useOtherGridGroup = false)
+        private bool MasterSlaveIsValid(NaniteConstructionBlock factory, out string reason, bool useOtherGridGroup = false)
         {
-            if (factory.FactoryState == FactoryStates.Disabled || factory.ConstructionBlock == null || !factory.IsFunctional
-              || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(m_constructionBlock.GetUserRelationToOwner(factory.ConstructionBlock.OwnerId)))
+            reason = "";
+            if (factory.FactoryState == FactoryStates.Disabled)
+            {
+                reason = "was disabled.";
                 return false;
+            }
+            else if (factory.ConstructionBlock == null)
+            {
+                reason = "IMyShipWelder was null.";
+                return false;
+            }
+            else if (!factory.IsFunctional)
+            {
+                reason = "IsFunctional was false.";
+                return false;
+            }
+            else if ( !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly( m_constructionBlock.GetUserRelationToOwner(factory.ConstructionBlock.OwnerId) ) )
+            {
+                reason = "relationship was not friendly.";
+                return false;
+            }
             
             if (Vector3D.Distance(ConstructionBlock.GetPosition(), factory.ConstructionBlock.GetPosition()) > m_maxDistance)
             {
@@ -477,11 +498,14 @@ namespace NaniteConstructionSystem.Entities
                     }
 
                 if (!isInGroup)
+                {
+                    reason = "was too far away and not in grid group.";
                     return false;
+                }   
             }
 
             return true;
-        } 
+        }
 	    #endregion
 
         #region Terminal information display methods

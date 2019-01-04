@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using Sandbox.ModAPI;
 using System.IO;
@@ -45,12 +45,7 @@ namespace NaniteConstructionSystem
         {
             try
             {
-                using (m_lock.AcquireExclusiveUsing())
-                {
-                    m_writeCache.Append(DateTime.Now.ToString("[HH:mm:ss] ") + text + "\r\n");
-                }            
-
-                if(m_writer == null)
+                if (m_writer == null)
                 {
                     if (MyAPIGateway.Utilities == null)
                         return;
@@ -59,36 +54,22 @@ namespace NaniteConstructionSystem
                 }
 
                 MyAPIGateway.Parallel.StartBackground(() =>
-                {
-                    if (m_busy)
-                        return;
-
-                    if (m_lock == null)
-                        return;
-
+                { // invocation 0
                     try
                     {
-                        m_busy = true;
-                        string cache;
-                        using (m_lock.AcquireExclusiveUsing())
+                        lock (m_writer)
                         {
-                            cache = m_writeCache.ToString();
-                            m_writeCache.Clear();
+                            m_writer.Write(DateTime.Now.ToString("[HH:mm:ss] ") + text + "\r\n");
+                            m_writer.Flush();
                         }
-
-                        m_writer.Write(cache);
-                        m_writer.Flush();
                     }
-                    catch { }
-                    finally
-                    {
-                        m_busy = false;
-                    }
+                    catch (Exception e)
+                        { MyLog.Default.WriteLineAndConsole($"Logging.WriteLine Error (invocation 0): {e.ToString()}"); }
                 });
             }
-            catch(Exception ex)
+            catch (Exception e)
             {
-                MyLog.Default.WriteLine(string.Format("Logging.WriteLine Error: {0}", ex.ToString()));
+                MyLog.Default.WriteLineAndConsole($"Logging.WriteLine Error: {e.ToString()}");
             }
         }
 

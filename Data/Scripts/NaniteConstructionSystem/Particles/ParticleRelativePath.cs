@@ -206,13 +206,11 @@ namespace NaniteConstructionSystem.Particles
                     return Vector3D.Transform(destinationPosition, slimBlock.CubeGrid.WorldMatrix);
                 }
                 else if (item is NaniteMiningItem)
-                {
                     return (item as NaniteMiningItem).Position;
-                }
+
                 else if (item is Vector3D)
-                {
                     return (Vector3D)item;
-                }
+
                 else if (item is IMyPlayer)
                 {
                     var player = item as IMyPlayer;
