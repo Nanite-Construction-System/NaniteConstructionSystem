@@ -181,6 +181,8 @@ namespace NaniteConstructionSystem
             }
         }
 
+        private int m_updateTimer;
+
         private TerminalSettings m_terminalSettingsManager = new TerminalSettings();
         private List<IMyTerminalControl> m_customControls = new List<IMyTerminalControl>();
         private IMyTerminalControl m_customAssemblerControl;
@@ -287,12 +289,14 @@ namespace NaniteConstructionSystem
 
             try
             {
+                if (m_updateTimer++ % 60 == 0)
+                    Logging.Instance.WriteToFile();
+                
                 ParticleManager.Update();
-
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                VRage.Utils.MyLog.Default.WriteLineAndConsole($"Update Error:\n{ex.ToString()}");
+                VRage.Utils.MyLog.Default.WriteLineAndConsole($"Update Error:\n{e.ToString()}");
             }
         }
 
