@@ -83,10 +83,12 @@ namespace NaniteConstructionSystem.Entities.Targets
               || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(cubeBlock.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
                 return false;
 
+            float range = NaniteConstructionManager.Settings != null ? NaniteConstructionManager.Settings.AreaBeaconMaxDistanceFromNaniteFacility : 300f;
+
             foreach (var factory in m_constructionBlock.FactoryGroup)
                 if (IsEnabled(factory))
                 {
-                    if (Vector3D.Distance(cubeBlock.GetPosition(), factory.ConstructionBlock.GetPosition()) < m_maxDistance)
+                    if (Vector3D.Distance(cubeBlock.GetPosition(), factory.ConstructionBlock.GetPosition()) < range)
                         return true;
 
                     foreach (var grid in factory.GridGroup.ToList())
@@ -110,13 +112,18 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if ( (isProjection && !item.Settings.AllowProjection) || !item.Settings.AllowRepair)
                     continue;
 
+                float range = NaniteConstructionManager.Settings != null ? NaniteConstructionManager.Settings.ConstructionMaxBeaconDistance : 300f;
+
+                if (isProjection)
+                    range = NaniteConstructionManager.Settings != null ? NaniteConstructionManager.Settings.ProjectionMaxBeaconDistance : 300f;
+
                 HashSet<IMyEntity> entities = new HashSet<IMyEntity>();
                 MyAPIGateway.Entities.GetEntities(entities);
                 foreach (var entity in entities)
                 {
                     var grid = entity as IMyCubeGrid;
 
-                    if (grid == null || (grid.GetPosition() - cubeBlock.GetPosition()).LengthSquared() >= m_maxDistance * m_maxDistance)
+                    if (grid == null || (grid.GetPosition() - cubeBlock.GetPosition()).LengthSquared() >= range * range)
                         continue;
                         
                     foreach (IMySlimBlock block in ((MyCubeGrid)grid).GetBlocks())

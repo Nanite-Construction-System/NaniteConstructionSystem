@@ -830,7 +830,6 @@ namespace NaniteConstructionSystem.Entities
         #endregion
 
         #region Target processing methods
-
         /// <summary> Used during target processing to help determine if more targets should be processed </summary>
         public bool IsUserDefinedLimitReached()
         {
