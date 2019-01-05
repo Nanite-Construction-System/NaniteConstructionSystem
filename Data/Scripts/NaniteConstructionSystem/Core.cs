@@ -1200,21 +1200,18 @@ title = "Credits";
 message = $@"
 <--- Meet the Developers --->
 
-- Tysis -
-Creator and conceptualizer of Nanite Control Factory, the
-original mod. He has given his blessing for the project
-to be updated and continued as Space Engineers continues
-to grow.
-
 - Nukeguard -
-Modeler and block description editor.
+Modeling, textures, block definitions, distribution
+
+- Tysis -
+Programming of original mod
 
 - Fank -
-Programming, concept/implementation focus.
+Programming, concept/implementation focus
 
 - Splen -
-Programming, optimization/performance focus.
-Documentation/help/tutorial editor.
+Programming, optimization/performance focus
+Documentation/help/tutorials
 
 <--- GitHub --->
 
