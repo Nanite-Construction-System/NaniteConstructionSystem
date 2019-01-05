@@ -51,6 +51,15 @@ namespace NaniteConstructionSystem
         }
     }
 
+    public class NaniteVersionClass
+    {
+        public int Major = 2;
+        public int Revision = 0;
+        public int Build = 1;
+
+        public NaniteVersionClass(){}
+    }
+
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation)]
     public class NaniteConstructionManager : MySessionComponentBase
     {
@@ -58,6 +67,8 @@ namespace NaniteConstructionSystem
 
         // Unique storage identifer
         public readonly Guid OreDetectorSettingsGuid = new Guid("7D46082D-747A-45AF-8CD1-99A03E68CF97");
+
+        public NaniteVersionClass NaniteVersion = new NaniteVersionClass();
 
         private static Dictionary<long, NaniteConstructionBlock> m_naniteBlocks;
         public static Dictionary<long, NaniteConstructionBlock> NaniteBlocks
@@ -204,8 +215,8 @@ namespace NaniteConstructionSystem
 
             try
             {
-                Logging.Instance.WriteLine("Logging Started");
-
+                Logging.Instance.WriteLine($"Logging Started: Nanite Control Facility | Version {NaniteVersion.Major}.{NaniteVersion.Revision} | Build {NaniteVersion.Build}");
+                
                 if (!Sync.IsServer)
                 {
                     MyAPIGateway.Entities.OnEntityAdd += Entities_OnEntityAdd;
@@ -228,7 +239,8 @@ namespace NaniteConstructionSystem
 
                 MyAPIGateway.Session.OnSessionReady += Session_OnSessionReady;
             }
-            catch (Exception ex) { Logging.Instance.WriteLine($"Exception in BeforeStart: {ex}"); }
+            catch (Exception ex)
+                { MyLog.Default.WriteLineAndConsole($"Exception in Nanite.Core.BeforeStart: {ex.ToString()}"); }
         }
 
         protected override void UnloadData()
@@ -253,7 +265,8 @@ namespace NaniteConstructionSystem
 
                 Logging.Instance.Close();
             }
-            catch (Exception ex) { Logging.Instance.WriteLine($"Exception in BeforeStart: {ex}"); }
+            catch (Exception ex)
+                { MyLog.Default.WriteLineAndConsole($"Exception in Nanite.Core.UnloadData: {ex}"); }
         }
 
         private void Session_OnSessionReady()
@@ -289,9 +302,7 @@ namespace NaniteConstructionSystem
                 ParticleManager.Update();
             }
             catch (Exception e)
-            {
-                VRage.Utils.MyLog.Default.WriteLineAndConsole($"Update Error:\n{e.ToString()}");
-            }
+                { MyLog.Default.WriteLineAndConsole($"Nanite.Core.UpdateBeforeSimulation Error:\n{e.ToString()}"); }
         }
 
         private void ScanGrid()
@@ -1078,130 +1089,48 @@ namespace NaniteConstructionSystem
 
                 return;
             }
+            else if (block.BlockDefinition.SubtypeName == "LargeNaniteControlFacility")
+            { 
+                controls.RemoveAt(controls.Count - 1);
+                    // Remove "Help Others" checkbox, since the block is a ShipWelder
+
+                foreach (var item in m_customControls)
+                    controls.Add(item);
+            }
             else if (block.BlockDefinition.SubtypeName == "LargeNaniteOreDetector")
             {
                 controls.RemoveRange(controls.Count - 2, 2);
                 (m_customOreDetectorControls[0] as IMyTerminalControlSlider).SetLimits(0, (block.GameLogic as LargeNaniteOreDetectorLogic).Detector.MaxRange);
                 controls.AddRange(m_customOreDetectorControls);
                 return;
-            }
-
-            if (!(block.BlockDefinition.SubtypeName == "LargeNaniteControlFacility"))
-                return;
-
-            foreach (var item in m_customControls)
-                controls.Add(item);
+            }           
         }
 
         private void MessageEntered(string messageText, ref bool sendToOthers)
         {
-            if(messageText.ToLower() == "/nanite")
+            if (messageText.ToLower() == "/nanite changelog")
             {
-                string message = @"10/29/2018
-
--Version 2 release!
--All target processing moved to parallel for better performance
--Tons of code optimizations
--New models!
--Old models have a rusty look. They can be torn down to retrieve parts
--New mining logic and ore detector block
-                
-02/16/2018
--Fixed settings load on world load - BAM5
--Fixed some texture issues, and cleaned up textures folder
--Adjusted beacon costs and build times
--Fixed beacons working without being built - BAM5
--Added github for posting issues https://github.com/nukeguard/NaniteConstructionSystem/issues
-
-02/06/2018
--Fix for failed compilation for particle effects
-
-09/10/2017
--fixed workshop path for center model
--identified two errors in log, need to figure out what cause is and how to fix.
-
-05/02/2017
-- Fixed issues from not being updated in awhile.
-- Fixed Projections not building properly.
-- Fixed Mining Nanites not properly removing voxels.
-- Added area beacons.  Area beacons allow you to setup construction, deconstruction and projection zones.  Ships inside the area created by these beacons will be repaired, deconstructed or
-  projections will be built.  (For now, projector must be inside of area beacon zone).
-- Updated and fixed models.
-
-6/21/2016
-- Added Medical Nanites.  These nanites will heal injured astronauts that are within 300m of the factory.
-
-6/07/2016
-- Added Mining Nanites
-- Added Nanite Ultrasonic Hammer Ore Locator (NUHOL).  This is used for nanites to locate ore to mine.  Hammers must be placed inside voxels to function.  Their range by default are 20m radius x 100m length (Cylinder pointing down from the bottom of the NUHOL).
-- Updated settings
-- Fixed a few settings issue
-
-05/29/2016
-- Added projection beacon
-- Added controls to the Nanite Factory terminal screen
-- Added the ability for the factory to queue required components in attached assemblers
-- Added controls to assemblers to allow factories to queue items in them
-
-05/10/2016
-- Added upgrades for functionality.  Factory functionality now requires upgrades.  Each upgrade adds 3 nanites of that type.  Each factory can have up to 8 upgrades.  Upgrade slots are next to conveyor ports on sides.
-- Added a bunch of new settings
-- Added repair beacon which allows ships to be repaired remotely
-- Added speed upgrade - each upgrade adds 5m/s to nanites as well as dropping min travel time by 1s
-- Added power upgrade - each upgrade reduces power usage by 2MW
+                string message = @"
+VERSION 2.0! Jan. 6, 2019 --->
+  - All target processing moved to parallel for better performance
+  - Code optimized and made more stable for dedicated servers
+  - New models
+  - Old models have a rusty look. They can be torn down to retrieve parts
+  - New mining logic and ore detector block
+  - To use, simply install a Nanite Ore Detector near a Nanite Control Facility
+  - Move the whole setup near some ore, and let it do its magic.
+  - For better control and more ore detection, install the following
+  - Ore detector scanning upgrades (up to 2)
+  - Ore detector filter upgrade (only 1)
+  - Ore detector range upgrades
+  - These upgrades are installed on the ore detector itself
+  - Nearby, friendly facilities now automatically share upgrades and grid inventories
+  - New help documentation. Type: /nanite help
+  - New logging system for admins. For info, type: /nanite help config
+  - Projector upgrade removed. Construction upgrade now also affects projection nanites
 ";
+
                 MyAPIGateway.Utilities.ShowMissionScreen("Nanite Control Factory", "Update", "", message);
-                sendToOthers = false;
-            }
-
-            if (messageText.ToLower() == "/nanitebug")
-            {
-                var message = "";
-
-                message += $"{NaniteBlocks.Count} Factories\n\n";
-                foreach (var item in NaniteBlocks.ToList())
-                {
-                    message += $"Factory: {item.Key}:\n";
-                    message += $"- Exists: {item.Value.ConstructionBlock != null}\n";
-
-                    var name = "N/A";
-                    if (item.Value.ConstructionBlock != null)
-                        name = item.Value.ConstructionBlock.CustomName;
-
-                    message += $"- Name: {name}\n";
-                    message += $"- Init: {item.Value.Initialized}\n";
-                    message += $"- IsUserDefinedLimitReached: {item.Value.IsUserDefinedLimitReached()}\n";
-
-                    message += $"- Targets:\n";
-                    foreach (var target in item.Value.Targets)
-                    {
-                        message += $"-- {target.TargetName}:\n";
-                        message += $"--- Enabled: {target.IsEnabled(item.Value)}\n";
-                        message += $"--- ComponentsRequired: {target.ComponentsRequired.Count}\n";
-                        message += $"--- MaxTargets: {target.GetMaximumTargets()}\n";
-                        message += $"--- MinTravelTime: {target.GetMinTravelTime()}\n";
-                        message += $"--- GetPowerUsage: {target.GetPowerUsage()}\n";
-                        message += $"--- Speed: {target.GetSpeed()}\n";
-                        message += $"--- LastInvalidTargetReason: {target.LastInvalidTargetReason}\n";
-                        message += $"--- PotentialTargetList: {target.PotentialTargetList.Count}\n";
-                        message += $"--- TargetList: {target.TargetList.Count}\n";
-                    }
-
-                    message += $"- Particles {item.Value.ParticleManager.Particles.Count}:\n";
-                    foreach (var particle in item.Value.ParticleManager.Particles)
-                    {
-                        message += $"-- Particle:\n";
-                        message += $"--- IsCancelled: {particle.IsCancelled}\n";
-                        message += $"--- IsCompleted: {particle.IsCompleted}\n";
-                        message += $"--- LifeTime: {particle.LifeTime}\n";
-                    }
-
-                    message += "\n";
-                }
-
-                message += $"ParticleMananger: {NaniteParticleManager.TotalParticleCount} / {NaniteParticleManager.MaxTotalParticles}\n";
-
-                MyAPIGateway.Utilities.ShowMissionScreen("Nanite Control Factory", "Debug", "", message);
                 sendToOthers = false;
             }
         }

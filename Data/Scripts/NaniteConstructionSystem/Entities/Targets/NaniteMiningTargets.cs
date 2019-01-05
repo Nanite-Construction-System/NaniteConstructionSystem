@@ -148,7 +148,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                             for (int i = 0; i < material.WorldPosition.Count; i++)
                             {
                                 try
-                                {
+                                { // material iterations
                                     bool alreadyMined = false;
                                     Vector3D removePos = Vector3D.Zero;
                                     foreach (var minedPos in m_globalPositionList.ToList())
@@ -158,7 +158,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                                             alreadyMined = true;
                                             material.WorldPosition.RemoveAt(i);
                                             removePos = minedPos;
-                                            //Logging.Instance.WriteLine($"Found an already mined position {minedPos}");
+                                            Logging.Instance.WriteLine($"Found an already mined position {minedPos}", 2);
                                             break;
                                         }
                                     }
@@ -192,9 +192,18 @@ namespace NaniteConstructionSystem.Entities.Targets
                                         break;
                                     }      
                                 }
+                                catch (ArgumentException e) when (e.ToString().ToLower().Contains("destination array is not long enough"))
+                                {
+                                    Logging.Instance.WriteLine("NaniteMiningTargets.ParallelUpdate: An ArgumentException "
+                                        + "('Destination array is not long enough') was caught. This is probably harmless and can be ignored.", 1);
+                                    Logging.Instance.WriteLine($"{e}", 2);
+                                    continue;
+                                }
                                 catch (Exception e)
-                                    { Logging.Instance.WriteLine($"{e}"); }
-                                                     
+                                {
+                                    Logging.Instance.WriteLine($"Exception during NaniteMiningTargets.ParallelUpdate material iterations:\n{e}");
+                                    continue;
+                                }
                             }                            
                         }
                         catch (Exception e) when (e.ToString().Contains("ArgumentOutOfRangeException")) 
@@ -209,7 +218,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         {
                             m_scannertimeout = 0;
                             oreDetector.Value.DepositGroup.Clear(); //we've mined all the scanned stuff. Try a rescan.
-                            Logging.Instance.WriteLine("Clearing deposit groups due to mining target timeout.");
+                            Logging.Instance.WriteLine("Clearing deposit groups due to mining target timeout.", 1);
                             m_minedPositionsCount = 0;
                         }
                     }
@@ -271,7 +280,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 IMyEntity entity; // For whatever reason, TryGetEntityById only works on the game thread
                 if (!MyAPIGateway.Entities.TryGetEntityById(entityId, out entity))
                 {
-                    Logging.Instance.WriteLine("Voxel entity is null! Clearing ore detector deposits ...");
+                    Logging.Instance.WriteLine("Voxel entity is null! Clearing ore detector deposits ...", 1);
                     naniteOreDetector.ClearMinedPositions();
                     naniteOreDetector.DepositGroup.Clear();
                     return;
@@ -279,7 +288,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                                         
                 if (!voxelEntities.ContainsKey(entityId))
                 {
-                    Logging.Instance.WriteLine("Adding new voxel entity to storage list.");
+                    Logging.Instance.WriteLine("Adding new voxel entity to storage list.", 1);
                     voxelEntities.Add(entityId, entity);
                 }
             }

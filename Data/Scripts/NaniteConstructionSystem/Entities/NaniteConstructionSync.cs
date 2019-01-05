@@ -26,8 +26,6 @@ namespace NaniteConstructionSystem.Entities
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8952, HandleCompleteTarget);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8953, HandleCancelTarget);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8954, HandleDetails);
-              //*  MyAPIGateway.Multiplayer.RegisterMessageHandler(8958, HandleStartParticle);
-              //*  MyAPIGateway.Multiplayer.RegisterMessageHandler(8959, HandleRemoveParticle);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8960, HandleTerminalSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8962, HandleAssemblerSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8971, HandleBeaconTerminalSettings);
@@ -37,7 +35,6 @@ namespace NaniteConstructionSystem.Entities
             {
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8961, HandleNeedTerminalSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8963, HandleNeedAssemblerSettings);
-                // Same function but server.  I think SendMessageToOthers sends to self, which will stack overflow
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8964, HandleTerminalSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8965, HandleAssemblerSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8972, HandleBeaconTerminalSettings);
@@ -56,8 +53,6 @@ namespace NaniteConstructionSystem.Entities
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8952, HandleCompleteTarget);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8953, HandleCancelTarget);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8954, HandleDetails);
-              //*  MyAPIGateway.Multiplayer.UnregisterMessageHandler(8958, HandleStartParticle);
-              //*  MyAPIGateway.Multiplayer.UnregisterMessageHandler(8959, HandleRemoveParticle);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8960, HandleTerminalSettings);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8962, HandleAssemblerSettings);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8961, HandleNeedTerminalSettings);
@@ -383,7 +378,7 @@ namespace NaniteConstructionSystem.Entities
             if (MyAPIGateway.Multiplayer == null)
                 return;
 
-            Logging.Instance.WriteLine(string.Format("Requesting Assembler Settings -> {0}", blockId), 2);
+            Logging.Instance.WriteLine($"Requesting Assembler Settings -> {blockId}", 2);
             MyAPIGateway.Multiplayer.SendMessageToServer(8963, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(blockId)));
         }
 

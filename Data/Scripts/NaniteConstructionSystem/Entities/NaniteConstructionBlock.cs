@@ -153,7 +153,6 @@ namespace NaniteConstructionSystem.Entities
         public bool IsFunctional {get {return m_isFunctional;} }
         
         private const int m_spoolingTime = 3000;
-        private const float m_maxDistance = 300f;
         #endregion
 
         #region Core
@@ -462,6 +461,7 @@ namespace NaniteConstructionSystem.Entities
 
         private bool MasterSlaveIsValid(NaniteConstructionBlock factory, out string reason, bool useOtherGridGroup = false)
         {
+            float distance = NaniteConstructionManager.Settings != null ? NaniteConstructionManager.Settings.MasterSlaveDistance : 300f;
             reason = "";
             if (factory.FactoryState == FactoryStates.Disabled)
             {
@@ -484,7 +484,7 @@ namespace NaniteConstructionSystem.Entities
                 return false;
             }
             
-            if (Vector3D.Distance(ConstructionBlock.GetPosition(), factory.ConstructionBlock.GetPosition()) > m_maxDistance)
+            if (Vector3D.Distance(ConstructionBlock.GetPosition(), factory.ConstructionBlock.GetPosition()) > distance)
             {
                 Logging.Instance.WriteLine("Possible master was out of range ...", 2);
                 bool isInGroup = false;

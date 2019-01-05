@@ -28,7 +28,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
-            Logging.Instance.WriteLine($"ADDING Large Ore Detector: {Entity.EntityId}");
+            Logging.Instance.WriteLine($"ADDING Large Ore Detector: {Entity.EntityId}", 1);
             m_detector = new LargeNaniteOreDetector((IMyFunctionalBlock)Entity);
 
             base.Init(objectBuilder);

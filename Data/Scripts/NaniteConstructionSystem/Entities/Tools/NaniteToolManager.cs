@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Sandbox.ModAPI;
 
 namespace NaniteConstructionSystem.Entities.Tools

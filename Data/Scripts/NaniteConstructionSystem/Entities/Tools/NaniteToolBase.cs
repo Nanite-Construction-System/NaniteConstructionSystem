@@ -63,7 +63,7 @@ namespace NaniteConstructionSystem.Entities.Tools
         {
             if (block == null)
             {
-                Logging.Instance.WriteLine("Block is null!");
+                Logging.Instance.WriteLine("NaniteConstructionSystem.Entities.Tools.NaniteToolBase: Block is null! Cannot start tool.");
                 return;
             }
 
@@ -83,23 +83,26 @@ namespace NaniteConstructionSystem.Entities.Tools
 
         public virtual void Close()
         {
-            int pos = 0;
             try
             {
                 if (m_isGrinder && m_removed)
                 {
                     TransferRemainingComponents();
+
                     Logging.Instance.WriteLine(string.Format("GRINDER completed.  Target block: {0} - (EntityID: {1} Elapsed: {2})", 
-                      m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.GetType().Name : m_targetBlock.GetType().Name, m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.EntityId : 0, m_completeTime + m_waitTime));
+                      m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.GetType().Name : m_targetBlock.GetType().Name, m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.EntityId : 0,
+                      m_completeTime + m_waitTime), 1);
+                    
                     return;
                 }
 
                 Logging.Instance.WriteLine(string.Format("TOOL completed.  Target block: {0} - (EntityID: {1} Elapsed: {2})", 
-                  m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.GetType().Name : m_targetBlock.GetType().Name, m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.EntityId : 0, m_completeTime + m_waitTime));
+                  m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.GetType().Name : m_targetBlock.GetType().Name, m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.EntityId : 0,
+                  m_completeTime + m_waitTime), 1);
             }
             catch (Exception ex)
             {
-                Logging.Instance.WriteLine(string.Format("Close() {1}: {0}", ex.ToString(), pos));
+                Logging.Instance.WriteLine(string.Format("NaniteToolBase.Close() exception:\n{0}", ex.ToString()));
             }
         }
 
@@ -141,7 +144,7 @@ namespace NaniteConstructionSystem.Entities.Tools
             }
             catch (Exception ex)
             {
-                Logging.Instance.WriteLine(string.Format("Error {0}: {1}", pos, ex.ToString()));
+                Logging.Instance.WriteLine(string.Format("NaniteToolBase.TransferRemainingComponents exception {0}: {1}", pos, ex.ToString()));
             }
         }
 
@@ -155,7 +158,8 @@ namespace NaniteConstructionSystem.Entities.Tools
             }
 
             var inventoryItem = new MyPhysicalInventoryItem(count, item);
-            MyFloatingObjects.Spawn(inventoryItem, Vector3D.Transform(m_targetBlock.Position * m_targetBlock.CubeGrid.GridSize, m_targetBlock.CubeGrid.WorldMatrix), m_targetBlock.CubeGrid.WorldMatrix.Forward, m_targetBlock.CubeGrid.WorldMatrix.Up);
+            MyFloatingObjects.Spawn(inventoryItem, Vector3D.Transform(m_targetBlock.Position * m_targetBlock.CubeGrid.GridSize,
+              m_targetBlock.CubeGrid.WorldMatrix), m_targetBlock.CubeGrid.WorldMatrix.Forward, m_targetBlock.CubeGrid.WorldMatrix.Up);
         }
 
         public virtual void Update()
@@ -185,7 +189,8 @@ namespace NaniteConstructionSystem.Entities.Tools
 
         private void Complete()
         {
-            if (m_targetBlock.IsDestroyed || m_targetBlock.CubeGrid.GetCubeBlock(m_targetBlock.Position) == null || (m_targetBlock.FatBlock != null && m_targetBlock.FatBlock.Closed))
+            if (m_targetBlock.IsDestroyed || m_targetBlock.CubeGrid.GetCubeBlock(m_targetBlock.Position) == null
+              || (m_targetBlock.FatBlock != null && m_targetBlock.FatBlock.Closed))
                 return;
 
             if (m_targetBlock.CubeGrid.Closed)
@@ -202,7 +207,8 @@ namespace NaniteConstructionSystem.Entities.Tools
             }
             catch (Exception ex)
             {
-                Logging.Instance.WriteLine(string.Format("ERROR getting cubeblock object builder (3): {0} {1} - {2}", m_targetBlock.IsDestroyed, m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.GetType().Name : m_targetBlock.GetType().Name, ex.ToString()));
+                Logging.Instance.WriteLine(string.Format("NaniteToolBase.Complete: Exception getting cubeblock object builder (3): {0} {1} - {2}",
+                  m_targetBlock.IsDestroyed, m_targetBlock.FatBlock != null ? m_targetBlock.FatBlock.GetType().Name : m_targetBlock.GetType().Name, ex.ToString()));
             }
 
             // Target block contains inventory, spawn it
@@ -216,7 +222,7 @@ namespace NaniteConstructionSystem.Entities.Tools
 
                     foreach (var item in inventory.GetItems())
                     {
-                        Logging.Instance.WriteLine(string.Format("INVENTORY found.  Target block contains inventory: {0} {1}", item.Amount, item.Content.SubtypeId));
+                        Logging.Instance.WriteLine(string.Format("INVENTORY found.  Target block contains inventory: {0} {1}", item.Amount, item.Content.SubtypeId), 1);
                         if (!m_inventory.ContainsKey(item.Content.SubtypeName))
                             m_inventory.Add(item.Content.SubtypeName, new MyTuple<MyFixedPoint, MyObjectBuilder_PhysicalObject>(item.Amount, item.Content));
                         else
@@ -277,7 +283,7 @@ namespace NaniteConstructionSystem.Entities.Tools
             m_completeTime = (int)(m_targetBlock.BuildIntegrity / grindPerUpdate * 1000f);
 
             Logging.Instance.WriteLine(string.Format("TOOL started.  Target block: {0} - {1}ms - {2} {3} {4}", 
-              blockDefinition.Id, m_completeTime, blockDefinition.IntegrityPointsPerSec, m_targetBlock.BuildIntegrity, grindPerUpdate));
+              blockDefinition.Id, m_completeTime, blockDefinition.IntegrityPointsPerSec, m_targetBlock.BuildIntegrity, grindPerUpdate), 1);
         }    
     }
 }

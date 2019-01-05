@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Sandbox.ModAPI;
@@ -55,22 +55,8 @@ namespace NaniteConstructionSystem.Entities.Beacons
             m_areaBoundingBox = new BoundingBoxD(Vector3D.Zero, new Vector3D(setting.Height, setting.Width, setting.Depth));
 
             if (setting.HighlightArea && BeaconBlock.Enabled && !Sync.IsDedicated)
-            {
                 DrawTransparentBox(m_areaMatrix, m_areaBoundingBox);
-            }
 
-            /*
-            Color color = Color.FromNonPremultiplied(new Vector4(1f, 1f, 1f, 0.7f));
-            if (IsInsideBox((BoundingBoxD)MyAPIGateway.Session.Player.Controller.ControlledEntity.Entity.WorldAABB))
-            {
-                color = Color.FromNonPremultiplied(new Vector4(0f, 0f, 1f, 0.7f));
-                MyAPIGateway.Session.Player.Controller.ControlledEntity.Entity.Physics.LinearDamping = 50f;
-                MyAPIGateway.Session.Player.Controller.ControlledEntity.Entity.Physics.AngularDamping = 50f;
-                MyAPIGateway.Session.Player.Controller.ControlledEntity.Entity.Physics.Friction = 100f;
-            }
-
-            DrawTransparentBox(MyAPIGateway.Session.Player.Controller.ControlledEntity.Entity.WorldMatrix, (BoundingBoxD)MyAPIGateway.Session.Player.Controller.ControlledEntity.Entity.LocalAABB, color);
-            */
             base.Update();
         }
 

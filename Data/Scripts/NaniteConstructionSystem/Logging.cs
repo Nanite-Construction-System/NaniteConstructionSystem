@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Text;
 using Sandbox.ModAPI;
 using System.IO;
@@ -8,12 +9,25 @@ using VRage.Utils;
 
 namespace NaniteConstructionSystem
 {
+    public class WaitingToLog
+    {
+        public string Text;
+        public int Logging;
+
+        public WaitingToLog(string text, int logging = 0)
+        {
+            Text = text;
+            Logging = logging;
+        }
+    }
+
     public class Logging
     {
         private static Logging m_instance;
 
         private TextWriter m_writer;
         private ConcurrentBag<string> m_writeCache;
+        private ConcurrentBag<WaitingToLog> m_waitingList;
         private FastResourceLock m_lock;
         private bool m_busy;
         private string m_logFile;
@@ -36,6 +50,7 @@ namespace NaniteConstructionSystem
                 m_instance = this;
                 m_writeCache = new ConcurrentBag<string>();
                 m_logFile = logFile;
+                m_waitingList = new ConcurrentBag<WaitingToLog>();
                 m_busy = false;
             }
             catch { }
@@ -43,7 +58,13 @@ namespace NaniteConstructionSystem
 
         public void WriteLine(string text, int logging = 0)
         {
-            if (logging != 0 && NaniteConstructionManager.Settings != null && NaniteConstructionManager.Settings.DebugLogging != null && NaniteConstructionManager.Settings.DebugLogging < logging)
+            if (NaniteConstructionManager.Settings == null)
+            { // Settings haven't been loaded yet, so put it in a waiting list
+                m_waitingList.Add(new WaitingToLog(text, logging));
+                return;
+            }
+                
+            if (NaniteConstructionManager.Settings.DebugLogging != null && NaniteConstructionManager.Settings.DebugLogging < logging)
                 return;
             
             MyAPIGateway.Parallel.Start(() =>
@@ -63,8 +84,36 @@ namespace NaniteConstructionSystem
                 {
                     if (m_busy)
                         return;
-                    
+
                     m_busy = true;
+
+                    if (!m_waitingList.IsEmpty)
+                    {
+                        ConcurrentBag<WaitingToLog> iterateList = new ConcurrentBag<WaitingToLog>();
+
+                        int counter = m_waitingList.Count;
+                        int i = 0;
+                        while (i < counter)
+                        {
+                            WaitingToLog moveItem = null;
+                            m_waitingList.TryTake(out moveItem);
+
+                            if (moveItem != null)
+                                iterateList.Add(moveItem);
+
+                            i++;
+                        }
+                            
+                        while (!iterateList.IsEmpty)
+                        {
+                            WaitingToLog waitingItem = null;
+                            iterateList.TryTake(out waitingItem);
+
+                            if (waitingItem != null)
+                                Instance.WriteLine(waitingItem.Text, waitingItem.Logging);
+                        }
+                    }                    
+                    
                     if (m_writer == null)
                     {
                         if (MyAPIGateway.Utilities == null)
@@ -79,7 +128,10 @@ namespace NaniteConstructionSystem
                         m_writeCache.TryTake(out line);
 
                         if (line != null)
+                        {
                             m_writer.Write(line);
+                            m_writer.Flush();
+                        }
                     }
                 }
                 catch (Exception e)

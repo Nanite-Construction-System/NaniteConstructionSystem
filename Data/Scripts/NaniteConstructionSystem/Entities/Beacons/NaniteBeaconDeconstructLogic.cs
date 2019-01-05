@@ -1,4 +1,4 @@
-﻿using Sandbox.Common.ObjectBuilders;
+using Sandbox.Common.ObjectBuilders;
 using VRage.Game.Components;
 using VRage.ObjectBuilders;
 using Sandbox.ModAPI;
@@ -23,7 +23,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
         {
             base.UpdateOnceBeforeFrame();
 
-            Logging.Instance.WriteLine($"ADDING Deconstruction Beacon: {Entity.EntityId}");
+            Logging.Instance.WriteLine($"ADDING Deconstruction Beacon: {Entity.EntityId}", 1);
             m_beacon = new NaniteBeaconDeconstruct((IMyFunctionalBlock)Entity);
         }
 

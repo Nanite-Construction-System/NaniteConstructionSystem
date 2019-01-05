@@ -1,4 +1,4 @@
-﻿using Sandbox.Common.ObjectBuilders;
+using Sandbox.Common.ObjectBuilders;
 using VRage.Game.Components;
 using VRage.ObjectBuilders;
 using Sandbox.ModAPI;
@@ -16,6 +16,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
         {
             base.Init(objectBuilder);
             NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
+
             if (Sync.IsClient)
                 NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_FRAME;
         }
@@ -24,13 +25,11 @@ namespace NaniteConstructionSystem.Entities.Beacons
         {
             base.UpdateOnceBeforeFrame();
 
-            Logging.Instance.WriteLine($"ADDING Area Beacon: {Entity.EntityId}");
+            Logging.Instance.WriteLine($"ADDING Area Beacon: {Entity.EntityId}", 1);
             m_beacon = new NaniteAreaBeacon((IMyFunctionalBlock)Entity);
 
             if (Sync.IsClient)
-            {
                 NaniteConstructionManager.NaniteSync.SendNeedBeaconTerminalSettings(Entity.EntityId);
-            }
         }
 
         public override void Close()

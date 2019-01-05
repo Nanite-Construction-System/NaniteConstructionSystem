@@ -221,9 +221,11 @@ namespace NaniteConstructionSystem.Entities.Detectors
         {
             sb.Append("Type: Nanite Ore Detector\n");
             sb.Append($"Current Input: {Power} MW\n");
+
             if (m_tooCloseToOtherDetector)
             {
-                sb.Append("WARNING: Unit was too close to another active Nanite Ore Detector and was disabled.");
+                sb.Append("WARNING: Unit was too close to\nanother active Nanite Ore Detector\n and was disabled.\n");
+                sb.Append("Turn the unit back on\nwhen the problem is resolved.");
                 return;
             }
                 

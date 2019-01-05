@@ -7,7 +7,7 @@ namespace NaniteConstructionSystem.Settings
     [ProtoContract]
     public class NaniteSettings
     {
-		static public string SettingsFile = "config_v2.xml";
+		static public string SettingsFile = "Config.xml";
 
         [ProtoMember(1)]
         public bool ConstructionEnabled { get; set; }
@@ -139,6 +139,20 @@ namespace NaniteConstructionSystem.Settings
         public float OreDetectorPowerMultiplicator { get; set; }
         [ProtoMember(65)]
         public int DebugLogging { get; set; }
+        [ProtoMember(66)]
+        public float MasterSlaveDistance { get; set; }
+        [ProtoMember(67)]
+        public float OreDetectorToNaniteFactoryCommunicationDistance { get; set; }
+        [ProtoMember(68)]
+        public float OreDetectorRangePerUpgrade { get; set; }
+        [ProtoMember(69)]
+        public float OreDetectorPowerIncreasePerRangeUpgrade { get; set; }
+        [ProtoMember(70)]
+        public float OreDetectorPowerIncreasePerFilterUpgrade { get; set; }
+        [ProtoMember(71)]
+        public float OreDetectorPowerPercentIncreasedPerScanningUpgrade { get; set; }
+        [ProtoMember(72)]
+        public float OreDetectorPowerPercentReducedPerEfficiencyUpgrade { get; set; }
 
         public string Version { get; set; }
 
@@ -164,7 +178,7 @@ namespace NaniteConstructionSystem.Settings
             CleanupEnabled = true;
             CleanupMaxStreams = 15;
             CleanupCarryVolume = 2.5f;
-            CleanupMaxDistance = 500f;
+            CleanupMaxDistance = 300f;
             CleanupPowerPerStream = 26f;
             CleanupMinTravelTime = 14f;
             CleanupDistanceDivisor = 15f;
@@ -188,8 +202,6 @@ namespace NaniteConstructionSystem.Settings
             MiningDistanceDivisor = 15f;
             MiningNanitesPerUpgrade = 3;
             MiningNanitesNoUpgrade = 1;
-            MiningRadius = 40f;
-            MiningDepth = 50;
             MedicalEnabled = true;
             MedicalMaxStreams = 15;
             MedicalMaxDistance = 300f;
@@ -209,6 +221,13 @@ namespace NaniteConstructionSystem.Settings
             UpgradeComponentMultiplier = 1f;
             OreDetectorPowerMultiplicator = 1f;
             DebugLogging = 0;
+            MasterSlaveDistance = 300f;
+            OreDetectorToNaniteFactoryCommunicationDistance = 300f;
+            OreDetectorRangePerUpgrade = 50f;
+            OreDetectorPowerIncreasePerRangeUpgrade = 0.125f;
+            OreDetectorPowerIncreasePerFilterUpgrade = 0.1f;
+            OreDetectorPowerPercentIncreasedPerScanningUpgrade = 1f;
+            OreDetectorPowerPercentReducedPerEfficiencyUpgrade = 0.1f;
             Version = "2.0";
         }
 
