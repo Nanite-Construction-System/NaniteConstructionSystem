@@ -300,7 +300,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 try
                     { UpdatePower(); }
                 catch (Exception e)
-                    {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteOreDetector.UpdatePower() exception: {e.ToString()}");}
+                    {Logging.Instance.WriteLine($"NaniteOreDetector.UpdatePower() exception: {e.ToString()}");}
             });
                 
             UpdateStatus();
@@ -318,9 +318,12 @@ namespace NaniteConstructionSystem.Entities.Detectors
             float upgradeRangeAddition = 0f;
             float upgradeRangeMultiplicator = 1;
 
+            float rangeToAdd = NaniteConstructionManager.Settings != null
+              ? NaniteConstructionManager.Settings.OreDetectorRangePerUpgrade : RANGE_PER_UPGRADE;
+
             for (int i = 1; i <= (int)m_block.UpgradeValues["Range"]; i++)
             {
-                upgradeRangeAddition += RANGE_PER_UPGRADE * upgradeRangeMultiplicator;
+                upgradeRangeAddition += rangeToAdd;
 
                 if (upgradeRangeMultiplicator == 1f)
                     upgradeRangeMultiplicator = 0.7f;
@@ -333,11 +336,23 @@ namespace NaniteConstructionSystem.Entities.Detectors
             if (Range > _maxRange)
                 Range = _maxRange;
 
+            float powerPerRange = NaniteConstructionManager.Settings != null
+              ? NaniteConstructionManager.Settings.OreDetectorPowerIncreasePerRangeUpgrade : POWER_PER_RANGE_UPGRADE;
+
+            float powerPerFilter = NaniteConstructionManager.Settings != null
+              ? NaniteConstructionManager.Settings.OreDetectorPowerIncreasePerFilterUpgrade : POWER_PER_FILTER_UPGRADE;
+
+            float powerPerScanning = NaniteConstructionManager.Settings != null
+              ? NaniteConstructionManager.Settings.OreDetectorPowerPercentIncreasedPerScanningUpgrade : POWER_PER_SCANNING_UPGRADE;
+
+            float powerPerEfficiency = NaniteConstructionManager.Settings != null
+              ? NaniteConstructionManager.Settings.OreDetectorPowerPercentReducedPerEfficiencyUpgrade : POWER_PER_POWEREFFICIENCY_UPGRADE;
+
             _power = basePower;
-            _power += m_block.UpgradeValues["Range"] * POWER_PER_RANGE_UPGRADE;
-            _power += m_block.UpgradeValues["Filter"] * POWER_PER_FILTER_UPGRADE;
-            _power *= 1 + (m_block.UpgradeValues["Scanning"] * POWER_PER_SCANNING_UPGRADE);
-            _power *= 1 - (m_block.UpgradeValues["PowerEfficiency"] * POWER_PER_POWEREFFICIENCY_UPGRADE);
+            _power += m_block.UpgradeValues["Range"] * powerPerRange;
+            _power += m_block.UpgradeValues["Filter"] * powerPerFilter;
+            _power *= 1 + (m_block.UpgradeValues["Scanning"] * powerPerScanning);
+            _power *= 1 - (m_block.UpgradeValues["PowerEfficiency"] * powerPerEfficiency);
 
             if (NaniteConstructionManager.Settings != null)
                 _power *= NaniteConstructionManager.Settings.OreDetectorPowerMultiplicator;
@@ -392,10 +407,11 @@ namespace NaniteConstructionSystem.Entities.Detectors
         {
             MyAPIGateway.Parallel.Start(() =>
             {
+                float distance = NaniteConstructionManager.Settings != null ? NaniteConstructionManager.Settings.OreDetectorToNaniteFactoryCommunicationDistance : 300f;
                 bool result = false;
                 foreach (var detector in NaniteConstructionManager.OreDetectors)
                     if (detector.Key != m_block.EntityId && detector.Value.Block != null
-                      && Vector3D.Distance(m_block.GetPosition(), detector.Value.Block.GetPosition()) < 300
+                      && Vector3D.Distance(m_block.GetPosition(), detector.Value.Block.GetPosition()) < distance
                       && detector.Value.DetectorState != DetectorStates.Disabled && detector.Value.Block.IsFunctional)
                     {
                         result = true;
@@ -403,7 +419,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
                     }
 
                 MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                    { m_tooCloseToOtherDetector = result; });     
+                    { m_tooCloseToOtherDetector = result; });
             });
         }
 

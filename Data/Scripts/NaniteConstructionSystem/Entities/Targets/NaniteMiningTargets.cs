@@ -106,11 +106,13 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
 
                 List<string> allowedMats = new List<string>();
+
+                float range = NaniteConstructionManager.Settings != null ? NaniteConstructionManager.Settings.OreDetectorToNaniteFactoryCommunicationDistance : 300f;
                 
                 foreach (var oreDetector in NaniteConstructionManager.OreDetectors)
                 {
                     if (oreDetector.Value.Block == null || m_constructionBlock.ConstructionBlock == null
-                      || !IsInRange( oreDetector.Value.Block.GetPosition() ) || oreDetector.Value.DetectorState == NaniteOreDetector.DetectorStates.Disabled)
+                      || !IsInRange(oreDetector.Value.Block.GetPosition(), range) || oreDetector.Value.DetectorState == NaniteOreDetector.DetectorStates.Disabled)
                         continue;
                 
                     if (m_potentialMiningTargets.Count > 0)

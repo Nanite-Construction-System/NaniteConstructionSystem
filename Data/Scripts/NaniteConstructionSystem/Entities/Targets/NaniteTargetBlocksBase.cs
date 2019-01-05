@@ -150,11 +150,11 @@ namespace NaniteConstructionSystem.Entities.Targets
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        internal bool IsInRange(Vector3D itemPosition)
+        internal bool IsInRange(Vector3D itemPosition, float range = 300f)
         {
             foreach (var factory in m_constructionBlock.FactoryGroup)
                 if (factory.ConstructionBlock != null && IsEnabled(factory)
-                  && Vector3D.Distance(factory.ConstructionBlock.GetPosition(), itemPosition) < m_maxDistance)
+                  && Vector3D.Distance(factory.ConstructionBlock.GetPosition(), itemPosition) < range)
                     return true;
 
             return false;
