@@ -154,7 +154,9 @@ namespace NaniteConstructionSystem.Settings
         [ProtoMember(72)]
         public float OreDetectorPowerPercentReducedPerEfficiencyUpgrade { get; set; }
         [ProtoMember(73)]
-        public float AreaBeaconMaxDistanceFromNaniteFacility { get; set; }        
+        public float AreaBeaconMaxDistanceFromNaniteFacility { get; set; }
+        [ProtoMember(74)]
+        public int BlocksScannedPerSecond { get; set; }
 
         public string Version { get; set; }
 
@@ -231,6 +233,7 @@ namespace NaniteConstructionSystem.Settings
             OreDetectorPowerPercentIncreasedPerScanningUpgrade = 1f;
             OreDetectorPowerPercentReducedPerEfficiencyUpgrade = 0.1f;
             AreaBeaconMaxDistanceFromNaniteFacility = 300f;
+            BlocksScannedPerSecond = 100;
             Version = "2.0";
         }
 
