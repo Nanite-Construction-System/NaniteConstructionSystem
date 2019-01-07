@@ -1278,7 +1278,7 @@
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="3" y="5" z="3"/>
       <ModelOffset x="0" y="0" z="0"/>
-	  <Center x="1" y="1" z="0"/>
+	  <Center x="1" y="0" z="1"/>
       <Model>Models\Cubes\Large\LargeNaniteOreDetector.mwm</Model>
       <Components>
         <Component Subtype="InteriorPlate" Count="100"/>
@@ -1449,7 +1449,7 @@
       <EdgeType>Light</EdgeType>
       <DamageEffectId>212</DamageEffectId>
       <DamagedSound>ParticleHeavyMech</DamagedSound>
-      <Public>false</Public>
+      <Public>true</Public>
       <PrimarySound>NaniteModule</PrimarySound>
       <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>
       <EmissiveColorPreset>Default</EmissiveColorPreset>
