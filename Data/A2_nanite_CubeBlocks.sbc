@@ -878,7 +878,7 @@
         <SubtypeId>NaniteOreDetectorUpgradeRange</SubtypeId>
       </Id>
       <DisplayName>Nanite Ore Detector Range Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+      <Icon>Textures\GUI\Icons\Cubes\OreDetectorUpgrades.dds</Icon>
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1"/>
@@ -940,7 +940,7 @@
         <SubtypeId>NaniteOreDetectorUpgradeScanning</SubtypeId>
       </Id>
       <DisplayName>Nanite Ore Detector Scanning Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+      <Icon>Textures\GUI\Icons\Cubes\OreDetectorUpgrades.dds</Icon>
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1"/>
@@ -989,7 +989,7 @@
         <SubtypeId>NaniteOreDetectorUpgradeFilter</SubtypeId>
       </Id>
       <DisplayName>Nanite Ore Detector Filter Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+      <Icon>Textures\GUI\Icons\Cubes\OreDetectorUpgrades.dds</Icon>
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1"/>
@@ -1038,7 +1038,7 @@
         <SubtypeId>NaniteOreDetectorUpgradePowerEfficiency</SubtypeId>
       </Id>
       <DisplayName>Nanite Ore Detector Power Efficiency Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+      <Icon>Textures\GUI\Icons\Cubes\OreDetectorUpgrades.dds</Icon>
       <CubeSize>Large</CubeSize>
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="1" y="1" z="1"/>
