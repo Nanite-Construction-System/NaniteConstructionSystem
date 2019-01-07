@@ -55,7 +55,7 @@ namespace NaniteConstructionSystem
     {
         public int Major = 2;
         public int Revision = 0;
-        public int Build = 1;
+        public int Build = 2;
 
         public NaniteVersionClass(){}
     }
