@@ -245,7 +245,7 @@ namespace NaniteConstructionSystem
 
             NaniteConstructionManager.Instance.UpdateSettingsChanges();
 
-            if (MyAPIGateway.Multiplayer.MultiplayerActive)
+            if (MyAPIGateway.Multiplayer.MultiplayerActive && MyAPIGateway.Utilities.IsDedicated)
                 NaniteConstructionManager.Instance.InitializeControls();
         }
 
