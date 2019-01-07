@@ -1055,42 +1055,50 @@ namespace NaniteConstructionSystem
 
         private void CustomControlGetter(IMyTerminalBlock block, List<IMyTerminalControl> controls)
         {
-            Logging.Instance.WriteLine($"CustomControlGetter : {block.BlockDefinition.SubtypeName}");
-            if (block.BlockDefinition.SubtypeName == "LargeNaniteAreaBeacon")
+            try
             {
-                controls.RemoveRange(controls.Count - 17, 16);
-                controls.AddRange(m_customBeaconControls);
-                return;
-            }
-            else if (block.BlockDefinition.TypeId == typeof(MyObjectBuilder_Assembler))
-            {
-                controls.Add(m_customAssemblerControl);
-                return;
-            }
-            else if (block.BlockDefinition.SubtypeName == "NaniteUltrasonicHammer")
-            {
-                controls.RemoveAt(controls.Count - 1);
-                controls.RemoveAt(controls.Count - 1);
-                foreach (var item in m_customHammerControls)
-                    controls.Add(item);
+                if (block == null || block.BlockDefinition == null || block.BlockDefinition.SubtypeName == null)
+                    return;
+            
+                Logging.Instance.WriteLine($"CustomControlGetter : {block.BlockDefinition.SubtypeName}");
+                if (block.BlockDefinition.SubtypeName == "LargeNaniteAreaBeacon")
+                {
+                    controls.RemoveRange(controls.Count - 17, 16);
+                    controls.AddRange(m_customBeaconControls);
+                    return;
+                }
+                else if (block.BlockDefinition.TypeId == typeof(MyObjectBuilder_Assembler))
+                {
+                    controls.Add(m_customAssemblerControl);
+                    return;
+                }
+                else if (block.BlockDefinition.SubtypeName == "NaniteUltrasonicHammer")
+                {
+                    controls.RemoveAt(controls.Count - 1);
+                    controls.RemoveAt(controls.Count - 1);
+                    foreach (var item in m_customHammerControls)
+                        controls.Add(item);
 
-                return;
-            }
-            else if (block.BlockDefinition.SubtypeName == "LargeNaniteControlFacility")
-            { 
-                controls.RemoveAt(controls.Count - 1);
-                    // Remove "Help Others" checkbox, since the block is a ShipWelder
+                    return;
+                }
+                else if (block.BlockDefinition.SubtypeName == "LargeNaniteControlFacility")
+                { 
+                    controls.RemoveAt(controls.Count - 1);
+                        // Remove "Help Others" checkbox, since the block is a ShipWelder
 
-                foreach (var item in m_customControls)
-                    controls.Add(item);
+                    foreach (var item in m_customControls)
+                        controls.Add(item);
+                }
+                else if (block.BlockDefinition.SubtypeName == "LargeNaniteOreDetector")
+                {
+                    controls.RemoveRange(controls.Count - 2, 2);
+                    (m_customOreDetectorControls[0] as IMyTerminalControlSlider).SetLimits(0, (block.GameLogic as LargeNaniteOreDetectorLogic).Detector.MaxRange);
+                    controls.AddRange(m_customOreDetectorControls);
+                    return;
+                }
             }
-            else if (block.BlockDefinition.SubtypeName == "LargeNaniteOreDetector")
-            {
-                controls.RemoveRange(controls.Count - 2, 2);
-                (m_customOreDetectorControls[0] as IMyTerminalControlSlider).SetLimits(0, (block.GameLogic as LargeNaniteOreDetectorLogic).Detector.MaxRange);
-                controls.AddRange(m_customOreDetectorControls);
-                return;
-            }           
+            catch (Exception e)
+                { Logging.Instance.WriteLine($"Exception in NaniteConstructionManager.CustomControlGetter:\n{e.ToString()}"); }
         }
 
         private void MessageEntered(string messageText, ref bool sendToOthers)

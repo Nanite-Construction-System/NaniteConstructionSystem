@@ -25,4 +25,5 @@
 *.user
 *.sln
 *.mod
+*.sbmi
 /obj/Release
