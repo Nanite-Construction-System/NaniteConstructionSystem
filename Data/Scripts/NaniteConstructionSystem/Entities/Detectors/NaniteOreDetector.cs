@@ -832,12 +832,18 @@ namespace NaniteConstructionSystem.Entities.Detectors
                                 if (HasFilterUpgrade)
                                 {
                                     var voxelDefinition = MyDefinitionManager.Static.GetVoxelMaterialDefinition(b);
-                                    foreach (string mat in OreListSelected)
-                                        if (voxelDefinition.MinedOre.ToLower() == mat.ToLower())
-                                        {
-                                            Materials.AddMaterial(b, vector3I + p);
-                                            break;
-                                        }
+
+                                    if (voxelDefinition != null && voxelDefinition.MinedOre != null)
+                                    {
+                                        foreach (string mat in OreListSelected)
+                                            if (voxelDefinition.MinedOre.ToLower() == mat.ToLower())
+                                            {
+                                                Materials.AddMaterial(b, vector3I + p);
+                                                break;
+                                            }
+                                    }
+                                    else
+                                        Materials.AddMaterial(b, vector3I + p);  
                                 }
                                 else
                                     Materials.AddMaterial(b, vector3I + p);

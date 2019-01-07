@@ -34,8 +34,15 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
         public override void Close()
         {
-            m_beacon.Close();
-            base.Close();
+            try
+            {
+                if (m_beacon != null)
+                    m_beacon.Close();
+            
+                base.Close();
+            }
+            catch (System.Exception e)
+                { Logging.Instance.WriteLine($"NaniteAreaBeaconLogic.Close exception:\n{e.ToString()}"); }
         }
 
         public override void UpdateBeforeSimulation()
