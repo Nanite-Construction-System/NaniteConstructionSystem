@@ -409,13 +409,13 @@
       <ModelOffset x="0" y="0" z="0"/>
       <Model>Models\Cubes\Large\AreaBeacon.mwm</Model>
       <Components>
-        <Component Subtype="SteelPlate" Count="1"/>
-        <Component Subtype="SmallTube" Count="1"/>
-        <Component Subtype="RadioCommunication" Count="1"/>
+        <Component Subtype="SteelPlate" Count="20"/>
+        <Component Subtype="SmallTube" Count="10"/>
+        <Component Subtype="RadioCommunication" Count="2"/>
         <Component Subtype="PowerCell" Count="1"/>
-        <Component Subtype="Construction" Count="1"/>
-        <Component Subtype="Computer" Count="1"/>
-        <Component Subtype="SteelPlate" Count="1"/>
+        <Component Subtype="Construction" Count="15"/>
+        <Component Subtype="Computer" Count="30"/>
+        <Component Subtype="SteelPlate" Count="15"/>
       </Components>
       <CriticalComponent Subtype="Computer" Index="0"/>
       <MountPoints>
@@ -1278,7 +1278,7 @@
       <BlockTopology>TriangleMesh</BlockTopology>
       <Size x="3" y="5" z="3"/>
       <ModelOffset x="0" y="0" z="0"/>
-	  <Center x="0" y="0" z="0"/>
+	  <Center x="1" y="0" z="1"/>
       <Model>Models\Cubes\Large\LargeNaniteOreDetector.mwm</Model>
       <Components>
         <Component Subtype="InteriorPlate" Count="100"/>
@@ -1449,7 +1449,7 @@
       <EdgeType>Light</EdgeType>
       <DamageEffectId>212</DamageEffectId>
       <DamagedSound>ParticleHeavyMech</DamagedSound>
-      <Public>false</Public>
+      <Public>true</Public>
       <PrimarySound>NaniteModule</PrimarySound>
       <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>
       <EmissiveColorPreset>Default</EmissiveColorPreset>
