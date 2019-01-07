@@ -216,6 +216,7 @@ namespace NaniteConstructionSystem
             try
             {
                 Logging.Instance.WriteLine($"Logging Started: Nanite Control Facility | Version {NaniteVersion.Major}.{NaniteVersion.Revision} | Build {NaniteVersion.Build}");
+                Logging.Instance.WriteLine($"IsClient: {Sync.IsClient} | IsServer {Sync.IsServer} | IsDedicated {Sync.IsDedicated}");
                 
                 if (Sync.IsClient)
                 {
@@ -1057,7 +1058,7 @@ namespace NaniteConstructionSystem
         {
             try
             {
-                if (block == null || block.BlockDefinition == null || block.BlockDefinition.SubtypeName == null)
+                if (block == null || block.BlockDefinition.IsNull() || block.BlockDefinition.SubtypeName == null)
                     return;
             
                 Logging.Instance.WriteLine($"CustomControlGetter : {block.BlockDefinition.SubtypeName}");
