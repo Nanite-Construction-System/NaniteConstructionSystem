@@ -147,21 +147,7 @@ MyAPIGateway.Multiplayer.IsServerPlayer(Client): {MyAPIGateway.Multiplayer.IsSer
 
 - {Localize(5)}
 
-- New mining logic and ore detector block
-
-- To use, install a Nanite Ore Detector near a Nanite Facility
-
-- Move the whole setup near some ore, and let it do its magic
-
-- For better control and more ore detection, install the following
-
-- Ore detector scanning upgrades (up to 2)
-
-- Ore detector filter upgrade (only 1)
-
-- Ore detector range upgrades
-
-- These upgrades are installed on the ore detector itself
+- New mining logic and ore detector block. Install a Nanite Ore Detector near a Nanite Control Facility that is near some voxels
 
 - Nearby, friendly facilities now automatically share upgrades and grid inventories
 

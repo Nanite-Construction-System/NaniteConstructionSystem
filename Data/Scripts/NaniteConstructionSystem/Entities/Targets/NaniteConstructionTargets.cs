@@ -109,7 +109,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 missing.Clear();
                 item.GetMissingComponents(missing);
-                if (missing == null) 
+                if (missing == null && !MyAPIGateway.Session.CreativeMode) 
                     continue;
 
                 bool foundMissingComponents = true;
@@ -268,7 +268,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                         target.MoveItemsToConstructionStockpile(((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory());
 
-                        if (!target.HasDeformation && !target.CanContinueBuild( ((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory() ) )
+                        if (!target.HasDeformation && !target.CanContinueBuild( ((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory() ) && !MyAPIGateway.Session.CreativeMode)
                         {
                             Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to missing components", 1);
 

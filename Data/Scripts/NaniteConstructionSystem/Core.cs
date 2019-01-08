@@ -1113,6 +1113,7 @@ namespace NaniteConstructionSystem
 
             try
             {
+                
                 Localization.Help(messageText, out donothing, out message, out title);
                
                 if (!donothing)

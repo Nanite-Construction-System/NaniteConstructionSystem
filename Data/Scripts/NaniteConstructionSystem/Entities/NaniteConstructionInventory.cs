@@ -43,7 +43,7 @@ namespace NaniteConstructionSystem.Entities
         internal void TakeRequiredComponents()
         {
             if (MyAPIGateway.Session.CreativeMode || ComponentsRequired.Count < 1)
-                    return;
+                return;
             
             List<IMyInventory> removalList = new List<IMyInventory>();
             try
