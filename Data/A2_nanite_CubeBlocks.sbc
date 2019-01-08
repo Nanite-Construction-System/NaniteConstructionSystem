@@ -1449,7 +1449,7 @@
       <EdgeType>Light</EdgeType>
       <DamageEffectId>212</DamageEffectId>
       <DamagedSound>ParticleHeavyMech</DamagedSound>
-      <Public>true</Public>
+      <Public>false</Public>
       <PrimarySound>NaniteModule</PrimarySound>
       <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>
       <EmissiveColorPreset>Default</EmissiveColorPreset>
