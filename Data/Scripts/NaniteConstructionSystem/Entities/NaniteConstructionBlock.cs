@@ -1835,8 +1835,17 @@ namespace NaniteConstructionSystem.Entities
         {
             MyAPIGateway.Utilities.InvokeOnGameThread(() =>
             {
-                m_syncDetails.Clear();
-                m_syncDetails.Append(data.Details);
+                try
+                {
+                    if (data == null || data.Details == null)
+                        return;
+
+                    m_syncDetails.Clear();
+                    m_syncDetails.Append(data.Details);
+                }
+                catch (Exception e)
+                    { Logging.Instance.WriteLine($"Exception in NaniteConstructionBlock.SyncDetails:\n{e.ToString()}"); }
+                
             });
         }
 

@@ -178,6 +178,9 @@ namespace NaniteConstructionSystem.Entities
                         return;
 
                     DetailData details = MyAPIGateway.Utilities.SerializeFromXML<DetailData>(ASCIIEncoding.ASCII.GetString(data));
+
+                    if (details == null)
+                        return;
                     //Logging.Instance.WriteLine(string.Format("HandleDetails: {0}", details.EntityId));
 
                     foreach (var item in NaniteConstructionManager.NaniteBlocks)

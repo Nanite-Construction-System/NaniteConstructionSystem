@@ -13,6 +13,7 @@ using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRageMath;
 using static NaniteConstructionSystem.Entities.Detectors.NaniteOreDetector;
+using NaniteConstructionSystem.Extensions;
 
 namespace NaniteConstructionSystem
 {
@@ -245,7 +246,7 @@ namespace NaniteConstructionSystem
 
             NaniteConstructionManager.Instance.UpdateSettingsChanges();
 
-            if (MyAPIGateway.Multiplayer.MultiplayerActive && MyAPIGateway.Utilities.IsDedicated)
+            if (Sync.IsClient && !Sync.IsServer)
                 NaniteConstructionManager.Instance.InitializeControls();
         }
 
