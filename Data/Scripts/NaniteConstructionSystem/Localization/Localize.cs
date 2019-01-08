@@ -1,4 +1,5 @@
 using NaniteConstructionSystem;
+using NaniteConstructionSystem.Extensions;
 using System;
 using System.Text;
 using System.Linq;
@@ -15,6 +16,35 @@ using Sandbox.Definitions;
 using Sandbox.Common.ObjectBuilders;
 using Ingame = Sandbox.ModAPI.Ingame;
 using Sandbox.ModAPI.Interfaces.Terminal;
+
+//Supported Languages reference:
+
+// MyLanguagesEnum.English
+// MyLanguagesEnum.Czech
+// MyLanguagesEnum.Slovak
+// MyLanguagesEnum.German
+// MyLanguagesEnum.Russian
+// MyLanguagesEnum.Spanish_Spain
+// MyLanguagesEnum.French
+// MyLanguagesEnum.Italian
+// MyLanguagesEnum.Danish
+// MyLanguagesEnum.Dutch
+// MyLanguagesEnum.Icelandic
+// MyLanguagesEnum.Polish
+// MyLanguagesEnum.Finnish
+// MyLanguagesEnum.Hungarian
+// MyLanguagesEnum.Portuguese_Brazil
+// MyLanguagesEnum.Estonian
+// MyLanguagesEnum.Norwegian
+// MyLanguagesEnum.Spanish_HispanicAmerica
+// MyLanguagesEnum.Swedish
+// MyLanguagesEnum.Catalan
+// MyLanguagesEnum.Croatian
+// MyLanguagesEnum.Romanian
+// MyLanguagesEnum.Ukrainian
+// MyLanguagesEnum.Turkish
+// MyLanguagesEnum.Latvian
+// MyLanguagesEnum.ChineseChina
 
 namespace NaniteConstructionSystem
 {
@@ -44,6 +74,7 @@ namespace NaniteConstructionSystem
                         default: // English will always be "default" if the user's language hasn't been added yet
                             return "Hello!";
                     }
+                    break;
                 case (1):
                     switch (language)
                     {
@@ -51,6 +82,31 @@ namespace NaniteConstructionSystem
                             return "This is likely due to a list being modified during enumeration in a parallel thread, which is probably harmless and can be ignored.";
                     }
                     break;
+                case (2):
+                    switch (language)
+                    {
+                        default:
+                            return "This section includes some debugging variables that can help the devs solve problems. Please use this command when reporting errors and include the output in your bug report.";
+                    }
+                case (3):
+                    switch (language)
+                    {
+                        default:
+                            return "All target processing moved to parallel for better performance";
+                    }
+                case (4):
+                    switch (language)
+                    {
+                        default:
+                            return "Code optimized and made more stable for dedicated servers";
+                    }
+                case (5):
+                    switch (language)
+                    {
+                        default:
+                            return "New models! Old models have a rusty look. They can be torn down to retrieve parts";
+                    }
+
                 default:
                     return "";
             }
@@ -64,29 +120,56 @@ namespace NaniteConstructionSystem
 
             switch (messageText)
             {
+                case "/nanite debug":
+                    title = "Debugging";
+                    message = $@"
+<--- Debugging Information --->
+
+{Localize(2)}
+
+IsClient: {Sync.IsClient}
+IsServer: {Sync.IsServer}
+IsDedicated: {Sync.IsDedicated}
+IsOffline: {MyAPIGateway.Session.OnlineMode == VRage.Game.MyOnlineModeEnum.OFFLINE}
+
+MyAPIGateway.Session.Player.Client: {MyAPIGateway.Session.Player.Client}
+MyAPIGateway.Multiplayer.IsServerPlayer(Client): {MyAPIGateway.Multiplayer.IsServerPlayer(MyAPIGateway.Session.Player.Client)}
+";
+                    break;
                 case "/nanite changelog":
                     title = "Changelog";
-                    message = @"
-VERSION 2.0! Jan. 6, 2019 --->
+                    message = $@"
+<--- Version 2.0! Jan. 6, 2019 --->
 
-  - All target processing moved to parallel for better performance
-  - Code optimized and made more stable for dedicated servers
-  - New models
-  - Old models have a rusty look. They can be torn down to retrieve parts
-  - New mining logic and ore detector block
-  - To use, install a Nanite Ore Detector near a Nanite Facility
-  - Move the whole setup near some ore, and let it do its magic
-  - For better control and more ore detection, install the following
-  - Ore detector scanning upgrades (up to 2)
-  - Ore detector filter upgrade (only 1)
-  - Ore detector range upgrades
-  - These upgrades are installed on the ore detector itself
-  - Nearby, friendly facilities now automatically share
-    upgrades and grid inventories
-  - New help documentation. Type: /nanite help
-  - New logging system for admins. For info, type: /nanite help config
-  - Projector upgrade removed. Construction upgrade now also
-    affects projection nanites
+- {Localize(3)}
+
+- {Localize(4)}
+
+- {Localize(5)}
+
+- New mining logic and ore detector block
+
+- To use, install a Nanite Ore Detector near a Nanite Facility
+
+- Move the whole setup near some ore, and let it do its magic
+
+- For better control and more ore detection, install the following
+
+- Ore detector scanning upgrades (up to 2)
+
+- Ore detector filter upgrade (only 1)
+
+- Ore detector range upgrades
+
+- These upgrades are installed on the ore detector itself
+
+- Nearby, friendly facilities now automatically share upgrades and grid inventories
+
+- New help documentation. Type: /nanite help
+
+- New logging system for admins. For info, type: /nanite help config
+
+- Projector upgrade removed. Construction upgrade now also affects projection nanites
 ";
                     break;
 
