@@ -122,7 +122,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                     bool found = false;
                     foreach (var block in blockList.ToList())
                     {
-                        if (block != null && block.Targets.First(y => y is NaniteConstructionTargets).TargetList.Contains(item as IMySlimBlock))
+                        if (block != null && block != m_constructionBlock && !m_constructionBlock.Slaves.Contains(block)
+                          && block.Targets.First(y => y is NaniteConstructionTargets).TargetList.Contains(item as IMySlimBlock))
                         {
                             found = true;
                             LastInvalidTargetReason = "Another factory has this block as a target";

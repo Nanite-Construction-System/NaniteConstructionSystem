@@ -952,8 +952,8 @@ namespace NaniteConstructionSystem
             CreateSliderActions("RotationZ", rotationZSlider, 0, 359, true);
 
             // Range slider
-            var detectRangeSlider = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyOreDetector>("Range");
-            detectRangeSlider.Title = MyStringId.GetOrCompute("Range");
+            var detectRangeSlider = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyOreDetector>("Ore Detection Range");
+            detectRangeSlider.Title = MyStringId.GetOrCompute("Ore Detection Range");
             detectRangeSlider.Tooltip = MyStringId.GetOrCompute("Maximum detection range");
             detectRangeSlider.SetLimits(0, 350);
             detectRangeSlider.Getter = (x) =>
