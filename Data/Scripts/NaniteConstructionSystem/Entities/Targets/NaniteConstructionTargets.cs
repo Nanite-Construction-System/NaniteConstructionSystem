@@ -109,7 +109,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 missing.Clear();
                 item.GetMissingComponents(missing);
-                if (missing == null) 
+                if (missing == null && !MyAPIGateway.Session.CreativeMode) 
                     continue;
 
                 bool foundMissingComponents = true;
@@ -122,7 +122,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                     bool found = false;
                     foreach (var block in blockList.ToList())
                     {
-                        if (block != null && block.Targets.First(y => y is NaniteConstructionTargets).TargetList.Contains(item as IMySlimBlock))
+                        if (block != null && block != m_constructionBlock && !m_constructionBlock.Slaves.Contains(block)
+                          && block.Targets.First(y => y is NaniteConstructionTargets).TargetList.Contains(item as IMySlimBlock))
                         {
                             found = true;
                             LastInvalidTargetReason = "Another factory has this block as a target";
@@ -268,7 +269,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                         target.MoveItemsToConstructionStockpile(((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory());
 
-                        if (!target.HasDeformation && !target.CanContinueBuild( ((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory() ) )
+                        if (!target.HasDeformation && !target.CanContinueBuild( ((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory() ) && !MyAPIGateway.Session.CreativeMode)
                         {
                             Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to missing components", 1);
 

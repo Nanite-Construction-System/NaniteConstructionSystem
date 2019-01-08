@@ -116,8 +116,8 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 missing = inventoryManager.GetProjectionComponents((IMySlimBlock)item);
                 bool haveComponents = inventoryManager.CheckComponentsAvailable(ref missing, ref available);
-                if (haveComponents && m_constructionBlock.HasRequiredPowerForNewTarget(this) 
-                    && ((IMySlimBlock)item).CubeGrid.GetPosition() != Vector3D.Zero)
+                if ((MyAPIGateway.Session.CreativeMode || haveComponents) && m_constructionBlock.HasRequiredPowerForNewTarget(this) 
+                  && ((IMySlimBlock)item).CubeGrid.GetPosition() != Vector3D.Zero)
                 {
                     bool found = false;
                     foreach (var block in blockList.ToList())
@@ -195,7 +195,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - m_targetBlocks[target].StartTime >= time / 2.5 && !m_targetBlocks[target].CheckInventory)
                 {
                     m_targetBlocks[target].CheckInventory = true;
-                    if (!m_constructionBlock.InventoryManager.ProcessMissingComponents(target))
+                    if (!m_constructionBlock.InventoryManager.ProcessMissingComponents(target) && !MyAPIGateway.Session.CreativeMode)
                     {
                         Logging.Instance.WriteLine("CANCELLING Projection Target due to missing components", 1);
                         CancelTarget(target);
