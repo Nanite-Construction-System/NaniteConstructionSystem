@@ -28,6 +28,7 @@ using NaniteConstructionSystem.Entities.Tools;
 using NaniteConstructionSystem.Entities.Beacons;
 using NaniteConstructionSystem.Entities.Detectors;
 using NaniteConstructionSystem.Extensions;
+using NaniteConstructionSystem;
 using NaniteConstructionSystem.Settings;
 #endregion
 
@@ -981,20 +982,16 @@ namespace NaniteConstructionSystem.Entities
                     }
                     catch (InvalidOperationException e)
                     {
-                        Logging.Instance.WriteLine("ScanForTargets InvalidOperationException: "
-                          + "This is likely due to a list being modified during enumeration in a parallel thread, "
-                          + $"which is probably harmless.");
+                        Logging.Instance.WriteLine("ScanForTargets InvalidOperationException: " + Localization.Localize(1));
                         Logging.Instance.WriteLine($"{e.ToString()}", 2);
                     }
                     catch (Exception e) when (e.ToString().Contains("IndexOutOfRangeException")) 
                     { // because Keen thinks we shouldn't have access to IndexOutOfRangeException ...
-                        Logging.Instance.WriteLine("ScanForTargets IndexOutOfRangeException: "
-                          + "This is likely due to a list being modified during enumeration in a parallel thread, "
-                          + $"which is probably harmless.");
+                        Logging.Instance.WriteLine("ScanForTargets IndexOutOfRangeException: " + Localization.Localize(1));
                         Logging.Instance.WriteLine($"{e.ToString()}", 2);
                     }
                     catch (Exception e)
-                        {Logging.Instance.WriteLine($"NaniteConstructionBlock.ScanForTargets Error: {e.ToString()}");}
+                        {Logging.Instance.WriteLine($"NaniteConstructionBlock.ScanForTargets exception: {e.ToString()}");}
                 },
                 () => { //callback
                     m_takeComponentsTimer = m_updateCount + 100; //  These timers give the parallel threads time to finish
@@ -1894,15 +1891,18 @@ namespace NaniteConstructionSystem.Entities
                                 continue;
 
                             if (item is NaniteDeconstructionTargets && (target.IsDestroyed || target.IsFullyDismounted 
-                            || (target.CubeGrid != null && target.CubeGrid.GetCubeBlock(target.Position) == null) || (target.FatBlock != null && target.FatBlock.Closed)))
-                                MyAPIGateway.Utilities.InvokeOnGameThread(() => {item.CompleteTarget(target);});
+                              || (target.CubeGrid != null && target.CubeGrid.GetCubeBlock(target.Position) == null) || (target.FatBlock != null && target.FatBlock.Closed)))
+                                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                                    { item.CompleteTarget(target); });
 
                             else if (target.IsDestroyed || target.IsFullyDismounted || (target.CubeGrid != null && target.CubeGrid.GetCubeBlock(target.Position) == null) 
-                            || (target.FatBlock != null && target.FatBlock.Closed))
-                                MyAPIGateway.Utilities.InvokeOnGameThread(() => {item.CancelTarget(target);});
+                              || (target.FatBlock != null && target.FatBlock.Closed))
+                                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                                    { item.CancelTarget(target); });
 
                             else if(item is NaniteConstructionTargets && target.IsFullIntegrity && !target.HasDeformation)
-                                MyAPIGateway.Utilities.InvokeOnGameThread(() => {item.CompleteTarget(target);});
+                                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                                    { item.CompleteTarget(target); });
                         }
                     }
                 });
