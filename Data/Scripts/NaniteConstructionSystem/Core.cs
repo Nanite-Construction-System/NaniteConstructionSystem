@@ -64,6 +64,7 @@ namespace NaniteConstructionSystem
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation)]
     public class NaniteConstructionManager : MySessionComponentBase
     {
+        public int MiningScanningSpeed = 10;
         public static NaniteConstructionManager Instance;
 
         // Unique storage identifer

@@ -147,7 +147,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                     {
                         try
                         {
-                            for (int i = 0; i < material.WorldPosition.Count; i++)
+                            int minimumAmount = NaniteConstructionManager.Settings != null ? NaniteConstructionManager.Settings.MiningTargetsScannedPerSecond : 100;
+                            int amountToProcess = Math.Min(material.WorldPosition.Count, minimumAmount * 5);
+                            for (int i = 0; i < amountToProcess; i++)
                             {
                                 try
                                 { // material iterations
@@ -210,7 +212,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         }
                         catch (Exception e) when (e.ToString().Contains("ArgumentOutOfRangeException")) 
                         { // because Keen thinks we shouldn't have access to this exception^ ...
-                            Logging.Instance.WriteLine("Caught an ArgumentOutOfRangeException while processing mining targets. This is probably harmless");
+                            Logging.Instance.WriteLine("Caught an ArgumentOutOfRangeException while processing mining targets. This is probably harmless and can be ignored.");
                         }
                     }
 
