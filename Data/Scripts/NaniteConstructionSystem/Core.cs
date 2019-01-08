@@ -284,7 +284,8 @@ namespace NaniteConstructionSystem
                     m_sync.SendNeedTerminalSettings(item.Key);
 
                 foreach (var item in AssemblerBlocks)
-                    m_sync.SendNeedAssemblerSettings(item.Value.EntityId);
+                    if (item.Value != null)
+                        m_sync.SendNeedAssemblerSettings(item.Value.EntityId);
 
                 foreach (var item in BeaconTerminalSettings)
                     m_sync.SendNeedBeaconTerminalSettings(item.Key);
