@@ -1,3 +1,5 @@
+*.sbmi
+
 # archives
 *.7z
 *.zip
@@ -25,5 +27,4 @@
 *.user
 *.sln
 *.mod
-*.sbmi
 /obj/Release

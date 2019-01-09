@@ -136,9 +136,158 @@ namespace NaniteConstructionSystem
                         default:
                             return "Projector upgrade removed. Construction upgrades now also affect projection nanites";
                     }
-
+                case (11):
+                    switch (language)
+                    {
+                        default:
+                            return "Many mods/scripts, especially those that modify ore detectors, ship welders, power usage and inventory management, can cause undesired results given the enormous scope of this mod.";
+                    }
+                case (12):
+                    switch (language)
+                    {
+                        default:
+                            return "Before submitting a bug report, PLEASE try to recreate the bug in a world where Nanite Construction Facility is the only mod.";
+                    }
+                case (13):
+                    switch (language)
+                    {
+                        default:
+                            return "There are thousands of unpredictable mods for Space Engineers that simply cannot be accounted for.";
+                    }
+                case (14):
+                    switch (language)
+                    {
+                        default:
+                            return "To submit a bug report, go to the Github page at";
+                    }
+                case (15):
+                    switch (language)
+                    {
+                        default:
+                            return "Click on the 'Issues' tab. Please search for an existing issue before creating a new issue.";
+                    }
+                case (16):
+                    switch (language)
+                    {
+                        default:
+                            return "You may comment your information on an existing issue and include screenshots.";
+                    }
+                case (17):
+                    switch (language)
+                    {
+                        default:
+                            return "If the issue does not exist, you may create a new one. You must include the following items or your issue will be deleted:";
+                    }
+                case (18): // This is a bulleted list item
+                    switch (language)
+                    {
+                        default:
+                            return "Your Space Engineers log, located at %appdata%/roaming/SpaceEngineers/SpaceEngineers.log";
+                    }
+                case (19): // This is a bulleted list item
+                    switch (language)
+                    {
+                        default:
+                            return "Your Nanite log and config file (if Singpleplayer or hosting) at %appdata%/roaming/SpaceEngineers/Saves/[steamid]/[savename]/storage/[mod name and number]/";
+                    }
+                case (20): // This is a bulleted list item
+                    switch (language)
+                    {
+                        default:
+                            return "The output of"; // a debugging help command, /nanite debug
+                    }
+                case (21):
+                    switch (language)
+                    {
+                        default:
+                            return "Thank you in advance. Taking these measures allows the developers to address issues faster.";
+                    }
+                case (22): // This is a help section header
+                    switch (language)
+                    {
+                        default:
+                            return "Troubleshooting";
+                    }
+                case (23): // This is a help section header
+                    switch (language)
+                    {
+                        default:
+                            return "Commands";
+                    }
+                case (24): // This is a help section header
+                    switch (language)
+                    {
+                        default:
+                            return "Debugging Information";
+                    }
+                case (25): // This is a help section header
+                    switch (language)
+                    {
+                        default:
+                            return "Improving Performance";
+                    }
+                case (26): // This is a help section header
+                    switch (language)
+                    {
+                        default:
+                            return "Nanite Control Facility Upgrades";
+                    }
+                case (27): // This is a help section header
+                    switch (language)
+                    {
+                        default:
+                            return "Nanite Ore Detector Upgrades";
+                    }
+                case (28): // This is a help section header
+                    switch (language)
+                    {
+                        default:
+                            return "Meet the Developers";
+                    }
+                case (29): // This is a help section header
+                    switch (language)
+                    {
+                        default:
+                            return "Localization contributors";
+                    }
+                case (30): // This is a help section header
+                    switch (language)
+                    {
+                        default:
+                            return "Testing Server";
+                    }
+                case (31): // This is a help section header
+                    switch (language)
+                    {
+                        default:
+                            return "A Sincere Thanks";
+                    }
+                case (32): // This is a help section header
+                    switch (language)
+                    {
+                        default:
+                            return "Working Together";
+                    }
+                case (33): // This is a help section header
+                    switch (language)
+                    {
+                        default:
+                            return "Shared Resources";
+                    }
+                case (34): // This is a help section header
+                    switch (language)
+                    {
+                        default:
+                            return "Mining Nanites";
+                    }
+                case (35): // This is a help section header
+                    switch (language)
+                    {
+                        default:
+                            return "Medical Nanites";
+                    }
                 default:
-                    return "";
+                    return ""; 
             }
         }
 
@@ -153,7 +302,7 @@ namespace NaniteConstructionSystem
                 case "/nanite debug":
                     title = "Debugging";
                     message = $@"
-<--- Debugging Information --->
+<--- {Localize(24)} --->
 
 {Localize(2)}
 
@@ -190,7 +339,7 @@ MyAPIGateway.Multiplayer.IsServerPlayer(Client): {MyAPIGateway.Multiplayer.IsSer
                 case "/nanite help":
                     title = "Help";
                     message = $@"
-<--- Commands --->
+<--- {Localize(23)} --->
 
 /nanite help
 /nanite help basics
@@ -208,29 +357,29 @@ MyAPIGateway.Multiplayer.IsServerPlayer(Client): {MyAPIGateway.Multiplayer.IsSer
 /nanite changelog
 /nanite credits
 
-<--- Troubleshooting --->
+<--- {Localize(22)} --->
 
-Many mods/scripts, especially those that modify ore detectors, ship welders, power usage and inventory management, can cause undesired results given the enormous scope of this mod.
+{Localize(11)}
 
-Before submitting a bug report, PLEASE try to recreate the bug in a world where Nanite Construction Facility is the only mod.
+{Localize(12)}
 
-There are thousands of crazy and non-maintained mods for Space Engineers that simply cannot be accounted for. Thank you.
+{Localize(13)}
 
-To submit a bug report, go to the Github page at https://github.com/nukeguard/NaniteConstructionSystem.
+{Localize(14)} https://github.com/nukeguard/NaniteConstructionSystem
 
-Click on the 'Issues' tab. If the issue already exists, do not create a new one.
+{Localize(15)}
 
-You may comment your information on the existing issue and include screenshots.
+{Localize(16)}
 
-If the issue does not exist, you may create a new one. You must include the following items or your issue will be deleted:
+{Localize(17)}
 
-- Your Space Engineers log, located at %appdata%/roaming/SpaceEngineers/SpaceEngineers.log
+- {Localize(18)}
 
-- Your Nanite log and config file (if Singpleplayer or hosting) at %appdata%/roaming/SpaceEngineers/Saves/[steamid]/[savename]/storage/[mod name and number]/
+- {Localize(19)}
 
-- The output of /nanite debug
+- {Localize(20)} /nanite debug
 
-Thank you in advance. This is a community project, and taking these measures allows the dev team to fix issues faster.
+{Localize(21)}
 ";
                     break;
 
@@ -238,13 +387,13 @@ Thank you in advance. This is a community project, and taking these measures all
 
                     title = "Upgrades";
                     message = $@"
-<--- Improving Performance --->
+<--- {Localize(25)} --->
 
 Upgrades allow the player to fine tune the capabilities of both
 the Nanite Control Facility and the Nanite Ore Detector.
 Here's what they do.
 
-<--- Nanite Control Facility Upgrades --->
+<--- {Localize(26)} --->
 
 Construction: Increases construction/repair nanites by {NaniteConstructionManager.Settings.ConstructionNanitesPerUpgrade}
 and projection nanites by {NaniteConstructionManager.Settings.ProjectionNanitesPerUpgrade}.
@@ -262,7 +411,7 @@ Speed: Reduces nanite travel time by {NaniteConstructionManager.Settings.SpeedIn
 Power: Reduces nanite power consumption by {NaniteConstructionManager.Settings.PowerDecreasePerUpgrade}MW.
 
 
-<--- Nanite Ore Detector Upgrades --->
+<--- {Localize(27)} --->
 
 Range: Increases range by {NaniteConstructionManager.Settings.OreDetectorRangePerUpgrade}m.
 
@@ -279,7 +428,7 @@ Filter: Allows selection of ore data to be stored (max 1 upgrade).
 
                     title = "Credits";
                     message = $@"
-<--- Meet the Developers --->
+<--- {Localize(28)} --->
 
 - Nukeguard -
 Modeling, textures, block definitions, distribution
@@ -294,7 +443,7 @@ Programming, concept/implementation focus
 Programming, optimization/performance focus
 Documentation/help/tutorials
 
-<--- Localization contributors --->
+<--- {Localize(29)} --->
 
 <--- GitHub --->
 
@@ -303,7 +452,7 @@ Please post any bug reports, feature suggestions and other
 issues here. Include your log files and config for bug
 reports. No exceptions.
 
-<--- Testing Server --->
+<--- {Localize(30)} --->
 
 Splen's Server, STC Trading Co., will always be using the
 latest development version of Nanite Control Facility.
@@ -311,7 +460,7 @@ If you want to test new features before they appear in the
 live version, join us! Get the server address, rules and
 more information at https://discord.gg/neAUzaq
 
-<--- A Sincere Thanks --->
+<--- {Localize(31)} --->
 
 Thank you for downloading and supporting this mod. We've
 all worked very hard on it. Thanks for making the Space
@@ -330,7 +479,7 @@ given us the motivation to keep this mod alive.
 
                     title = "Facility Cooperation";
                     message = $@"
-<--- Working Together --->
+<--- {Localize(32)} --->
 
 Friendly Nanite Control Facilities within {NaniteConstructionManager.Settings.MasterSlaveDistance}m of each
 other will automatically join together and combine upgrades and
@@ -340,7 +489,7 @@ All settings within individual facilities are respected and no
 additional configuration is needed. It should mostly feel like
 nothing has changed, but you may notice a few things:
 
-<--- Shared Resources --->
+<--- {Localize(33)} --->
 
 Inventories are shared between Facilities as well as their grids
 and subgrids. That means that if two separate grids with
@@ -367,7 +516,7 @@ better support for inventory operations.
 
                     title = "Mining";
                     message = $@"
-<--- Mining Nanites --->
+<--- {Localize(34)} --->
 
 When this box is checked in a Nanite Control Facility, it will scan
 for nearby Nanite Ore Detectors within {NaniteConstructionManager.Settings.OreDetectorToNaniteFactoryCommunicationDistance}m.
@@ -445,7 +594,7 @@ install Nanite Mining Upgrades on the facility.
 For more information about Nanite Upgrades, type in chat:
 /nanite help upgrades
 
-<--- Troubleshooting --->
+<--- {Localize(22)} --->
 
 If things aren't working as expected, check the factory itself
 in the control panel. Scroll down on the right side info
@@ -472,7 +621,7 @@ to rescan the grid when new blocks are installed.
 
                     title = "Medical";
                     message = $@"
-<--- Medical Nanites --->
+<--- {Localize(35)} --->
 
 When this box is checked in a Nanite Control Facility, it will scan
 for nearby players within {NaniteConstructionManager.Settings.MedicalMaxDistance}m of the facility.
@@ -486,7 +635,7 @@ install Nanite Medical Upgrades on the facility.
 For more information about Nanite Upgrades, type in chat:
 /nanite help upgrades
 
-<--- Troubleshooting --->
+<--- {Localize(22)} --->
 
 If things aren't working as expected, check the factory itself
 in the control panel. Scroll down on the right side info
@@ -534,7 +683,7 @@ install Nanite Deconstruction Upgrades on the facility.
 For more information about Nanite Upgrades, type in chat:
 /nanite help upgrades
 
-<--- Troubleshooting --->
+<--- {Localize(22)} --->
 
 If things aren't working as expected, check the factory itself
 in the control panel. Scroll down on the right side info
@@ -592,7 +741,7 @@ install Nanite Construction Upgrades on the facility.
 For more information about Nanite Upgrades, type in chat:
 /nanite help upgrades
 
-<--- Troubleshooting --->
+<--- {Localize(22)} --->
 
 If things aren't working as expected, check the factory itself
 in the control panel. Scroll down on the right side info
@@ -649,7 +798,7 @@ install Nanite Construction Upgrades on the facility.
 For more information about Nanite Upgrades, type in chat:
 /nanite help upgrades
 
-<--- Troubleshooting --->
+<--- {Localize(22)} --->
 
 If things aren't working as expected, check the factory itself
 in the control panel. Scroll down on the right side info
@@ -699,7 +848,7 @@ produce simultaneously, install Nanite Cleanup Upgrades.
 For more detailed information on upgrades, type in chat:
 /nanite help upgrades
 
-<--- Troubleshooting --->
+<--- {Localize(22)} --->
 
 If things aren't working as expected, check the factory itself
 in the control panel. Scroll down on the right side info
