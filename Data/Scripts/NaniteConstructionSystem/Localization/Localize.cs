@@ -106,6 +106,36 @@ namespace NaniteConstructionSystem
                         default:
                             return "New models! Old models have a rusty look. They can be torn down to retrieve parts";
                     }
+                case (6):
+                    switch (language)
+                    {
+                        default:
+                            return "New mining logic and ore detector block. Install a Nanite Ore Detector near a Nanite Control Facility that is near some voxels";
+                    }
+                case (7):
+                    switch (language)
+                    {
+                        default:
+                            return "Version 2.0! Jan. 6, 2019";
+                    }
+                case (8):
+                    switch (language)
+                    {
+                        default:
+                            return "Nearby, friendly facilities now automatically share upgrades and grid inventories";
+                    }
+                case (9):
+                    switch (language)
+                    {
+                        default:
+                            return "New help documentation. Type in chat:";
+                    }
+                case (10):
+                    switch (language)
+                    {
+                        default:
+                            return "Projector upgrade removed. Construction upgrades now also affect projection nanites";
+                    }
 
                 default:
                     return "";
@@ -139,7 +169,7 @@ MyAPIGateway.Multiplayer.IsServerPlayer(Client): {MyAPIGateway.Multiplayer.IsSer
                 case "/nanite changelog":
                     title = "Changelog";
                     message = $@"
-<--- Version 2.0! Jan. 6, 2019 --->
+<--- {Localize(7)} --->
 
 - {Localize(3)}
 
@@ -147,15 +177,13 @@ MyAPIGateway.Multiplayer.IsServerPlayer(Client): {MyAPIGateway.Multiplayer.IsSer
 
 - {Localize(5)}
 
-- New mining logic and ore detector block. Install a Nanite Ore Detector near a Nanite Control Facility that is near some voxels
+- {Localize(6)}
 
-- Nearby, friendly facilities now automatically share upgrades and grid inventories
+- {Localize(8)}
 
-- New help documentation. Type: /nanite help
+- {Localize(9)}
 
-- New logging system for admins. For info, type: /nanite help config
-
-- Projector upgrade removed. Construction upgrade now also affects projection nanites
+- {Localize(10)}
 ";
                     break;
 
@@ -179,6 +207,30 @@ MyAPIGateway.Multiplayer.IsServerPlayer(Client): {MyAPIGateway.Multiplayer.IsSer
 /nanite help cooperation
 /nanite changelog
 /nanite credits
+
+<--- Troubleshooting --->
+
+Many mods/scripts, especially those that modify ore detectors, ship welders, power usage and inventory management, can cause undesired results given the enormous scope of this mod.
+
+Before submitting a bug report, PLEASE try to recreate the bug in a world where Nanite Construction Facility is the only mod.
+
+There are thousands of crazy and non-maintained mods for Space Engineers that simply cannot be accounted for. Thank you.
+
+To submit a bug report, go to the Github page at https://github.com/nukeguard/NaniteConstructionSystem.
+
+Click on the 'Issues' tab. If the issue already exists, do not create a new one.
+
+You may comment your information on the existing issue and include screenshots.
+
+If the issue does not exist, you may create a new one. You must include the following items or your issue will be deleted:
+
+- Your Space Engineers log, located at %appdata%/roaming/SpaceEngineers/SpaceEngineers.log
+
+- Your Nanite log and config file (if Singpleplayer or hosting) at %appdata%/roaming/SpaceEngineers/Saves/[steamid]/[savename]/storage/[mod name and number]/
+
+- The output of /nanite debug
+
+Thank you in advance. This is a community project, and taking these measures allows the dev team to fix issues faster.
 ";
                     break;
 

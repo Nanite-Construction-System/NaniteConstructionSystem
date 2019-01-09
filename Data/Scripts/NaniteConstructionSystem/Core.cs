@@ -56,7 +56,7 @@ namespace NaniteConstructionSystem
     {
         public int Major = 2;
         public int Revision = 0;
-        public int Build = 5;
+        public int Build = 6;
 
         public NaniteVersionClass(){}
     }
@@ -64,7 +64,6 @@ namespace NaniteConstructionSystem
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation)]
     public class NaniteConstructionManager : MySessionComponentBase
     {
-        public int MiningScanningSpeed = 10;
         public static NaniteConstructionManager Instance;
 
         // Unique storage identifer

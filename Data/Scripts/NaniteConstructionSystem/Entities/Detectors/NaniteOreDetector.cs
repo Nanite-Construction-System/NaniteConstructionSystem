@@ -696,8 +696,9 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
         private void SpawnQueueWorker()
         {
-            Logging.Instance.WriteLine($"SpawnQueueWorker {Math.Min(m_taskQueue.Count, NaniteConstructionManager.Instance.MiningScanningSpeed)}", 1);               
-            for (int i = 0; i < Math.Min(m_taskQueue.Count, NaniteConstructionManager.Instance.MiningScanningSpeed); i++)
+            int scanningSpeed = NaniteConstructionManager.Settings != null ? NaniteConstructionManager.Settings.OreDetectorScanningSpeed : 10;
+            Logging.Instance.WriteLine($"SpawnQueueWorker {Math.Min(m_taskQueue.Count, scanningSpeed)}", 1);               
+            for (int i = 0; i < Math.Min(m_taskQueue.Count, scanningSpeed); i++)
             {
                 Vector3I vector;
                 if (!m_taskQueue.TryDequeue(out vector))
