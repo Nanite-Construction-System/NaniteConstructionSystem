@@ -244,7 +244,7 @@
         <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NaniteBeacon_Constr2.mwm"/>
       </BuildProgressModels>
       <BlockPairName>NaniteBeaconConstruct</BlockPairName>
-      <Description>Nanite beacon for construction nanites to lock onto, place these on grids to take apart.</Description>
+      <Description>Nanite beacon for construction nanites to lock onto, place these on grids to repair or construct them.</Description>
       <MirroringY>Z</MirroringY>
       <MirroringZ>Y</MirroringZ>
       <EdgeType>Light</EdgeType>
