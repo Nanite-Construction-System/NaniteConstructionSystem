@@ -54,7 +54,12 @@ namespace NaniteConstructionSystem.Entities.Effects
         public override void InactiveUpdate()
         {
             if (m_centerSphere == null)
+            {
+                if (m_block != null)
+                    CreateCenterSphere(m_block);
+
                 return;
+            }
             
             m_centerSphere.PositionComp.LocalMatrix = Matrix.CreateFromTransformScale(Quaternion.Identity, new Vector3(0f, -1.0f, 0f), Vector3.One);
             MyCubeBlockEmissive.SetEmissiveParts(m_centerSphere, 0.0f, Color.Black, Color.White);
@@ -76,7 +81,7 @@ namespace NaniteConstructionSystem.Entities.Effects
 
         private void CreateCenterSphere(MyEntity block)
         {
-            if (block == null)
+            if (block == null || m_centerSphere != null)
                 return;
 
             MyEntitySubpart centerSphereSubpart;
