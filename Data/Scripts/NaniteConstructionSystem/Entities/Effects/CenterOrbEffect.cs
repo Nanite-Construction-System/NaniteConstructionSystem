@@ -53,6 +53,9 @@ namespace NaniteConstructionSystem.Entities.Effects
 
         public override void InactiveUpdate()
         {
+            if (m_centerSphere == null)
+                return;
+            
             m_centerSphere.PositionComp.LocalMatrix = Matrix.CreateFromTransformScale(Quaternion.Identity, new Vector3(0f, -1.0f, 0f), Vector3.One);
             MyCubeBlockEmissive.SetEmissiveParts(m_centerSphere, 0.0f, Color.Black, Color.White);
             m_activePosition = 0;
@@ -100,7 +103,6 @@ namespace NaniteConstructionSystem.Entities.Effects
             if (MyAPIGateway.Session.Player == null)
                 return;
 
-            //if(Vector3D.Distance(MyAPIGateway.Session.Camera.Position, m_block.PositionComp.GetPosition()) > 50f)
             if (Vector3D.DistanceSquared(MyAPIGateway.Session.Player.GetPosition(), m_block.PositionComp.GetPosition()) > 50f * 50f)                
                 return;
 
