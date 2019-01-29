@@ -447,13 +447,20 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                     MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                     {
-                        if (m_constructionBlock.IsUserDefinedLimitReached())
-                            InvalidTargetReason("User defined maximum nanite limit reached");
-                        else if (item != null)
+                        try
                         {
-                            removeList.Add(item);
-                            TargetList.Add(item);
-                        } 
+                            if (m_constructionBlock.IsUserDefinedLimitReached())
+                            InvalidTargetReason("User defined maximum nanite limit reached");
+                            else if (item != null)
+                            {
+                                removeList.Add(item);
+                                TargetList.Add(item);
+                            } 
+                        }
+                        catch (Exception e)
+                        {
+                            Logging.Instance.WriteLine("NaniteMiningTargets.FindTargets.Invocation1: " + e.ToString());
+                        }
                     });
                     
                     if (targetListCount++ >= maxTargets)
