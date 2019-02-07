@@ -1,5 +1,166 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<!--ResearchBlocks -->
+  <ResearchBlocks>
+	<ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_ShipWelder" Subtype="LargeNaniteControlFacility" />
+      <UnlockedByGroups>
+        <GroupSubtype>26</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+	<ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconDeconstruct" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconConstruct" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconProjection" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_Projector" Subtype="LargeNaniteAreaBeacon" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_OreDetector" Subtype="LargeNaniteOreDetector" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_UpgradeModule" Subtype="SmallNaniteBeaconDeconstruct" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_UpgradeModule" Subtype="SmallNaniteBeaconConstruct" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_UpgradeModule" Subtype="SmallNaniteBeaconProjection" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">	  
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteConstructUpgrade" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteDeconstructUpgrade" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteMedicalUpgrade" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteMiningUpgrade" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteSpeedUpgrade" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NanitePowerUpgrade" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteCleanupUpgrade" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradeScanning" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradePowerEfficiency" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradeFilter" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradeRange" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+  </ResearchBlocks>
+<!-- ResearchGroups -->
+  <ResearchGroups><!--
+	<ResearchGroup xsi:type="ResearchGroup">
+     <Id Type="MyObjectBuilder_ResearchGroupDefinition" Subtype="NaniteControlGroup" />
+      <Members>
+       <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteControlFacility" />
+       <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconDeconstruct" />
+       <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconConstruct" />
+       <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconProjection" />
+       <BlockId Type="MyObjectBuilder_Projector" Subtype="LargeNaniteAreaBeacon" />
+       <BlockId Type="MyObjectBuilder_OreDetector" Subtype="LargeNaniteOreDetector" />
+	   
+	   
+        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteConstructUpgrade" />
+        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteDeconstructUpgrade" />
+        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteHealing" />
+        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteMiningUpgrade" />
+        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteSpeedUpgrade" />
+        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteProjectionUpgrade" />
+		
+		
+        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradeScanning" />
+        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradePowerEfficiency" />
+        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradeFilter" />
+        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradeRange" />
+      </Members>
+	 </ResearchGroup> -->
+	 <ResearchGroup xsi:type="ResearchGroup">
+     <Id Type="MyObjectBuilder_ResearchGroupDefinition" Subtype="NaniteController" />
+      <Members>
+       <BlockId Type="MyObjectBuilder_ShipWelder" Subtype="LargeNaniteControlFacility" />
+      </Members>
+	 </ResearchGroup>
+  </ResearchGroups>
+
+
+
+
   <CubeBlocks>
     <!-- Nanite Control Facilities -->
     <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
@@ -131,7 +292,6 @@
       <SensorOffset>0</SensorOffset>
       <PCU>2000</PCU>
     </Definition> -->
-    <!-- Nanite Upgrades -->
     <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
       <Id>
         <TypeId>UpgradeModule</TypeId>
@@ -1394,111 +1554,7 @@
       <PCU>5000</PCU>
 </Definition> -->
 
-    <!-- Migration: block only, no function -->
-    <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
-      <Id>
-        <TypeId>ShipWelder</TypeId>
-        <SubtypeId>LargeNaniteFactory</SubtypeId>
-      </Id>
-      <DisplayName>OLD Nanite Control Factory</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteFactory.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="3" y="3" z="3"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NanoRepairModule.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="300"/>
-        <Component Subtype="Construction" Count="400"/>
-        <Component Subtype="MetalGrid" Count="150"/>
-        <Component Subtype="LargeTube" Count="150"/>
-        <Component Subtype="GravityGenerator" Count="350"/>
-        <Component Subtype="Detector" Count="25"/>
-        <Component Subtype="PowerCell" Count="750"/>
-        <Component Subtype="Computer" Count="450"/>
-        <Component Subtype="Motor" Count="150"/>
-        <Component Subtype="Superconductor" Count="1200"/>
-        <Component Subtype="Display" Count="4"/>
-        <Component Subtype="SteelPlate" Count="900"/>
-        <Component Subtype="InteriorPlate" Count="400"/>
-      </Components>
-      <CriticalComponent Subtype="Display" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="3" EndY="3"/>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="3" EndY="1"/>
-        <MountPoint Side="Right" StartX="0" StartY="0" EndX="3" EndY="1"/>
-        <MountPoint Side="Front" StartX="0" StartY="0" EndX="3" EndY="1"/>
-        <MountPoint Side="Back" StartX="0" StartY="0" EndX="3" EndY="1"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\NanoRepairModule_Cons1.mwm"/>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NanoRepairModule_Cons2.mwm"/>
-        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\NanoRepairModule_Cons3.mwm"/>
-        <Model BuildPercentUpperBound="0.83" File="Models\Cubes\Large\NanoRepairModule_Cons4.mwm"/>
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NanoRepairModule_Cons5.mwm"/>
-      </BuildProgressModels>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-      <BlockPairName>NaniteControlFactory</BlockPairName>
-      <MirroringY>Z</MirroringY>
-      <MirroringZ>Y</MirroringZ>
-      <BuildTimeSeconds>300</BuildTimeSeconds>
-      <EdgeType>Light</EdgeType>
-      <DamageEffectId>212</DamageEffectId>
-      <DamagedSound>ParticleHeavyMech</DamagedSound>
-      <Public>false</Public>
-      <PrimarySound>NaniteModule</PrimarySound>
-      <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <SensorRadius>2.26</SensorRadius>
-      <PCU>1</PCU>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
-      <Id>
-        <TypeId>OreDetector</TypeId>
-        <SubtypeId>NaniteUltrasonicHammer</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Ultrasonic Hammer Ore Locator - NUHOL</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NUHOL.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="4" z="1"/>
-      <ModelOffset x="0" y="2" z="0"/>
-      <Model>Models\Cubes\Large\NUHOL.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="10"/>
-        <Component Subtype="SmallTube" Count="12"/>
-        <Component Subtype="LargeTube" Count="10"/>
-        <Component Subtype="Computer" Count="10"/>
-        <Component Subtype="RadioCommunication" Count="3"/>
-        <Component Subtype="Detector" Count="25"/>
-        <Component Subtype="Construction" Count="100"/>
-        <Component Subtype="SteelPlate" Count="20"/>
-      </Components>
-      <CriticalComponent Subtype="Detector" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Right" StartX="0" StartY="1" EndX="1" EndY="2"/>
-        <MountPoint Side="Left" StartX="0" StartY="1" EndX="1" EndY="2"/>
-        <MountPoint Side="Front" StartX="0" StartY="1" EndX="1" EndY="2"/>
-        <MountPoint Side="Back" StartX="0" StartY="1" EndX="1" EndY="2"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NUHOL_Cons1.mwm"/>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NUHOL_Cons2.mwm"/>
-        <Model BuildPercentUpperBound="0.90" File="Models\Cubes\Large\NUHOL_Cons3.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>NaniteUltrasonicHammer</BlockPairName>
-      <EdgeType>Light</EdgeType>
-      <PrimarySound>NaniteBeacon</PrimarySound>
-      <BuildTimeSeconds>45</BuildTimeSeconds>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <Public>false</Public>
-      <PCU>225</PCU>
-    </Definition>
+
   </CubeBlocks>
   <BlockPositions>
     <BlockPosition>
