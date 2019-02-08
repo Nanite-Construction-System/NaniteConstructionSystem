@@ -5,7 +5,7 @@
 	<ResearchBlock xsi:type="ResearchBlock">
       <Id Type="MyObjectBuilder_ShipWelder" Subtype="LargeNaniteControlFacility" />
       <UnlockedByGroups>
-        <GroupSubtype>26</GroupSubtype>
+        <GroupSubtype>JumpDrivePlaceholder</GroupSubtype>
       </UnlockedByGroups>
 	</ResearchBlock>
 	<ResearchBlock xsi:type="ResearchBlock">
@@ -124,38 +124,23 @@
 	</ResearchBlock>
   </ResearchBlocks>
 <!-- ResearchGroups -->
-  <ResearchGroups><!--
-	<ResearchGroup xsi:type="ResearchGroup">
-     <Id Type="MyObjectBuilder_ResearchGroupDefinition" Subtype="NaniteControlGroup" />
-      <Members>
-       <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteControlFacility" />
-       <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconDeconstruct" />
-       <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconConstruct" />
-       <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconProjection" />
-       <BlockId Type="MyObjectBuilder_Projector" Subtype="LargeNaniteAreaBeacon" />
-       <BlockId Type="MyObjectBuilder_OreDetector" Subtype="LargeNaniteOreDetector" />
-	   
-	   
-        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteConstructUpgrade" />
-        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteDeconstructUpgrade" />
-        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteHealing" />
-        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteMiningUpgrade" />
-        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteSpeedUpgrade" />
-        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteProjectionUpgrade" />
-		
-		
-        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradeScanning" />
-        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradePowerEfficiency" />
-        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradeFilter" />
-        <BlockId Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradeRange" />
-      </Members>
-	 </ResearchGroup> -->
+  <ResearchGroups>
 	 <ResearchGroup xsi:type="ResearchGroup">
      <Id Type="MyObjectBuilder_ResearchGroupDefinition" Subtype="NaniteController" />
       <Members>
        <BlockId Type="MyObjectBuilder_ShipWelder" Subtype="LargeNaniteControlFacility" />
       </Members>
 	 </ResearchGroup>
+	<ResearchGroup>
+	 <Id Type="MyObjectBuilder_ResearchGroupDefinition" Subtype="JumpDrivePlaceholder" />
+	 <Members>
+      <BlockId Type="MyObjectBuilder_JumpDrive" Subtype="LargeJumpDrive" />
+      <BlockId Type="MyObjectBuilder_VirtualMass" Subtype="VirtualMassLarge" />
+      <BlockId Type="MyObjectBuilder_SpaceBall" Subtype="SpaceBallLarge" />
+      <BlockId Type="MyObjectBuilder_VirtualMass" Subtype="VirtualMassSmall" />
+      <BlockId Type="MyObjectBuilder_SpaceBall" Subtype="SpaceBallSmall" />
+	 </Members>
+	</ResearchGroup>
   </ResearchGroups>
 
 
