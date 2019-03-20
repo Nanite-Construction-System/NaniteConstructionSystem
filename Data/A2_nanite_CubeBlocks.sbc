@@ -336,7 +336,7 @@
 			<DamageEffectId>212</DamageEffectId>
 			<DamagedSound>ParticleHeavyMech</DamagedSound>
 			<Public>true</Public>
-			<MaximumRange>3000</MaximumRange>
+			<MaximumRange>300</MaximumRange>
 			<PrimarySound>NaniteModule</PrimarySound>
 			<ResourceSinkGroup>Utility</ResourceSinkGroup>
 			<EmissiveColorPreset>Default</EmissiveColorPreset>
