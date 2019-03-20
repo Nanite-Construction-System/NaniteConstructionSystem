@@ -35,8 +35,8 @@
 
     <Container>
       <Id>
-        <TypeId>OxygenFarm</TypeId>
-        <SubtypeId>LargeNaniteFactory</SubtypeId>
+        <TypeId>ShipWelder</TypeId>
+        <SubtypeId>LargeNaniteControlFacility</SubtypeId>
       </Id>
       <DefaultComponents>
         <Component BuilderType="MyObjectBuilder_Inventory"/>
@@ -45,7 +45,7 @@
 <!--
     <Container>
       <Id>
-        <TypeId>OxygenFarm</TypeId>
+        <TypeId>ShipWelder</TypeId>
         <SubtypeId>SmallNaniteConstructionBlock</SubtypeId>
       </Id>
       <DefaultComponents>

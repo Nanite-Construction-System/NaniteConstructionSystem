@@ -29,7 +29,7 @@
     <EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition">
       <Id>
         <TypeId>Inventory</TypeId>
-        <SubtypeId>LargeNaniteFactory</SubtypeId>
+        <SubtypeId>LargeNaniteControlFacility</SubtypeId>
       </Id>
       <Size x="7.5" y="7.5" z="2.5"/>
     </EntityComponent>
