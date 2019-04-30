@@ -1,1554 +1,1502 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <CubeBlocks>
-    <!-- Nanite Control Facilities -->
-    <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
-      <Id>
-        <TypeId>ShipWelder</TypeId>
-        <SubtypeId>LargeNaniteControlFacility</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Control Facility</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteFactory.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="3" y="3" z="3"/>
-	  <Center x="1" y="0" z="1" />
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteControlFacility.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="300"/>
-        <Component Subtype="Construction" Count="400"/>
-        <Component Subtype="MetalGrid" Count="150"/>
-        <Component Subtype="LargeTube" Count="150"/>
-        <Component Subtype="GravityGenerator" Count="350"/>
-        <Component Subtype="Detector" Count="25"/>
-        <Component Subtype="PowerCell" Count="750"/>
-        <Component Subtype="Computer" Count="450"/>
-        <Component Subtype="Motor" Count="150"/>
-        <Component Subtype="Superconductor" Count="1200"/>
-        <Component Subtype="Display" Count="4"/>
-        <Component Subtype="SteelPlate" Count="900"/>
-        <Component Subtype="InteriorPlate" Count="400"/>
-      </Components>
-      <CriticalComponent Subtype="Display" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="3" EndY="3"/>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="3" EndY="1"/>
-        <MountPoint Side="Right" StartX="0" StartY="0" EndX="3" EndY="1"/>
-        <MountPoint Side="Front" StartX="0" StartY="0" EndX="3" EndY="1"/>
-        <MountPoint Side="Back" StartX="0" StartY="0" EndX="3" EndY="1"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\NaniteControlFacility_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="0.75" File="Models\Cubes\Large\NaniteControlFacility_Constr2.mwm"/>
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NaniteControlFacility_Constr3.mwm"/>
-      </BuildProgressModels>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-      <BlockPairName>NaniteControlFacility</BlockPairName>
-      <Description>A facility that produces nanites that will mine, collect, weld, grind, and heal. It requires at least 100MW of power to operate. 
-	  Beacons are required for the nanites to lock onto grids. Ore, ingots, and components are picked up by the cleanup nanites.</Description>
-      <MirroringY>Z</MirroringY>
-      <MirroringZ>Y</MirroringZ>
-      <BuildTimeSeconds>300</BuildTimeSeconds>
-      <EdgeType>Light</EdgeType>
-      <DamageEffectId>212</DamageEffectId>
-      <DamagedSound>ParticleHeavyMech</DamagedSound>
-      <Public>true</Public>
-      <PrimarySound>NaniteModule</PrimarySound>
-      <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <SensorRadius>4</SensorRadius>
-      <SensorOffset>0</SensorOffset>
-      <PCU>2500</PCU>
-    </Definition>
-  <!--   <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
-      <Id>
-        <TypeId>ShipWelder</TypeId>
-        <SubtypeId>SmallNaniteControlFacility</SubtypeId>
-      </Id>
-      <DisplayName>Small Nanite Control Facility</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\SmallNaniteFactory.dds</Icon>
-      <CubeSize>Small</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-	<Size x="5" y="5" z="6" />
-	  <Center x="0" y="0" z="0" />
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Small\SmallNaniteController.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="30"/>
-        <Component Subtype="Construction" Count="40"/>
-        <Component Subtype="MetalGrid" Count="15"/>
-        <Component Subtype="LargeTube" Count="15"/>
-        <Component Subtype="GravityGenerator" Count="5"/>
-        <Component Subtype="Detector" Count="10"/>
-        <Component Subtype="PowerCell" Count="6"/>
-        <Component Subtype="Computer" Count="45"/>
-        <Component Subtype="Motor" Count="10"/>
-        <Component Subtype="Superconductor" Count="80"/>
-        <Component Subtype="Display" Count="4"/>
-        <Component Subtype="SteelPlate" Count="90"/>
-        <Component Subtype="InteriorPlate" Count="40"/>
-      </Components>
-      <CriticalComponent Subtype="Display" Index="0"/>
-	<MountPoints>
-		<MountPoint Side="Front" StartX="0.77" StartY="0.73" EndX="4.23" EndY="4.27" />
-		<MountPoint Side="Back" StartX="0.77" StartY="0.73" EndX="4.23" EndY="4.27" Default="true" />
-		<MountPoint Side="Left" StartX="1.93" StartY="4.12" EndX="4.07" EndY="4.45" />
-		<MountPoint Side="Right" StartX="1.93" StartY="4.12" EndX="4.07" EndY="4.45" />
-		<MountPoint Side="Bottom" StartX="4.13" StartY="1.93" EndX="4.43" EndY="4.07" />
-		<MountPoint Side="Top" StartX="4.13" StartY="1.93" EndX="4.43" EndY="4.07" />
-		<MountPoint Side="Left" StartX="1.93" StartY="0.54" EndX="4.07" EndY="0.86" />
-		<MountPoint Side="Right" StartX="1.93" StartY="0.54" EndX="4.07" EndY="0.86" />
-		<MountPoint Side="Bottom" StartX="0.53" StartY="1.93" EndX="0.84" EndY="4.07" />
-		<MountPoint Side="Top" StartX="0.53" StartY="1.93" EndX="0.84" EndY="4.07" />
-	</MountPoints>
-      <BuildProgressModels>
-		<Model BuildPercentUpperBound="0.50" File="Models\SmallNaniteController_Constr1.mwm" />
-		<Model BuildPercentUpperBound="1.00" File="Models\SmallNaniteController_Constr2.mwm" />
-      </BuildProgressModels>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-      <BlockPairName>NaniteControlFacility</BlockPairName>
-      <Description>A small version of the facility that only does cleanup and repair.</Description>
-      <MirroringY>Z</MirroringY>
-      <MirroringZ>Y</MirroringZ>
-      <BuildTimeSeconds>80</BuildTimeSeconds>
-      <EdgeType>Light</EdgeType>
-      <DamageEffectId>212</DamageEffectId>
-      <DamagedSound>ParticleHeavyMech</DamagedSound>
-      <Public>true</Public>
-      <PrimarySound>NaniteModule</PrimarySound>
-      <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <SensorRadius>.2</SensorRadius>
-      <SensorOffset>0</SensorOffset>
-      <PCU>2000</PCU>
-    </Definition> -->
-    <!-- Nanite Upgrades -->
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>LargeNaniteBeaconDeconstruct</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Beacon - Deconstruct</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteBeacon.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="1"/>
-        <Component Subtype="SmallTube" Count="1"/>
-        <Component Subtype="RadioCommunication" Count="1"/>
-        <Component Subtype="PowerCell" Count="1"/>
-        <Component Subtype="Construction" Count="1"/>
-        <Component Subtype="Computer" Count="1"/>
-        <Component Subtype="SteelPlate" Count="1"/>
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteBeacon_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NaniteBeacon_Constr2.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>NaniteBeaconDeconstruct</BlockPairName>
-      <Description>Nanite beacon for deconstruction nanites to lock onto, place these on grids to take apart.</Description>
-      <MirroringY>Z</MirroringY>
-      <MirroringZ>Y</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>20</BuildTimeSeconds>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <GuiVisible>false</GuiVisible>
-      <PCU>25</PCU>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>SmallNaniteBeaconDeconstruct</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Beacon - Deconstruct</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
-      <CubeSize>Small</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="2" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Small\NaniteBeaconSmall.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="1"/>
-        <Component Subtype="SmallTube" Count="1"/>
-        <Component Subtype="RadioCommunication" Count="1"/>
-        <Component Subtype="PowerCell" Count="1"/>
-        <Component Subtype="Construction" Count="1"/>
-        <Component Subtype="Computer" Count="1"/>
-        <Component Subtype="SteelPlate" Count="1"/>
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Small\NaniteBeaconSmall_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\NaniteBeaconSmall_Constr2.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>NaniteBeaconDeconstruct</BlockPairName>
-      <Description>Nanite beacon for deconstruction nanites to lock onto, place these on grids to take apart.</Description>
-      <MirroringY>Z</MirroringY>
-      <MirroringZ>Y</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>20</BuildTimeSeconds>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <GuiVisible>false</GuiVisible>
-      <PCU>25</PCU>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>LargeNaniteBeaconConstruct</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Beacon - Repair</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteBeacon.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="1"/>
-        <Component Subtype="SmallTube" Count="1"/>
-        <Component Subtype="RadioCommunication" Count="1"/>
-        <Component Subtype="PowerCell" Count="1"/>
-        <Component Subtype="Construction" Count="1"/>
-        <Component Subtype="Computer" Count="1"/>
-        <Component Subtype="SteelPlate" Count="1"/>
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteBeacon_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NaniteBeacon_Constr2.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>NaniteBeaconConstruct</BlockPairName>
-      <Description>Nanite beacon for construction nanites to lock onto, place these on grids to repair or construct them.</Description>
-      <MirroringY>Z</MirroringY>
-      <MirroringZ>Y</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>20</BuildTimeSeconds>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <BlockVariants>
-        <BlockVariant>
-          <TypeId>UpgradeModule</TypeId>
-          <SubtypeId>LargeNaniteBeaconDeconstruct</SubtypeId>
-        </BlockVariant>
-        <BlockVariant>
-          <TypeId>UpgradeModule</TypeId>
-          <SubtypeId>LargeNaniteBeaconProjection</SubtypeId>
-        </BlockVariant>
-      </BlockVariants>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <PCU>25</PCU>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>SmallNaniteBeaconConstruct</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Beacon - Repair</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
-      <CubeSize>Small</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="2" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Small\NaniteBeaconSmall.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="1"/>
-        <Component Subtype="SmallTube" Count="1"/>
-        <Component Subtype="RadioCommunication" Count="1"/>
-        <Component Subtype="PowerCell" Count="1"/>
-        <Component Subtype="Construction" Count="1"/>
-        <Component Subtype="Computer" Count="1"/>
-        <Component Subtype="SteelPlate" Count="1"/>
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Small\NaniteBeaconSmall_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\NaniteBeaconSmall_Constr2.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>NaniteBeaconConstruct</BlockPairName>
-      <Description>Nanite beacon for construction nanites to lock onto, place these on grids to build or repair them.</Description>
-      <MirroringY>Z</MirroringY>
-      <MirroringZ>Y</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>20</BuildTimeSeconds>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <BlockVariants>
-        <BlockVariant>
-          <TypeId>UpgradeModule</TypeId>
-          <SubtypeId>SmallNaniteBeaconDeconstruct</SubtypeId>
-        </BlockVariant>
-        <BlockVariant>
-          <TypeId>UpgradeModule</TypeId>
-          <SubtypeId>SmallNaniteBeaconProjection</SubtypeId>
-        </BlockVariant>
-      </BlockVariants>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <PCU>25</PCU>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>LargeNaniteBeaconProjection</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Beacon - Projection</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteBeacon.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="1"/>
-        <Component Subtype="SmallTube" Count="1"/>
-        <Component Subtype="RadioCommunication" Count="1"/>
-        <Component Subtype="PowerCell" Count="1"/>
-        <Component Subtype="Construction" Count="1"/>
-        <Component Subtype="Computer" Count="1"/>
-        <Component Subtype="SteelPlate" Count="1"/>
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteBeacon_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NaniteBeacon_Constr2.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>NaniteBeaconProjection</BlockPairName>
-      <Description>Nanite beacon for projection nanites to lock onto, place these to build projections.</Description>
-      <MirroringY>Z</MirroringY>
-      <MirroringZ>Y</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>20</BuildTimeSeconds>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <GuiVisible>false</GuiVisible>
-      <PCU>25</PCU>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>SmallNaniteBeaconProjection</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Beacon - Projection</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
-      <CubeSize>Small</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="2" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Small\NaniteBeaconSmall.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="1"/>
-        <Component Subtype="SmallTube" Count="1"/>
-        <Component Subtype="RadioCommunication" Count="1"/>
-        <Component Subtype="PowerCell" Count="1"/>
-        <Component Subtype="Construction" Count="1"/>
-        <Component Subtype="Computer" Count="1"/>
-        <Component Subtype="SteelPlate" Count="1"/>
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Small\NaniteBeaconSmall_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\NaniteBeaconSmall_Constr2.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>NaniteBeaconProjection</BlockPairName>
-      <Description>Nanite beacon for projection nanites to lock onto, place these to build projections.</Description>
-      <MirroringY>Z</MirroringY>
-      <MirroringZ>Y</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>20</BuildTimeSeconds>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <GuiVisible>false</GuiVisible>
-      <PCU>25</PCU>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_ProjectorDefinition">
-      <Id>
-        <TypeId>Projector</TypeId>
-        <SubtypeId>LargeNaniteAreaBeacon</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Area Beacon</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\AreaBeacon.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="2" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\AreaBeacon.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="20"/>
-        <Component Subtype="SmallTube" Count="10"/>
-        <Component Subtype="RadioCommunication" Count="2"/>
-        <Component Subtype="PowerCell" Count="1"/>
-        <Component Subtype="Construction" Count="15"/>
-        <Component Subtype="Computer" Count="30"/>
-        <Component Subtype="SteelPlate" Count="15"/>
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="1" EndY="1"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\AreaBeacon_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\AreaBeacon_Constr2.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>NaniteAreaBeacon</BlockPairName>
-      <Description>Nanite Area Beacon allows nanites to operate in a controlled space for deconstruction, construction, and projections.</Description>
-      <MirroringY>Z</MirroringY>
-      <MirroringZ>Y</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <BuildTimeSeconds>90</BuildTimeSeconds>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <ResourceSinkGroup>Utility</ResourceSinkGroup>
-      <RequiredPowerInput>0.0002</RequiredPowerInput>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <PCU>25</PCU>
-    </Definition>
 
-    <!-- Facility Upgrade Modules -->
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>NaniteConstructUpgrade</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Constructor Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteConstruction.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="120"/>
-        <Component Subtype="Construction" Count="40"/>
-        <Component Subtype="SmallTube" Count="20"/>
-        <Component Subtype="LargeTube" Count="10"/>
-        <Component Subtype="Computer" Count="40"/>
-        <Component Subtype="GravityGenerator" Count="5"/>
-        <Component Subtype="PowerCell" Count="25"/>
-        <Component Subtype="Superconductor" Count="50"/>
-        <Component Subtype="Motor" Count="5"/>
-        <Component Subtype="SteelPlate" Count="40"/>
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>UpgradeConstruct</BlockPairName>
-      <Description>Nanite upgrade that adds 3 constructor nanites.</Description>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <MirroringX>Z</MirroringX>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Upgrades>
-        <MyUpgradeModuleInfo>
-          <UpgradeType>ConstructionNanites</UpgradeType>
-          <Modifier>1</Modifier>
-          <ModifierType>Additive</ModifierType>
-        </MyUpgradeModuleInfo>
-      </Upgrades>
-      <PrimarySound>BlockModuleEfficiency</PrimarySound>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <BlockVariants>
-       <!-- <BlockVariant>
-          <TypeId>UpgradeModule</TypeId>
-          <SubtypeId>NaniteProjectionUpgrade</SubtypeId>
-        </BlockVariant> -->
-        <BlockVariant>
-          <TypeId>UpgradeModule</TypeId>
-          <SubtypeId>NaniteDeconstructUpgrade</SubtypeId>
-        </BlockVariant>
-        <BlockVariant>
-          <TypeId>UpgradeModule</TypeId>
-          <SubtypeId>NaniteCleanupUpgrade</SubtypeId>
-        </BlockVariant>
-        <BlockVariant>
-          <TypeId>UpgradeModule</TypeId>
-          <SubtypeId>NaniteMiningUpgrade</SubtypeId>
-        </BlockVariant>
-        <BlockVariant>
-          <TypeId>UpgradeModule</TypeId>
-          <SubtypeId>NaniteMedicalUpgrade</SubtypeId>
-        </BlockVariant>
-        <BlockVariant>
-          <TypeId>UpgradeModule</TypeId>
-          <SubtypeId>NanitePowerUpgrade</SubtypeId>
-        </BlockVariant>
-        <BlockVariant>
-          <TypeId>UpgradeModule</TypeId>
-          <SubtypeId>NaniteSpeedUpgrade</SubtypeId>
-        </BlockVariant>
-      </BlockVariants>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <PCU>5</PCU>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>NaniteDeconstructUpgrade</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Deconstructor Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteDeconstructor.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="120"/>
-        <Component Subtype="Construction" Count="40"/>
-        <Component Subtype="SmallTube" Count="20"/>
-        <Component Subtype="LargeTube" Count="10"/>
-        <Component Subtype="Computer" Count="40"/>
-        <Component Subtype="GravityGenerator" Count="5"/>
-        <Component Subtype="PowerCell" Count="25"/>
-        <Component Subtype="Superconductor" Count="50"/>
-        <Component Subtype="Motor" Count="5"/>
-        <Component Subtype="SteelPlate" Count="40"/>
-      </Components>
-      <CriticalComponent Subtype="Motor" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>UpgradeDeconstruct</BlockPairName>
-      <Description>Nanite upgrade that adds 3 deconstructor nanites.</Description>
-      <MirroringX>Z</MirroringX>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Upgrades>
-        <MyUpgradeModuleInfo>
-          <UpgradeType>DeconstructionNanites</UpgradeType>
-          <Modifier>1</Modifier>
-          <ModifierType>Additive</ModifierType>
-        </MyUpgradeModuleInfo>
-      </Upgrades>
-      <PrimarySound>BlockModuleEfficiency</PrimarySound>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <GuiVisible>false</GuiVisible>
-      <PCU>5</PCU>
-    </Definition>
-<!--    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>NaniteProjectionUpgrade</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Projection Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteProjection.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="120"/>
-        <Component Subtype="Construction" Count="40"/>
-        <Component Subtype="SmallTube" Count="20"/>
-        <Component Subtype="LargeTube" Count="10"/>
-        <Component Subtype="Computer" Count="40"/>
-        <Component Subtype="GravityGenerator" Count="5"/>
-        <Component Subtype="PowerCell" Count="25"/>
-        <Component Subtype="Superconductor" Count="50"/>
-        <Component Subtype="Motor" Count="5"/>
-        <Component Subtype="SteelPlate" Count="40"/>
-      </Components>
-      <CriticalComponent Subtype="Motor" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>UpgradeProjection</BlockPairName>
-      <MirroringX>Z</MirroringX>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Upgrades>
-        <MyUpgradeModuleInfo>
-          <UpgradeType>ProjectionNanites</UpgradeType>
-          <Modifier>1</Modifier>
-          <ModifierType>Additive</ModifierType>
-        </MyUpgradeModuleInfo>
-      </Upgrades>
-      <PrimarySound>BlockModuleEfficiency</PrimarySound>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <GuiVisible>false</GuiVisible>
-      <PCU>5</PCU>
-    </Definition> -->
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>NaniteCleanupUpgrade</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Cleanup Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteCleanup.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="120"/>
-        <Component Subtype="Construction" Count="40"/>
-        <Component Subtype="SmallTube" Count="20"/>
-        <Component Subtype="LargeTube" Count="10"/>
-        <Component Subtype="Computer" Count="40"/>
-        <Component Subtype="GravityGenerator" Count="5"/>
-        <Component Subtype="PowerCell" Count="25"/>
-        <Component Subtype="Superconductor" Count="50"/>
-        <Component Subtype="Motor" Count="5"/>
-        <Component Subtype="SteelPlate" Count="40"/>
-      </Components>
-      <CriticalComponent Subtype="Motor" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>UpgradeCleanup</BlockPairName>
-      <Description>Nanite upgrade that adds 3 cleanup nanites.</Description>
-      <MirroringX>Z</MirroringX>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Upgrades>
-        <MyUpgradeModuleInfo>
-          <UpgradeType>CleanupNanites</UpgradeType>
-          <Modifier>1</Modifier>
-          <ModifierType>Additive</ModifierType>
-        </MyUpgradeModuleInfo>
-      </Upgrades>
-      <PrimarySound>BlockModuleEfficiency</PrimarySound>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <GuiVisible>false</GuiVisible>
-      <PCU>5</PCU>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>NaniteMiningUpgrade</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Mining Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteMining.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="120"/>
-        <Component Subtype="Construction" Count="40"/>
-        <Component Subtype="SmallTube" Count="20"/>
-        <Component Subtype="LargeTube" Count="10"/>
-        <Component Subtype="Computer" Count="40"/>
-        <Component Subtype="GravityGenerator" Count="5"/>
-        <Component Subtype="PowerCell" Count="25"/>
-        <Component Subtype="Superconductor" Count="50"/>
-        <Component Subtype="Motor" Count="5"/>
-        <Component Subtype="SteelPlate" Count="40"/>
-      </Components>
-      <CriticalComponent Subtype="Motor" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>MiningNanites</BlockPairName>
-      <Description>Nanite upgrade that adds 3 mining nanites.</Description>
-      <MirroringX>Z</MirroringX>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Upgrades>
-        <MyUpgradeModuleInfo>
-          <UpgradeType>MiningNanites</UpgradeType>
-          <Modifier>1</Modifier>
-          <ModifierType>Additive</ModifierType>
-        </MyUpgradeModuleInfo>
-      </Upgrades>
-      <PrimarySound>BlockModuleEfficiency</PrimarySound>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <GuiVisible>false</GuiVisible>
-      <PCU>5</PCU>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>NaniteMedicalUpgrade</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Medical Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteHealing.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="120"/>
-        <Component Subtype="Construction" Count="40"/>
-        <Component Subtype="SmallTube" Count="20"/>
-        <Component Subtype="LargeTube" Count="10"/>
-        <Component Subtype="Computer" Count="40"/>
-        <Component Subtype="GravityGenerator" Count="5"/>
-        <Component Subtype="PowerCell" Count="25"/>
-        <Component Subtype="Superconductor" Count="50"/>
-        <Component Subtype="Motor" Count="5"/>
-        <Component Subtype="SteelPlate" Count="40"/>
-      </Components>
-      <CriticalComponent Subtype="Motor" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>MedicalNanites</BlockPairName>
-      <Description>Nanite upgrade that adds 3 medical nanites.</Description>
-      <MirroringX>Z</MirroringX>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Upgrades>
-        <MyUpgradeModuleInfo>
-          <UpgradeType>MedicalNanites</UpgradeType>
-          <Modifier>1</Modifier>
-          <ModifierType>Additive</ModifierType>
-        </MyUpgradeModuleInfo>
-      </Upgrades>
-      <PrimarySound>BlockModuleEfficiency</PrimarySound>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <GuiVisible>false</GuiVisible>
-      <PCU>5</PCU>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>NaniteSpeedUpgrade</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Speed Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteSpeedIncrease.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="120"/>
-        <Component Subtype="Construction" Count="40"/>
-        <Component Subtype="SmallTube" Count="20"/>
-        <Component Subtype="LargeTube" Count="10"/>
-        <Component Subtype="Computer" Count="40"/>
-        <Component Subtype="GravityGenerator" Count="5"/>
-        <Component Subtype="PowerCell" Count="25"/>
-        <Component Subtype="Superconductor" Count="50"/>
-        <Component Subtype="Motor" Count="5"/>
-        <Component Subtype="SteelPlate" Count="40"/>
-      </Components>
-      <CriticalComponent Subtype="Motor" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>UpgradeSpeed</BlockPairName>
-      <Description>Nanite upgrade that increases the speed of the nanites.</Description>
-      <MirroringX>Z</MirroringX>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Upgrades>
-        <MyUpgradeModuleInfo>
-          <UpgradeType>SpeedNanites</UpgradeType>
-          <Modifier>1</Modifier>
-          <ModifierType>Additive</ModifierType>
-        </MyUpgradeModuleInfo>
-      </Upgrades>
-      <PrimarySound>BlockModuleEfficiency</PrimarySound>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <GuiVisible>false</GuiVisible>
-      <PCU>5</PCU>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>NanitePowerUpgrade</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Power Reduction Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NanitePower.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="120"/>
-        <Component Subtype="Construction" Count="40"/>
-        <Component Subtype="SmallTube" Count="20"/>
-        <Component Subtype="LargeTube" Count="10"/>
-        <Component Subtype="Computer" Count="40"/>
-        <Component Subtype="GravityGenerator" Count="5"/>
-        <Component Subtype="PowerCell" Count="25"/>
-        <Component Subtype="Superconductor" Count="50"/>
-        <Component Subtype="Motor" Count="5"/>
-        <Component Subtype="SteelPlate" Count="40"/>
-      </Components>
-      <CriticalComponent Subtype="Motor" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>UpgradePower</BlockPairName>
-      <Description>Nanite upgrade that decreases the power requirement of the facility.</Description>
-      <MirroringX>Z</MirroringX>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Upgrades>
-        <MyUpgradeModuleInfo>
-          <UpgradeType>PowerNanites</UpgradeType>
-          <Modifier>1</Modifier>
-          <ModifierType>Additive</ModifierType>
-        </MyUpgradeModuleInfo>
-      </Upgrades>
-      <PrimarySound>BlockModuleEfficiency</PrimarySound>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <GuiVisible>false</GuiVisible>
-      <PCU>5</PCU>
-    </Definition>
+<!--ResearchBlocks -->
+  <ResearchBlocks>
+	<ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_ShipWelder" Subtype="LargeNaniteControlFacility" />
+      <UnlockedByGroups>
+        <GroupSubtype>JumpDrivePlaceholder</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+	<ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconDeconstruct" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconConstruct" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconProjection" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_Projector" Subtype="LargeNaniteAreaBeacon" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_OreDetector" Subtype="LargeNaniteOreDetector" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_UpgradeModule" Subtype="SmallNaniteBeaconDeconstruct" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_UpgradeModule" Subtype="SmallNaniteBeaconConstruct" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+      <Id Type="MyObjectBuilder_UpgradeModule" Subtype="SmallNaniteBeaconProjection" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">	  
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteConstructUpgrade" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteDeconstructUpgrade" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteMedicalUpgrade" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteMiningUpgrade" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteSpeedUpgrade" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NanitePowerUpgrade" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteCleanupUpgrade" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradeScanning" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradePowerEfficiency" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradeFilter" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+    <ResearchBlock xsi:type="ResearchBlock">
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradeRange" />
+      <UnlockedByGroups>
+        <GroupSubtype>NaniteController</GroupSubtype>
+      </UnlockedByGroups>
+	</ResearchBlock>
+  </ResearchBlocks>
+<!-- ResearchGroups -->
+  <ResearchGroups>
+	 <ResearchGroup xsi:type="ResearchGroup">
+     <Id Type="MyObjectBuilder_ResearchGroupDefinition" Subtype="NaniteController" />
+      <Members>
+       <BlockId Type="MyObjectBuilder_ShipWelder" Subtype="LargeNaniteControlFacility" />
+      </Members>
+	 </ResearchGroup>
+	<ResearchGroup>
+	 <Id Type="MyObjectBuilder_ResearchGroupDefinition" Subtype="JumpDrivePlaceholder" />
+	 <Members>
+      <BlockId Type="MyObjectBuilder_JumpDrive" Subtype="LargeJumpDrive" />
+      <BlockId Type="MyObjectBuilder_VirtualMass" Subtype="VirtualMassLarge" />
+      <BlockId Type="MyObjectBuilder_SpaceBall" Subtype="SpaceBallLarge" />
+      <BlockId Type="MyObjectBuilder_VirtualMass" Subtype="VirtualMassSmall" />
+      <BlockId Type="MyObjectBuilder_SpaceBall" Subtype="SpaceBallSmall" />
+	 </Members>
+	</ResearchGroup>
+  </ResearchGroups>
 
-    <!-- Ore Detector Upgrade Modules -->
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>NaniteOreDetectorUpgradeRange</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Ore Detector Range Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\OreDetectorUpgrades.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteOreDetectRange.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="120"/>
-        <Component Subtype="Construction" Count="40"/>
-        <Component Subtype="SmallTube" Count="20"/>
-        <Component Subtype="LargeTube" Count="10"/>
-        <Component Subtype="Computer" Count="40"/>
-        <Component Subtype="Superconductor" Count="50"/>
-        <Component Subtype="Motor" Count="5"/>
-        <Component Subtype="SteelPlate" Count="40"/>
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>NaniteOreDetectorUpgradeRange</BlockPairName>
-      <Description>Nanite Ore Detector upgrade that increases range.</Description>
-      <BlockVariants>
-        <BlockVariant>
-          <TypeId>UpgradeModule</TypeId>
-          <SubtypeId>NaniteOreDetectorUpgradeScanning</SubtypeId>
-        </BlockVariant>
-        <BlockVariant>
-          <TypeId>UpgradeModule</TypeId>
-          <SubtypeId>NaniteOreDetectorUpgradeFilter</SubtypeId>
-        </BlockVariant>
-        <BlockVariant>
-          <TypeId>UpgradeModule</TypeId>
-          <SubtypeId>NaniteOreDetectorUpgradePowerEfficiency</SubtypeId>
-        </BlockVariant>
-      </BlockVariants>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <MirroringX>Z</MirroringX>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Upgrades>
-        <MyUpgradeModuleInfo>
-          <UpgradeType>Range</UpgradeType>
-          <Modifier>1</Modifier>
-          <ModifierType>Additive</ModifierType>
-        </MyUpgradeModuleInfo>
-      </Upgrades>
-      <PrimarySound>BlockModuleEfficiency</PrimarySound>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <PCU>25</PCU>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>NaniteOreDetectorUpgradeScanning</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Ore Detector Scanning Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\OreDetectorUpgrades.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteOreDetectScanning.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="120"/>
-        <Component Subtype="Construction" Count="40"/>
-        <Component Subtype="SmallTube" Count="20"/>
-        <Component Subtype="LargeTube" Count="10"/>
-        <Component Subtype="Computer" Count="40"/>
-        <Component Subtype="Superconductor" Count="50"/>
-        <Component Subtype="Motor" Count="5"/>
-        <Component Subtype="SteelPlate" Count="40"/>
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>NaniteOreDetectorUpgradeScanning</BlockPairName>
-      <Description>Nanite Ore Detector upgrade that increases scanning.</Description>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <MirroringX>Z</MirroringX>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Upgrades>
-        <MyUpgradeModuleInfo>
-          <UpgradeType>Scanning</UpgradeType>
-          <Modifier>1</Modifier>
-          <ModifierType>Additive</ModifierType>
-        </MyUpgradeModuleInfo>
-      </Upgrades>
-      <PrimarySound>BlockModuleEfficiency</PrimarySound>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <PCU>5</PCU>
-	  <GuiVisible>false</GuiVisible>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>NaniteOreDetectorUpgradeFilter</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Ore Detector Filter Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\OreDetectorUpgrades.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteOreDetectFilter.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="120"/>
-        <Component Subtype="Construction" Count="40"/>
-        <Component Subtype="SmallTube" Count="20"/>
-        <Component Subtype="LargeTube" Count="10"/>
-        <Component Subtype="Computer" Count="40"/>
-        <Component Subtype="Superconductor" Count="50"/>
-        <Component Subtype="Motor" Count="5"/>
-        <Component Subtype="SteelPlate" Count="40"/>
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>NaniteOreDetectorUpgradeFilter</BlockPairName>
-      <Description>Nanite Ore Detector upgrade that allows you to filter ore.</Description>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <MirroringX>Z</MirroringX>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Upgrades>
-        <MyUpgradeModuleInfo>
-          <UpgradeType>Filter</UpgradeType>
-          <Modifier>1</Modifier>
-          <ModifierType>Additive</ModifierType>
-        </MyUpgradeModuleInfo>
-      </Upgrades>
-      <PrimarySound>BlockModuleEfficiency</PrimarySound>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <PCU>10</PCU>
-	  <GuiVisible>false</GuiVisible>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
-      <Id>
-        <TypeId>UpgradeModule</TypeId>
-        <SubtypeId>NaniteOreDetectorUpgradePowerEfficiency</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Ore Detector Power Efficiency Upgrade</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\OreDetectorUpgrades.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="1" z="1"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NaniteOreDetectEfficiency.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="120"/>
-        <Component Subtype="Construction" Count="40"/>
-        <Component Subtype="SmallTube" Count="20"/>
-        <Component Subtype="LargeTube" Count="10"/>
-        <Component Subtype="Computer" Count="40"/>
-        <Component Subtype="PowerCell" Count="5"/>
-        <Component Subtype="Superconductor" Count="50"/>
-        <Component Subtype="Motor" Count="5"/>
-        <Component Subtype="SteelPlate" Count="40"/>
-      </Components>
-      <CriticalComponent Subtype="Computer" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>NaniteOreDetectorUpgradePowerEfficiency</BlockPairName>
-      <Description>Nanite Ore Detector upgrade that reduces power cost.</Description>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <MirroringX>Z</MirroringX>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Upgrades>
-        <MyUpgradeModuleInfo>
-          <UpgradeType>PowerEfficiency</UpgradeType>
-          <Modifier>1</Modifier>
-          <ModifierType>Additive</ModifierType>
-        </MyUpgradeModuleInfo>
-      </Upgrades>
-      <PrimarySound>BlockModuleEfficiency</PrimarySound>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <PCU>5</PCU>
-	  <GuiVisible>false</GuiVisible>
-    </Definition>
 
-    <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
-      <Id>
-        <TypeId>ShipWelder</TypeId>
-        <SubtypeId>TinyNaniteShipWelder</SubtypeId>
-      </Id>
-      <DisplayName>TinyNaniteShipWelder</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\Welder.dds</Icon>
-      <CubeSize>Small</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="3" y="3" z="6"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Center x="1" y="1" z="3"/>
-      <Model>Models\TinyNaniteWelder.mwm</Model>
-      <UseModelIntersection>true</UseModelIntersection>
-      <Components>
-        <Component Subtype="SteelPlate" Count="10"/>
-        <Component Subtype="Construction" Count="15"/>
-        <Component Subtype="SmallTube" Count="6"/>
-        <Component Subtype="LargeTube" Count="1"/>
-        <Component Subtype="Motor" Count="2"/>
-        <Component Subtype="Computer" Count="2"/>
-        <Component Subtype="Construction" Count="2"/>
-        <Component Subtype="SteelPlate" Count="2"/>
-      </Components>
-      <CriticalComponent Subtype="Motor" Index="0"/>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.5" File="Models\Cubes\Small\WelderConstruction_1.mwm"/>
-        <Model BuildPercentUpperBound="1.0" File="Models\Cubes\Small\WelderConstruction_2.mwm"/>
-      </BuildProgressModels>
-      <MountPoints>
-        <MountPoint Side="Left" StartX="3.5" StartY="0.5" EndX="5.8" EndY="2.5"/>
-        <MountPoint Side="Right" StartX="0.2" StartY="0.5" EndX="2.5" EndY="2.5"/>
-        <MountPoint Side="Top" StartX="0.8" StartY="0.2" EndX="2.2" EndY="2.5"/>
-        <MountPoint Side="Bottom" StartX="0.8" StartY="3.5" EndX="2.2" EndY="5.8"/>
-        <MountPoint Side="Back" StartX="0.25" StartY="0.25" EndX="0.35" EndY="2.75"/>
-        <MountPoint Side="Back" StartX="2.65" StartY="0.25" EndX="2.75" EndY="2.75"/>
-        <MountPoint Side="Back" StartX="0.35" StartY="0.25" EndX="2.65" EndY="0.35"/>
-        <MountPoint Side="Back" StartX="0.35" StartY="2.65" EndX="2.65" EndY="2.75"/>
-      </MountPoints>
-      <BlockPairName>TinyNaniteShipWelder</BlockPairName>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Public>false</Public>
-      <BuildTimeSeconds>20</BuildTimeSeconds>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
-      <Id>
-        <TypeId>ShipWelder</TypeId>
-        <SubtypeId>SmallNaniteShipWelder</SubtypeId>
-      </Id>
-      <DisplayName>SmallNaniteShipWelder</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\Welder.dds</Icon>
-      <CubeSize>Small</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="3" y="3" z="6"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Center x="1" y="1" z="3"/>
-      <Model>Models\SmallNaniteWelder.mwm</Model>
-      <UseModelIntersection>true</UseModelIntersection>
-      <Components>
-        <Component Subtype="SteelPlate" Count="10"/>
-        <Component Subtype="Construction" Count="15"/>
-        <Component Subtype="SmallTube" Count="6"/>
-        <Component Subtype="LargeTube" Count="1"/>
-        <Component Subtype="Motor" Count="2"/>
-        <Component Subtype="Computer" Count="2"/>
-        <Component Subtype="Construction" Count="2"/>
-        <Component Subtype="SteelPlate" Count="2"/>
-      </Components>
-      <CriticalComponent Subtype="Motor" Index="0"/>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.5" File="Models\Cubes\Small\WelderConstruction_1.mwm"/>
-        <Model BuildPercentUpperBound="1.0" File="Models\Cubes\Small\WelderConstruction_2.mwm"/>
-      </BuildProgressModels>
-      <MountPoints>
-        <MountPoint Side="Left" StartX="3.5" StartY="0.5" EndX="5.8" EndY="2.5"/>
-        <MountPoint Side="Right" StartX="0.2" StartY="0.5" EndX="2.5" EndY="2.5"/>
-        <MountPoint Side="Top" StartX="0.8" StartY="0.2" EndX="2.2" EndY="2.5"/>
-        <MountPoint Side="Bottom" StartX="0.8" StartY="3.5" EndX="2.2" EndY="5.8"/>
-        <MountPoint Side="Back" StartX="0.25" StartY="0.25" EndX="0.35" EndY="2.75"/>
-        <MountPoint Side="Back" StartX="2.65" StartY="0.25" EndX="2.75" EndY="2.75"/>
-        <MountPoint Side="Back" StartX="0.35" StartY="0.25" EndX="2.65" EndY="0.35"/>
-        <MountPoint Side="Back" StartX="0.35" StartY="2.65" EndX="2.65" EndY="2.75"/>
-      </MountPoints>
-      <BlockPairName>SmallNaniteShipWelder</BlockPairName>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Public>false</Public>
-      <BuildTimeSeconds>20</BuildTimeSeconds>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_ShipGrinderDefinition">
-      <Id>
-        <TypeId>ShipGrinder</TypeId>
-        <SubtypeId>TinyNaniteShipGrinder</SubtypeId>
-      </Id>
-      <DisplayName>TinyNaniteShipGrinder</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\Welder.dds</Icon>
-      <CubeSize>Small</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="3" y="3" z="6"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Center x="1" y="1" z="3"/>
-      <Model>Models\TinyNaniteGrinder.mwm</Model>
-      <UseModelIntersection>true</UseModelIntersection>
-      <Components>
-        <Component Subtype="SteelPlate" Count="10"/>
-        <Component Subtype="Construction" Count="15"/>
-        <Component Subtype="SmallTube" Count="6"/>
-        <Component Subtype="LargeTube" Count="1"/>
-        <Component Subtype="Motor" Count="2"/>
-        <Component Subtype="Computer" Count="2"/>
-        <Component Subtype="Construction" Count="2"/>
-        <Component Subtype="SteelPlate" Count="2"/>
-      </Components>
-      <CriticalComponent Subtype="Motor" Index="0"/>
-      <BuildProgressModels></BuildProgressModels>
-      <MountPoints>
-        <MountPoint Side="Left" StartX="3.5" StartY="0.5" EndX="5.8" EndY="2.5"/>
-        <MountPoint Side="Right" StartX="0.2" StartY="0.5" EndX="2.5" EndY="2.5"/>
-        <MountPoint Side="Top" StartX="0.8" StartY="0.2" EndX="2.2" EndY="2.5"/>
-        <MountPoint Side="Bottom" StartX="0.8" StartY="3.5" EndX="2.2" EndY="5.8"/>
-        <MountPoint Side="Back" StartX="0.25" StartY="0.25" EndX="0.35" EndY="2.75"/>
-        <MountPoint Side="Back" StartX="2.65" StartY="0.25" EndX="2.75" EndY="2.75"/>
-        <MountPoint Side="Back" StartX="0.35" StartY="0.25" EndX="2.65" EndY="0.35"/>
-        <MountPoint Side="Back" StartX="0.35" StartY="2.65" EndX="2.65" EndY="2.75"/>
-      </MountPoints>
-      <BlockPairName>TinyNaniteShipGrinder</BlockPairName>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Public>false</Public>
-      <BuildTimeSeconds>20</BuildTimeSeconds>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_ShipGrinderDefinition">
-      <Id>
-        <TypeId>ShipGrinder</TypeId>
-        <SubtypeId>SmallNaniteShipGrinder</SubtypeId>
-      </Id>
-      <DisplayName>SmallNaniteShipGrinder</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\Welder.dds</Icon>
-      <CubeSize>Small</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="3" y="3" z="6"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Center x="1" y="1" z="3"/>
-      <Model>Models\SmallNaniteGrinder.mwm</Model>
-      <UseModelIntersection>true</UseModelIntersection>
-      <Components>
-        <Component Subtype="SteelPlate" Count="10"/>
-        <Component Subtype="Construction" Count="15"/>
-        <Component Subtype="SmallTube" Count="6"/>
-        <Component Subtype="LargeTube" Count="1"/>
-        <Component Subtype="Motor" Count="2"/>
-        <Component Subtype="Computer" Count="2"/>
-        <Component Subtype="Construction" Count="2"/>
-        <Component Subtype="SteelPlate" Count="2"/>
-      </Components>
-      <CriticalComponent Subtype="Motor" Index="0"/>
-      <BuildProgressModels></BuildProgressModels>
-      <MountPoints>
-        <MountPoint Side="Left" StartX="3.5" StartY="0.5" EndX="5.8" EndY="2.5"/>
-        <MountPoint Side="Right" StartX="0.2" StartY="0.5" EndX="2.5" EndY="2.5"/>
-        <MountPoint Side="Top" StartX="0.8" StartY="0.2" EndX="2.2" EndY="2.5"/>
-        <MountPoint Side="Bottom" StartX="0.8" StartY="3.5" EndX="2.2" EndY="5.8"/>
-        <MountPoint Side="Back" StartX="0.25" StartY="0.25" EndX="0.35" EndY="2.75"/>
-        <MountPoint Side="Back" StartX="2.65" StartY="0.25" EndX="2.75" EndY="2.75"/>
-        <MountPoint Side="Back" StartX="0.35" StartY="0.25" EndX="2.65" EndY="0.35"/>
-        <MountPoint Side="Back" StartX="0.35" StartY="2.65" EndX="2.65" EndY="2.75"/>
-      </MountPoints>
-      <BlockPairName>SmallNaniteShipGrinder</BlockPairName>
-      <MirroringZ>X</MirroringZ>
-      <EdgeType>Light</EdgeType>
-      <Public>false</Public>
-      <BuildTimeSeconds>20</BuildTimeSeconds>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-    </Definition>
 
-    <!-- Nanite Ore Detector -->
-    <Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
-      <Id>
-        <TypeId>OreDetector</TypeId>
-        <SubtypeId>LargeNaniteOreDetector</SubtypeId>
-      </Id>
-      <DisplayName>Large Nanite Ore Detector</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteOreDetector.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="3" y="5" z="3"/>
-      <ModelOffset x="0" y="0" z="0"/>
-	  <Center x="1" y="0" z="1"/>
-      <Model>Models\Cubes\Large\LargeNaniteOreDetector.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="100"/>
-        <Component Subtype="Construction" Count="200"/>
-        <Component Subtype="MetalGrid" Count="150"/>
-        <Component Subtype="LargeTube" Count="150"/>
-        <Component Subtype="GravityGenerator" Count="50"/>
-        <Component Subtype="Detector" Count="25"/>
-        <Component Subtype="PowerCell" Count="250"/>
-        <Component Subtype="Computer" Count="250"/>
-        <Component Subtype="Motor" Count="75"/>
-        <Component Subtype="Superconductor" Count="600"/>
-        <Component Subtype="Display" Count="4"/>
-        <Component Subtype="SteelPlate" Count="400"/>
-        <Component Subtype="InteriorPlate" Count="200"/>
-      </Components>
-      <CriticalComponent Subtype="Display" Index="0"/>
-      <MountPoints>
-		<MountPoint Side="Front" StartX="1.01" StartY="0.02" EndX="1.99" EndY="1.78" />
-		<MountPoint Side="Back" StartX="1.01" StartY="0.01" EndX="1.99" EndY="1.77" />
-		<MountPoint Side="Left" StartX="1.00" StartY="0.01" EndX="1.98" EndY="1.78" />
-		<MountPoint Side="Right" StartX="1.02" StartY="0.01" EndX="2.00" EndY="1.77" />
-		<MountPoint Side="Bottom" StartX="0.01" StartY="0.01" EndX="2.99" EndY="2.99" Default="true" />
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr2.mwm"/>
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr3.mwm"/>
-      </BuildProgressModels>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-      <BlockPairName>LargeNaniteOreDetector</BlockPairName>
-      <Description>Nanite Ore Detector used for mining with nanites, requires Nanite Control Facility that is active and within range (300m) to function.</Description>
-      <MirroringY>Z</MirroringY>
-      <MirroringZ>Y</MirroringZ>
-      <BuildTimeSeconds>300</BuildTimeSeconds>
-      <EdgeType>Light</EdgeType>
-      <DamageEffectId>212</DamageEffectId>
-      <DamagedSound>ParticleHeavyMech</DamagedSound>
-      <Public>true</Public>
-      <MaximumRange>3000</MaximumRange>
-      <PrimarySound>NaniteModule</PrimarySound>
-      <ResourceSinkGroup>Utility</ResourceSinkGroup>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <PCU>2500</PCU>
-    </Definition>
+<!-- All Nanite Blocks -->
+
+	<CubeBlocks>
+		<!-- Nanite Control Facilities -->
+		<Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
+			<Id>
+				<TypeId>ShipWelder</TypeId>
+				<SubtypeId>LargeNaniteControlFacility</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Control Facility</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\NaniteFactory.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="3" y="3" z="3"/>
+			<Center x="1" y="0" z="1" />
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Large\NaniteControlFacility.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="300"/>
+				<Component Subtype="Construction" Count="400"/>
+				<Component Subtype="MetalGrid" Count="150"/>
+				<Component Subtype="LargeTube" Count="150"/>
+				<Component Subtype="GravityGenerator" Count="8"/>
+				<Component Subtype="Detector" Count="125"/>
+				<Component Subtype="PowerCell" Count="320"/>
+				<Component Subtype="Computer" Count="1250"/>
+				<Component Subtype="Motor" Count="275"/>
+				<Component Subtype="Superconductor" Count="1200"/>
+				<Component Subtype="Display" Count="12"/>
+				<Component Subtype="SteelPlate" Count="900"/>
+				<Component Subtype="InteriorPlate" Count="400"/>
+			</Components>
+			<CriticalComponent Subtype="Display" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Bottom" StartX="0" StartY="0" EndX="3" EndY="3"/>
+				<MountPoint Side="Left" StartX="0" StartY="0" EndX="3" EndY="1"/>
+				<MountPoint Side="Right" StartX="0" StartY="0" EndX="3" EndY="1"/>
+				<MountPoint Side="Front" StartX="0" StartY="0" EndX="3" EndY="1"/>
+				<MountPoint Side="Back" StartX="0" StartY="0" EndX="3" EndY="1"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\NaniteControlFacility_Constr1.mwm"/>
+				<Model BuildPercentUpperBound="0.75" File="Models\Cubes\Large\NaniteControlFacility_Constr2.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NaniteControlFacility_Constr3.mwm"/>
+			</BuildProgressModels>
+			<InventorySize>
+				<X>1</X>
+				<Y>1</Y>
+				<Z>1</Z>
+			</InventorySize>
+			<BlockPairName>NaniteControlFacility</BlockPairName>
+			<Description>A facility that produces nanites that will mine, collect, weld, grind, and heal. It requires at least 100MW of power to operate. 
+			Beacons are required for the nanites to lock onto grids. Ore, ingots, and components are picked up by the cleanup nanites.</Description>
+			<MirroringY>Z</MirroringY>
+			<MirroringZ>Y</MirroringZ>
+			<BuildTimeSeconds>675</BuildTimeSeconds>
+			<EdgeType>Light</EdgeType>
+			<DamageEffectId>212</DamageEffectId>
+			<DamagedSound>ParticleHeavyMech</DamagedSound>
+			<Public>true</Public>
+			<PrimarySound>NaniteModule</PrimarySound>
+			<ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<SensorRadius>4</SensorRadius>
+			<SensorOffset>0</SensorOffset>
+			<PCU>7500</PCU>
+		</Definition>
+	<!--	 <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
+			<Id>
+				<TypeId>ShipWelder</TypeId>
+				<SubtypeId>SmallNaniteControlFacility</SubtypeId>
+			</Id>
+			<DisplayName>Small Nanite Control Facility</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\SmallNaniteFactory.dds</Icon>
+			<CubeSize>Small</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="5" y="5" z="6" />
+			<Center x="0" y="0" z="0" />
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Small\SmallNaniteController.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="30"/>
+				<Component Subtype="Construction" Count="40"/>
+				<Component Subtype="MetalGrid" Count="15"/>
+				<Component Subtype="LargeTube" Count="15"/>
+				<Component Subtype="GravityGenerator" Count="5"/>
+				<Component Subtype="Detector" Count="10"/>
+				<Component Subtype="PowerCell" Count="6"/>
+				<Component Subtype="Computer" Count="45"/>
+				<Component Subtype="Motor" Count="10"/>
+				<Component Subtype="Superconductor" Count="80"/>
+				<Component Subtype="Display" Count="4"/>
+				<Component Subtype="SteelPlate" Count="90"/>
+				<Component Subtype="InteriorPlate" Count="40"/>
+			</Components>
+			<CriticalComponent Subtype="Display" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Front" StartX="0.77" StartY="0.73" EndX="4.23" EndY="4.27" />
+				<MountPoint Side="Back" StartX="0.77" StartY="0.73" EndX="4.23" EndY="4.27" Default="true" />
+				<MountPoint Side="Left" StartX="1.93" StartY="4.12" EndX="4.07" EndY="4.45" />
+				<MountPoint Side="Right" StartX="1.93" StartY="4.12" EndX="4.07" EndY="4.45" />
+				<MountPoint Side="Bottom" StartX="4.13" StartY="1.93" EndX="4.43" EndY="4.07" />
+				<MountPoint Side="Top" StartX="4.13" StartY="1.93" EndX="4.43" EndY="4.07" />
+				<MountPoint Side="Left" StartX="1.93" StartY="0.54" EndX="4.07" EndY="0.86" />
+				<MountPoint Side="Right" StartX="1.93" StartY="0.54" EndX="4.07" EndY="0.86" />
+				<MountPoint Side="Bottom" StartX="0.53" StartY="1.93" EndX="0.84" EndY="4.07" />
+				<MountPoint Side="Top" StartX="0.53" StartY="1.93" EndX="0.84" EndY="4.07" />
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.50" File="Models\SmallNaniteController_Constr1.mwm" />
+				<Model BuildPercentUpperBound="1.00" File="Models\SmallNaniteController_Constr2.mwm" />
+			</BuildProgressModels>
+			<InventorySize>
+				<X>1</X>
+				<Y>1</Y>
+				<Z>1</Z>
+			</InventorySize>
+			<BlockPairName>NaniteControlFacility</BlockPairName>
+			<Description>A small version of the facility that only does cleanup and repair.</Description>
+			<MirroringY>Z</MirroringY>
+			<MirroringZ>Y</MirroringZ>
+			<BuildTimeSeconds>80</BuildTimeSeconds>
+			<EdgeType>Light</EdgeType>
+			<DamageEffectId>212</DamageEffectId>
+			<DamagedSound>ParticleHeavyMech</DamagedSound>
+			<Public>true</Public>
+			<PrimarySound>NaniteModule</PrimarySound>
+			<ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<SensorRadius>.2</SensorRadius>
+			<SensorOffset>0</SensorOffset>
+			<PCU>2000</PCU>
+		</Definition> -->
+
+		<!-- Nanite Ore Detector -->
+		<Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
+			<Id>
+				<TypeId>OreDetector</TypeId>
+				<SubtypeId>LargeNaniteOreDetector</SubtypeId>
+			</Id>
+			<DisplayName>Large Nanite Ore Detector</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\NaniteOreDetector.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="3" y="5" z="3"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Center x="1" y="0" z="1"/>
+			<Model>Models\Cubes\Large\LargeNaniteOreDetector.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="150"/>
+				<Component Subtype="Construction" Count="250"/>
+				<Component Subtype="MetalGrid" Count="150"/>
+				<Component Subtype="LargeTube" Count="150"/>
+				<Component Subtype="GravityGenerator" Count="8"/>
+				<Component Subtype="Detector" Count="125"/>
+				<Component Subtype="PowerCell" Count="250"/>
+				<Component Subtype="Computer" Count="1125"/>
+				<Component Subtype="Motor" Count="175"/>
+				<Component Subtype="Superconductor" Count="750"/>
+				<Component Subtype="Display" Count="12"/>
+				<Component Subtype="SteelPlate" Count="400"/>
+				<Component Subtype="InteriorPlate" Count="200"/>
+			</Components>
+			<CriticalComponent Subtype="Display" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Front" StartX="1.01" StartY="0.02" EndX="1.99" EndY="1.78" />
+				<MountPoint Side="Back" StartX="1.01" StartY="0.01" EndX="1.99" EndY="1.77" />
+				<MountPoint Side="Left" StartX="1.00" StartY="0.01" EndX="1.98" EndY="1.78" />
+				<MountPoint Side="Right" StartX="1.02" StartY="0.01" EndX="2.00" EndY="1.77" />
+				<MountPoint Side="Bottom" StartX="0.01" StartY="0.01" EndX="2.99" EndY="2.99" Default="true" />
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr1.mwm"/>
+				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr2.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr3.mwm"/>
+			</BuildProgressModels>
+			<InventorySize>
+				<X>1</X>
+				<Y>1</Y>
+				<Z>1</Z>
+			</InventorySize>
+			<BlockPairName>LargeNaniteOreDetector</BlockPairName>
+			<Description>Nanite Ore Detector used for mining with nanites, requires Nanite Control Facility that is active and within range (300m) to function.</Description>
+			<MirroringY>Z</MirroringY>
+			<MirroringZ>Y</MirroringZ>
+			<BuildTimeSeconds>300</BuildTimeSeconds>
+			<EdgeType>Light</EdgeType>
+			<DamageEffectId>212</DamageEffectId>
+			<DamagedSound>ParticleHeavyMech</DamagedSound>
+			<Public>true</Public>
+			<MaximumRange>300</MaximumRange>
+			<PrimarySound>NaniteModule</PrimarySound>
+			<ResourceSinkGroup>Utility</ResourceSinkGroup>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<PCU>5500</PCU>
+		</Definition>
+		
+		<!-- <Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
+			<Id>
+				<TypeId>OreDetector</TypeId>
+				<SubtypeId>NaniteMiningStation</SubtypeId>
+			</Id>
+			<DisplayName>Large Nanite Mining Station</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\NaniteMiningStation.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="15" y="9" z="15" />
+			<ModelOffset x="0" y="0" z="0" />
+			<Center x="7" y="5" z="7" />
+			<Model>Models\Cubes\Large\NaniteMiningStation.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="300"/>
+				<Component Subtype="Construction" Count="400"/>
+				<Component Subtype="MetalGrid" Count="150"/>
+				<Component Subtype="LargeTube" Count="150"/>
+				<Component Subtype="GravityGenerator" Count="350"/>
+				<Component Subtype="Detector" Count="25"/>
+				<Component Subtype="PowerCell" Count="750"/>
+				<Component Subtype="Computer" Count="450"/>
+				<Component Subtype="Motor" Count="150"/>
+				<Component Subtype="Superconductor" Count="1200"/>
+				<Component Subtype="Display" Count="4"/>
+				<Component Subtype="SteelPlate" Count="900"/>
+				<Component Subtype="InteriorPlate" Count="400"/>
+			</Components>
+			<CriticalComponent Subtype="Display" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Front" StartX="6.58" StartY="0.01" EndX="8.41" EndY="2.21" />
+				<MountPoint Side="Back" StartX="6.59" StartY="0.01" EndX="8.42" EndY="2.21" />
+				<MountPoint Side="Left" StartX="6.58" StartY="0.01" EndX="8.40" EndY="2.21" />
+				<MountPoint Side="Right" StartX="6.60" StartY="0.01" EndX="8.42" EndY="2.21" />
+				<MountPoint Side="Bottom" StartX="6.75" StartY="11.80" EndX="8.25" EndY="14.98" Default="true" />
+				<MountPoint Side="Top" StartX="5.72" StartY="5.72" EndX="9.28" EndY="9.28" />
+				<MountPoint Side="Bottom" StartX="6.75" StartY="0.02" EndX="8.25" EndY="3.20" />
+				<MountPoint Side="Bottom" StartX="11.63" StartY="6.69" EndX="14.98" EndY="8.31" />
+				<MountPoint Side="Bottom" StartX="0.01" StartY="6.69" EndX="3.36" EndY="8.31" />
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr1.mwm"/>
+				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr2.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr3.mwm"/>
+			</BuildProgressModels>
+			<InventorySize>
+				<X>1</X>
+				<Y>1</Y>
+				<Z>1</Z>
+			</InventorySize>
+			<BlockPairName>NaniteMiningStationBase</BlockPairName>
+			<MirroringY>Z</MirroringY>
+			<MirroringZ>Y</MirroringZ>
+			<BuildTimeSeconds>300</BuildTimeSeconds>
+			<EdgeType>Light</EdgeType>
+			<DamageEffectId>212</DamageEffectId>
+			<DamagedSound>ParticleHeavyMech</DamagedSound>
+			<Public>true</Public>
+			<MaximumRange>3000</MaximumRange>
+			<PrimarySound>NaniteModule</PrimarySound>
+			<ResourceSinkGroup>Utility</ResourceSinkGroup>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<PCU>5000</PCU>
+		</Definition> -->	
 	
-	<!-- <Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
-      <Id>
-        <TypeId>OreDetector</TypeId>
-		<SubtypeId>NaniteMiningStation</SubtypeId>
-	</Id>
-      <DisplayName>Large Nanite Mining Station</DisplayName>
-	<Icon>Textures\GUI\Icons\Cubes\NaniteMiningStation.dds</Icon>
-	<CubeSize>Large</CubeSize>
-	<BlockTopology>TriangleMesh</BlockTopology>
-	<Size x="15" y="9" z="15" />
-	<ModelOffset x="0" y="0" z="0" />
-	<Center x="7" y="5" z="7" />
-	<Model>Models\Cubes\Large\NaniteMiningStation.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="300"/>
-        <Component Subtype="Construction" Count="400"/>
-        <Component Subtype="MetalGrid" Count="150"/>
-        <Component Subtype="LargeTube" Count="150"/>
-        <Component Subtype="GravityGenerator" Count="350"/>
-        <Component Subtype="Detector" Count="25"/>
-        <Component Subtype="PowerCell" Count="750"/>
-        <Component Subtype="Computer" Count="450"/>
-        <Component Subtype="Motor" Count="150"/>
-        <Component Subtype="Superconductor" Count="1200"/>
-        <Component Subtype="Display" Count="4"/>
-        <Component Subtype="SteelPlate" Count="900"/>
-        <Component Subtype="InteriorPlate" Count="400"/>
-      </Components>
-      <CriticalComponent Subtype="Display" Index="0"/>
-	<MountPoints>
-		<MountPoint Side="Front" StartX="6.58" StartY="0.01" EndX="8.41" EndY="2.21" />
-		<MountPoint Side="Back" StartX="6.59" StartY="0.01" EndX="8.42" EndY="2.21" />
-		<MountPoint Side="Left" StartX="6.58" StartY="0.01" EndX="8.40" EndY="2.21" />
-		<MountPoint Side="Right" StartX="6.60" StartY="0.01" EndX="8.42" EndY="2.21" />
-		<MountPoint Side="Bottom" StartX="6.75" StartY="11.80" EndX="8.25" EndY="14.98" Default="true" />
-		<MountPoint Side="Top" StartX="5.72" StartY="5.72" EndX="9.28" EndY="9.28" />
-		<MountPoint Side="Bottom" StartX="6.75" StartY="0.02" EndX="8.25" EndY="3.20" />
-		<MountPoint Side="Bottom" StartX="11.63" StartY="6.69" EndX="14.98" EndY="8.31" />
-		<MountPoint Side="Bottom" StartX="0.01" StartY="6.69" EndX="3.36" EndY="8.31" />
-	</MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr1.mwm"/>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr2.mwm"/>
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\LargeNaniteOreDetector_Constr3.mwm"/>
-      </BuildProgressModels>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-	<BlockPairName>NaniteMiningStationBase</BlockPairName>
-      <MirroringY>Z</MirroringY>
-      <MirroringZ>Y</MirroringZ>
-      <BuildTimeSeconds>300</BuildTimeSeconds>
-      <EdgeType>Light</EdgeType>
-      <DamageEffectId>212</DamageEffectId>
-      <DamagedSound>ParticleHeavyMech</DamagedSound>
-      <Public>true</Public>
-      <MaximumRange>3000</MaximumRange>
-      <PrimarySound>NaniteModule</PrimarySound>
-      <ResourceSinkGroup>Utility</ResourceSinkGroup>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <PCU>5000</PCU>
-</Definition> -->
+	
+	
+<!-- Beacons -->	
+	
+	
+		<!-- Nanite Upgrades -->
+		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>LargeNaniteBeaconDeconstruct</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Beacon - Deconstruct</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Large\NaniteBeacon.mwm</Model>
+			<Components>
+				<Component Subtype="SteelPlate" Count="1"/>
+				<Component Subtype="SmallTube" Count="1"/>
+				<Component Subtype="RadioCommunication" Count="1"/>
+				<Component Subtype="PowerCell" Count="1"/>
+				<Component Subtype="Construction" Count="1"/>
+				<Component Subtype="Computer" Count="1"/>
+				<Component Subtype="SteelPlate" Count="1"/>
+			</Components>
+			<CriticalComponent Subtype="Computer" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteBeacon_Constr1.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NaniteBeacon_Constr2.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>NaniteBeaconDeconstruct</BlockPairName>
+			<Description>Nanite beacon for deconstruction nanites to lock onto, place these on grids to take apart.</Description>
+			<MirroringY>Z</MirroringY>
+			<MirroringZ>Y</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<BuildTimeSeconds>20</BuildTimeSeconds>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<GuiVisible>false</GuiVisible>
+			<PCU>25</PCU>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>SmallNaniteBeaconDeconstruct</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Beacon - Deconstruct</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
+			<CubeSize>Small</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="2" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Small\NaniteBeaconSmall.mwm</Model>
+			<Components>
+				<Component Subtype="SteelPlate" Count="1"/>
+				<Component Subtype="SmallTube" Count="1"/>
+				<Component Subtype="RadioCommunication" Count="1"/>
+				<Component Subtype="PowerCell" Count="1"/>
+				<Component Subtype="Construction" Count="1"/>
+				<Component Subtype="Computer" Count="1"/>
+				<Component Subtype="SteelPlate" Count="1"/>
+			</Components>
+			<CriticalComponent Subtype="Computer" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Small\NaniteBeaconSmall_Constr1.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\NaniteBeaconSmall_Constr2.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>NaniteBeaconDeconstruct</BlockPairName>
+			<Description>Nanite beacon for deconstruction nanites to lock onto, place these on grids to take apart.</Description>
+			<MirroringY>Z</MirroringY>
+			<MirroringZ>Y</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<BuildTimeSeconds>20</BuildTimeSeconds>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<GuiVisible>false</GuiVisible>
+			<PCU>25</PCU>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>LargeNaniteBeaconConstruct</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Beacon - Repair</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Large\NaniteBeacon.mwm</Model>
+			<Components>
+				<Component Subtype="SteelPlate" Count="1"/>
+				<Component Subtype="SmallTube" Count="1"/>
+				<Component Subtype="RadioCommunication" Count="1"/>
+				<Component Subtype="PowerCell" Count="1"/>
+				<Component Subtype="Construction" Count="1"/>
+				<Component Subtype="Computer" Count="1"/>
+				<Component Subtype="SteelPlate" Count="1"/>
+			</Components>
+			<CriticalComponent Subtype="Computer" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteBeacon_Constr1.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NaniteBeacon_Constr2.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>NaniteBeaconConstruct</BlockPairName>
+			<Description>Nanite beacon for construction nanites to lock onto, place these on grids to repair or construct them.</Description>
+			<MirroringY>Z</MirroringY>
+			<MirroringZ>Y</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<BuildTimeSeconds>20</BuildTimeSeconds>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<BlockVariants>
+				<BlockVariant>
+					<TypeId>UpgradeModule</TypeId>
+					<SubtypeId>LargeNaniteBeaconDeconstruct</SubtypeId>
+				</BlockVariant>
+				<BlockVariant>
+					<TypeId>UpgradeModule</TypeId>
+					<SubtypeId>LargeNaniteBeaconProjection</SubtypeId>
+				</BlockVariant>
+			</BlockVariants>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<PCU>25</PCU>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>SmallNaniteBeaconConstruct</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Beacon - Repair</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
+			<CubeSize>Small</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="2" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Small\NaniteBeaconSmall.mwm</Model>
+			<Components>
+				<Component Subtype="SteelPlate" Count="1"/>
+				<Component Subtype="SmallTube" Count="1"/>
+				<Component Subtype="RadioCommunication" Count="1"/>
+				<Component Subtype="PowerCell" Count="1"/>
+				<Component Subtype="Construction" Count="1"/>
+				<Component Subtype="Computer" Count="1"/>
+				<Component Subtype="SteelPlate" Count="1"/>
+			</Components>
+			<CriticalComponent Subtype="Computer" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Small\NaniteBeaconSmall_Constr1.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\NaniteBeaconSmall_Constr2.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>NaniteBeaconConstruct</BlockPairName>
+			<Description>Nanite beacon for construction nanites to lock onto, place these on grids to build or repair them.</Description>
+			<MirroringY>Z</MirroringY>
+			<MirroringZ>Y</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<BuildTimeSeconds>20</BuildTimeSeconds>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<BlockVariants>
+				<BlockVariant>
+					<TypeId>UpgradeModule</TypeId>
+					<SubtypeId>SmallNaniteBeaconDeconstruct</SubtypeId>
+				</BlockVariant>
+				<BlockVariant>
+					<TypeId>UpgradeModule</TypeId>
+					<SubtypeId>SmallNaniteBeaconProjection</SubtypeId>
+				</BlockVariant>
+			</BlockVariants>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<PCU>25</PCU>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>LargeNaniteBeaconProjection</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Beacon - Projection</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Large\NaniteBeacon.mwm</Model>
+			<Components>
+				<Component Subtype="SteelPlate" Count="1"/>
+				<Component Subtype="SmallTube" Count="1"/>
+				<Component Subtype="RadioCommunication" Count="1"/>
+				<Component Subtype="PowerCell" Count="1"/>
+				<Component Subtype="Construction" Count="1"/>
+				<Component Subtype="Computer" Count="1"/>
+				<Component Subtype="SteelPlate" Count="1"/>
+			</Components>
+			<CriticalComponent Subtype="Computer" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteBeacon_Constr1.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NaniteBeacon_Constr2.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>NaniteBeaconProjection</BlockPairName>
+			<Description>Nanite beacon for projection nanites to lock onto, place these to build projections.</Description>
+			<MirroringY>Z</MirroringY>
+			<MirroringZ>Y</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<BuildTimeSeconds>20</BuildTimeSeconds>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<GuiVisible>false</GuiVisible>
+			<PCU>25</PCU>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>SmallNaniteBeaconProjection</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Beacon - Projection</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
+			<CubeSize>Small</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="2" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Small\NaniteBeaconSmall.mwm</Model>
+			<Components>
+				<Component Subtype="SteelPlate" Count="1"/>
+				<Component Subtype="SmallTube" Count="1"/>
+				<Component Subtype="RadioCommunication" Count="1"/>
+				<Component Subtype="PowerCell" Count="1"/>
+				<Component Subtype="Construction" Count="1"/>
+				<Component Subtype="Computer" Count="1"/>
+				<Component Subtype="SteelPlate" Count="1"/>
+			</Components>
+			<CriticalComponent Subtype="Computer" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Small\NaniteBeaconSmall_Constr1.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\NaniteBeaconSmall_Constr2.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>NaniteBeaconProjection</BlockPairName>
+			<Description>Nanite beacon for projection nanites to lock onto, place these to build projections.</Description>
+			<MirroringY>Z</MirroringY>
+			<MirroringZ>Y</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<BuildTimeSeconds>20</BuildTimeSeconds>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<GuiVisible>false</GuiVisible>
+			<PCU>25</PCU>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_ProjectorDefinition">
+			<Id>
+				<TypeId>Projector</TypeId>
+				<SubtypeId>LargeNaniteAreaBeacon</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Area Beacon</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\AreaBeacon.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="2" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Large\AreaBeacon.mwm</Model>
+			<Components>
+				<Component Subtype="SteelPlate" Count="20"/>
+				<Component Subtype="SmallTube" Count="10"/>
+				<Component Subtype="RadioCommunication" Count="2"/>
+				<Component Subtype="PowerCell" Count="1"/>
+				<Component Subtype="Construction" Count="15"/>
+				<Component Subtype="Computer" Count="30"/>
+				<Component Subtype="SteelPlate" Count="15"/>
+			</Components>
+			<CriticalComponent Subtype="Computer" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Bottom" StartX="0" StartY="0" EndX="1" EndY="1"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\AreaBeacon_Constr1.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\AreaBeacon_Constr2.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>NaniteAreaBeacon</BlockPairName>
+			<Description>Nanite Area Beacon allows nanites to operate in a controlled space for deconstruction, construction, and projections.</Description>
+			<MirroringY>Z</MirroringY>
+			<MirroringZ>Y</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<BuildTimeSeconds>90</BuildTimeSeconds>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<ResourceSinkGroup>Utility</ResourceSinkGroup>
+			<RequiredPowerInput>0.0002</RequiredPowerInput>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<PCU>225</PCU>
+		</Definition>
 
-    <!-- Migration: block only, no function -->
-    <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
-      <Id>
-        <TypeId>ShipWelder</TypeId>
-        <SubtypeId>LargeNaniteFactory</SubtypeId>
-      </Id>
-      <DisplayName>OLD Nanite Control Factory</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NaniteFactory.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="3" y="3" z="3"/>
-      <ModelOffset x="0" y="0" z="0"/>
-      <Model>Models\Cubes\Large\NanoRepairModule.mwm</Model>
-      <Components>
-        <Component Subtype="InteriorPlate" Count="300"/>
-        <Component Subtype="Construction" Count="400"/>
-        <Component Subtype="MetalGrid" Count="150"/>
-        <Component Subtype="LargeTube" Count="150"/>
-        <Component Subtype="GravityGenerator" Count="350"/>
-        <Component Subtype="Detector" Count="25"/>
-        <Component Subtype="PowerCell" Count="750"/>
-        <Component Subtype="Computer" Count="450"/>
-        <Component Subtype="Motor" Count="150"/>
-        <Component Subtype="Superconductor" Count="1200"/>
-        <Component Subtype="Display" Count="4"/>
-        <Component Subtype="SteelPlate" Count="900"/>
-        <Component Subtype="InteriorPlate" Count="400"/>
-      </Components>
-      <CriticalComponent Subtype="Display" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Bottom" StartX="0" StartY="0" EndX="3" EndY="3"/>
-        <MountPoint Side="Left" StartX="0" StartY="0" EndX="3" EndY="1"/>
-        <MountPoint Side="Right" StartX="0" StartY="0" EndX="3" EndY="1"/>
-        <MountPoint Side="Front" StartX="0" StartY="0" EndX="3" EndY="1"/>
-        <MountPoint Side="Back" StartX="0" StartY="0" EndX="3" EndY="1"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.16" File="Models\Cubes\Large\NanoRepairModule_Cons1.mwm"/>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NanoRepairModule_Cons2.mwm"/>
-        <Model BuildPercentUpperBound="0.50" File="Models\Cubes\Large\NanoRepairModule_Cons3.mwm"/>
-        <Model BuildPercentUpperBound="0.83" File="Models\Cubes\Large\NanoRepairModule_Cons4.mwm"/>
-        <Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NanoRepairModule_Cons5.mwm"/>
-      </BuildProgressModels>
-      <InventorySize>
-        <X>1</X>
-        <Y>1</Y>
-        <Z>1</Z>
-      </InventorySize>
-      <BlockPairName>NaniteControlFactory</BlockPairName>
-      <MirroringY>Z</MirroringY>
-      <MirroringZ>Y</MirroringZ>
-      <BuildTimeSeconds>300</BuildTimeSeconds>
-      <EdgeType>Light</EdgeType>
-      <DamageEffectId>212</DamageEffectId>
-      <DamagedSound>ParticleHeavyMech</DamagedSound>
-      <Public>false</Public>
-      <PrimarySound>NaniteModule</PrimarySound>
-      <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>
-      <EmissiveColorPreset>Default</EmissiveColorPreset>
-      <SensorRadius>2.26</SensorRadius>
-      <PCU>1</PCU>
-    </Definition>
-    <Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
-      <Id>
-        <TypeId>OreDetector</TypeId>
-        <SubtypeId>NaniteUltrasonicHammer</SubtypeId>
-      </Id>
-      <DisplayName>Nanite Ultrasonic Hammer Ore Locator - NUHOL</DisplayName>
-      <Icon>Textures\GUI\Icons\Cubes\NUHOL.dds</Icon>
-      <CubeSize>Large</CubeSize>
-      <BlockTopology>TriangleMesh</BlockTopology>
-      <Size x="1" y="4" z="1"/>
-      <ModelOffset x="0" y="2" z="0"/>
-      <Model>Models\Cubes\Large\NUHOL.mwm</Model>
-      <Components>
-        <Component Subtype="SteelPlate" Count="10"/>
-        <Component Subtype="SmallTube" Count="12"/>
-        <Component Subtype="LargeTube" Count="10"/>
-        <Component Subtype="Computer" Count="10"/>
-        <Component Subtype="RadioCommunication" Count="3"/>
-        <Component Subtype="Detector" Count="25"/>
-        <Component Subtype="Construction" Count="100"/>
-        <Component Subtype="SteelPlate" Count="20"/>
-      </Components>
-      <CriticalComponent Subtype="Detector" Index="0"/>
-      <MountPoints>
-        <MountPoint Side="Right" StartX="0" StartY="1" EndX="1" EndY="2"/>
-        <MountPoint Side="Left" StartX="0" StartY="1" EndX="1" EndY="2"/>
-        <MountPoint Side="Front" StartX="0" StartY="1" EndX="1" EndY="2"/>
-        <MountPoint Side="Back" StartX="0" StartY="1" EndX="1" EndY="2"/>
-      </MountPoints>
-      <BuildProgressModels>
-        <Model BuildPercentUpperBound="0.33" File="Models\Cubes\Large\NUHOL_Cons1.mwm"/>
-        <Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NUHOL_Cons2.mwm"/>
-        <Model BuildPercentUpperBound="0.90" File="Models\Cubes\Large\NUHOL_Cons3.mwm"/>
-      </BuildProgressModels>
-      <BlockPairName>NaniteUltrasonicHammer</BlockPairName>
-      <EdgeType>Light</EdgeType>
-      <PrimarySound>NaniteBeacon</PrimarySound>
-      <BuildTimeSeconds>45</BuildTimeSeconds>
-      <DamageEffectId>214</DamageEffectId>
-      <DamagedSound>ParticleElectrical</DamagedSound>
-      <Public>false</Public>
-      <PCU>225</PCU>
-    </Definition>
-  </CubeBlocks>
-  <BlockPositions>
-    <BlockPosition>
-      <Name>NaniteControlFacility</Name>
-      <Position>
-        <X>0</X>
-        <Y>22</Y>
-      </Position>
-    </BlockPosition>
-    <BlockPosition>
-      <Name>UpgradeConstruct</Name>
-      <Position>
-        <X>1</X>
-        <Y>22</Y>
-      </Position>
-    </BlockPosition>
-    <BlockPosition>
-      <Name>NaniteBeaconConstruct</Name>
-      <Position>
-        <X>2</X>
-        <Y>22</Y>
-      </Position>
-    </BlockPosition>
-    <BlockPosition>
-      <Name>NaniteAreaBeacon</Name>
-      <Position>
-        <X>3</X>
-        <Y>22</Y>
-      </Position>
-    </BlockPosition>
-    <BlockPosition>
-      <Name>LargeNaniteOreDetector</Name>
-      <Position>
-        <X>4</X>
-        <Y>22</Y>
-      </Position>
-    </BlockPosition>
-    <BlockPosition>
-      <Name>NaniteOreDetectorUpgradeRange</Name>
-      <Position>
-        <X>5</X>
-        <Y>22</Y>
-      </Position>
-    </BlockPosition>
-    <BlockPosition>
-      <Name>NaniteMiningStationBase</Name>
-      <Position>
-        <X>6</X>
-        <Y>22</Y>
-      </Position>
-    </BlockPosition>
-  </BlockPositions>
+
+<!-- Upgrades for facility and ore detector -->
+
+
+
+		<!-- Facility Upgrade Modules -->
+		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>NaniteConstructUpgrade</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Constructor Upgrade</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Large\NaniteConstruction.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="120"/>
+				<Component Subtype="Construction" Count="80"/>
+				<Component Subtype="SmallTube" Count="20"/>
+				<Component Subtype="LargeTube" Count="3"/>
+				<Component Subtype="Computer" Count="80"/>
+				<Component Subtype="PowerCell" Count="25"/>
+				<Component Subtype="Superconductor" Count="50"/>
+				<Component Subtype="Motor" Count="25"/>
+				<Component Subtype="SteelPlate" Count="40"/>
+			</Components>
+			<CriticalComponent Subtype="Motor" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>UpgradeConstruct</BlockPairName>
+			<Description>Nanite upgrade that adds 3 constructor nanites.</Description>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<MirroringX>Z</MirroringX>
+			<MirroringZ>X</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<Upgrades>
+				<MyUpgradeModuleInfo>
+					<UpgradeType>ConstructionNanites</UpgradeType>
+					<Modifier>1</Modifier>
+					<ModifierType>Additive</ModifierType>
+				</MyUpgradeModuleInfo>
+			</Upgrades>
+			<PrimarySound>BlockModuleEfficiency</PrimarySound>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<BlockVariants>
+			 <!-- <BlockVariant>
+					<TypeId>UpgradeModule</TypeId>
+					<SubtypeId>NaniteProjectionUpgrade</SubtypeId>
+				</BlockVariant> -->
+				<BlockVariant>
+					<TypeId>UpgradeModule</TypeId>
+					<SubtypeId>NaniteDeconstructUpgrade</SubtypeId>
+				</BlockVariant>
+				<BlockVariant>
+					<TypeId>UpgradeModule</TypeId>
+					<SubtypeId>NaniteCleanupUpgrade</SubtypeId>
+				</BlockVariant>
+				<BlockVariant>
+					<TypeId>UpgradeModule</TypeId>
+					<SubtypeId>NaniteMiningUpgrade</SubtypeId>
+				</BlockVariant>
+				<BlockVariant>
+					<TypeId>UpgradeModule</TypeId>
+					<SubtypeId>NaniteMedicalUpgrade</SubtypeId>
+				</BlockVariant>
+				<BlockVariant>
+					<TypeId>UpgradeModule</TypeId>
+					<SubtypeId>NanitePowerUpgrade</SubtypeId>
+				</BlockVariant>
+				<BlockVariant>
+					<TypeId>UpgradeModule</TypeId>
+					<SubtypeId>NaniteSpeedUpgrade</SubtypeId>
+				</BlockVariant>
+			</BlockVariants>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<PCU>65</PCU>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>NaniteDeconstructUpgrade</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Deconstructor Upgrade</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Large\NaniteDeconstructor.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="120"/>
+				<Component Subtype="Construction" Count="80"/>
+				<Component Subtype="SmallTube" Count="20"/>
+				<Component Subtype="LargeTube" Count="3"/>
+				<Component Subtype="Computer" Count="80"/>
+				<Component Subtype="PowerCell" Count="25"/>
+				<Component Subtype="Superconductor" Count="50"/>
+				<Component Subtype="Motor" Count="25"/>
+				<Component Subtype="SteelPlate" Count="40"/>
+			</Components>
+			<CriticalComponent Subtype="Motor" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>UpgradeDeconstruct</BlockPairName>
+			<Description>Nanite upgrade that adds 3 deconstructor nanites.</Description>
+			<MirroringX>Z</MirroringX>
+			<MirroringZ>X</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<Upgrades>
+				<MyUpgradeModuleInfo>
+					<UpgradeType>DeconstructionNanites</UpgradeType>
+					<Modifier>1</Modifier>
+					<ModifierType>Additive</ModifierType>
+				</MyUpgradeModuleInfo>
+			</Upgrades>
+			<PrimarySound>BlockModuleEfficiency</PrimarySound>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<GuiVisible>false</GuiVisible>
+			<PCU>65</PCU>
+		</Definition>
+<!--		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>NaniteProjectionUpgrade</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Projection Upgrade</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Large\NaniteProjection.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="120"/>
+				<Component Subtype="Construction" Count="40"/>
+				<Component Subtype="SmallTube" Count="20"/>
+				<Component Subtype="LargeTube" Count="10"/>
+				<Component Subtype="Computer" Count="40"/>
+				<Component Subtype="GravityGenerator" Count="5"/>
+				<Component Subtype="PowerCell" Count="25"/>
+				<Component Subtype="Superconductor" Count="50"/>
+				<Component Subtype="Motor" Count="5"/>
+				<Component Subtype="SteelPlate" Count="40"/>
+			</Components>
+			<CriticalComponent Subtype="Motor" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>UpgradeProjection</BlockPairName>
+			<MirroringX>Z</MirroringX>
+			<MirroringZ>X</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<Upgrades>
+				<MyUpgradeModuleInfo>
+					<UpgradeType>ProjectionNanites</UpgradeType>
+					<Modifier>1</Modifier>
+					<ModifierType>Additive</ModifierType>
+				</MyUpgradeModuleInfo>
+			</Upgrades>
+			<PrimarySound>BlockModuleEfficiency</PrimarySound>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<GuiVisible>false</GuiVisible>
+			<PCU>5</PCU>
+		</Definition> -->
+		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>NaniteCleanupUpgrade</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Cleanup Upgrade</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Large\NaniteCleanup.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="120"/>
+				<Component Subtype="Construction" Count="60"/>
+				<Component Subtype="SmallTube" Count="10"/>
+				<Component Subtype="LargeTube" Count="3"/>
+				<Component Subtype="Computer" Count="60"/>
+				<Component Subtype="PowerCell" Count="15"/>
+				<Component Subtype="Superconductor" Count="25"/>
+				<Component Subtype="Motor" Count="5"/>
+				<Component Subtype="SteelPlate" Count="40"/>
+			</Components>
+			<CriticalComponent Subtype="Motor" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>UpgradeCleanup</BlockPairName>
+			<Description>Nanite upgrade that adds 3 cleanup nanites.</Description>
+			<MirroringX>Z</MirroringX>
+			<MirroringZ>X</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<Upgrades>
+				<MyUpgradeModuleInfo>
+					<UpgradeType>CleanupNanites</UpgradeType>
+					<Modifier>1</Modifier>
+					<ModifierType>Additive</ModifierType>
+				</MyUpgradeModuleInfo>
+			</Upgrades>
+			<PrimarySound>BlockModuleEfficiency</PrimarySound>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<GuiVisible>false</GuiVisible>
+			<PCU>65</PCU>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>NaniteMiningUpgrade</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Mining Upgrade</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Large\NaniteMining.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="120"/>
+				<Component Subtype="Construction" Count="80"/>
+				<Component Subtype="SmallTube" Count="30"/>
+				<Component Subtype="LargeTube" Count="12"/>
+				<Component Subtype="Computer" Count="75"/>
+				<Component Subtype="Detector" Count="6"/>
+				<Component Subtype="PowerCell" Count="50"/>
+				<Component Subtype="Superconductor" Count="75"/>
+				<Component Subtype="Motor" Count="15"/>
+				<Component Subtype="SteelPlate" Count="40"/>
+			</Components>
+			<CriticalComponent Subtype="Motor" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>MiningNanites</BlockPairName>
+			<Description>Nanite upgrade that adds 3 mining nanites.</Description>
+			<MirroringX>Z</MirroringX>
+			<MirroringZ>X</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<Upgrades>
+				<MyUpgradeModuleInfo>
+					<UpgradeType>MiningNanites</UpgradeType>
+					<Modifier>1</Modifier>
+					<ModifierType>Additive</ModifierType>
+				</MyUpgradeModuleInfo>
+			</Upgrades>
+			<PrimarySound>BlockModuleEfficiency</PrimarySound>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<GuiVisible>false</GuiVisible>
+			<PCU>65</PCU>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>NaniteMedicalUpgrade</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Medical Upgrade</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Large\NaniteHealing.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="120"/>
+				<Component Subtype="Construction" Count="60"/>
+				<Component Subtype="SmallTube" Count="18"/>
+				<Component Subtype="LargeTube" Count="3"/>
+				<Component Subtype="Computer" Count="60"/>
+				<Component Subtype="Medical" Count="9"/>
+				<Component Subtype="PowerCell" Count="27"/>
+				<Component Subtype="Superconductor" Count="39"/>
+				<Component Subtype="Motor" Count="3"/>
+				<Component Subtype="SteelPlate" Count="40"/>
+			</Components>
+			<CriticalComponent Subtype="Motor" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>MedicalNanites</BlockPairName>
+			<Description>Nanite upgrade that adds 3 medical nanites.</Description>
+			<MirroringX>Z</MirroringX>
+			<MirroringZ>X</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<Upgrades>
+				<MyUpgradeModuleInfo>
+					<UpgradeType>MedicalNanites</UpgradeType>
+					<Modifier>1</Modifier>
+					<ModifierType>Additive</ModifierType>
+				</MyUpgradeModuleInfo>
+			</Upgrades>
+			<PrimarySound>BlockModuleEfficiency</PrimarySound>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<GuiVisible>false</GuiVisible>
+			<PCU>35</PCU>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>NaniteSpeedUpgrade</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Speed Upgrade</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Large\NaniteSpeedIncrease.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="120"/>
+				<Component Subtype="Construction" Count="60"/>
+				<Component Subtype="SmallTube" Count="30"/>
+				<Component Subtype="Computer" Count="320"/>
+				<Component Subtype="PowerCell" Count="100"/>
+				<Component Subtype="Superconductor" Count="250"/>
+				<Component Subtype="SteelPlate" Count="40"/>
+			</Components>
+			<CriticalComponent Subtype="Superconductor" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>UpgradeSpeed</BlockPairName>
+			<Description>Nanite upgrade that increases the speed of the nanites.</Description>
+			<MirroringX>Z</MirroringX>
+			<MirroringZ>X</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<Upgrades>
+				<MyUpgradeModuleInfo>
+					<UpgradeType>SpeedNanites</UpgradeType>
+					<Modifier>1</Modifier>
+					<ModifierType>Additive</ModifierType>
+				</MyUpgradeModuleInfo>
+			</Upgrades>
+			<PrimarySound>BlockModuleEfficiency</PrimarySound>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<GuiVisible>false</GuiVisible>
+			<PCU>20</PCU>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>NanitePowerUpgrade</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Power Reduction Upgrade</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Large\NanitePower.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="120"/>
+				<Component Subtype="Construction" Count="80"/>
+				<Component Subtype="SmallTube" Count="30"/>
+				<Component Subtype="Computer" Count="60"/>
+				<Component Subtype="Reactor" Count="12"/>
+				<Component Subtype="PowerCell" Count="75"/>
+				<Component Subtype="Superconductor" Count="150"/>
+				<Component Subtype="SteelPlate" Count="60"/>
+			</Components>
+			<CriticalComponent Subtype="Superconductor" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>UpgradePower</BlockPairName>
+			<Description>Nanite upgrade that decreases the power requirement of the facility.</Description>
+			<MirroringX>Z</MirroringX>
+			<MirroringZ>X</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<Upgrades>
+				<MyUpgradeModuleInfo>
+					<UpgradeType>PowerNanites</UpgradeType>
+					<Modifier>1</Modifier>
+					<ModifierType>Additive</ModifierType>
+				</MyUpgradeModuleInfo>
+			</Upgrades>
+			<PrimarySound>BlockModuleEfficiency</PrimarySound>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<GuiVisible>false</GuiVisible>
+			<PCU>15</PCU>
+		</Definition>
+
+		<!-- Ore Detector Upgrade Modules -->
+		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>NaniteOreDetectorUpgradeRange</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Ore Detector Range Upgrade</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\OreDetectorUpgrades.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Large\NaniteOreDetectRange.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="120"/>
+				<Component Subtype="Construction" Count="60"/>
+				<Component Subtype="SmallTube" Count="20"/>
+				<Component Subtype="Detector" Count="20"/>
+				<Component Subtype="Computer" Count="60"/>
+				<Component Subtype="Superconductor" Count="10"/>
+				<Component Subtype="Motor" Count="15"/>
+				<Component Subtype="SteelPlate" Count="40"/>
+			</Components>
+			<CriticalComponent Subtype="Motor" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>NaniteOreDetectorUpgradeRange</BlockPairName>
+			<Description>Nanite Ore Detector upgrade that increases range.</Description>
+			<BlockVariants>
+				<BlockVariant>
+					<TypeId>UpgradeModule</TypeId>
+					<SubtypeId>NaniteOreDetectorUpgradeScanning</SubtypeId>
+				</BlockVariant>
+				<BlockVariant>
+					<TypeId>UpgradeModule</TypeId>
+					<SubtypeId>NaniteOreDetectorUpgradeFilter</SubtypeId>
+				</BlockVariant>
+				<BlockVariant>
+					<TypeId>UpgradeModule</TypeId>
+					<SubtypeId>NaniteOreDetectorUpgradePowerEfficiency</SubtypeId>
+				</BlockVariant>
+			</BlockVariants>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<MirroringX>Z</MirroringX>
+			<MirroringZ>X</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<Upgrades>
+				<MyUpgradeModuleInfo>
+					<UpgradeType>Range</UpgradeType>
+					<Modifier>1</Modifier>
+					<ModifierType>Additive</ModifierType>
+				</MyUpgradeModuleInfo>
+			</Upgrades>
+			<PrimarySound>BlockModuleEfficiency</PrimarySound>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<PCU>55</PCU>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>NaniteOreDetectorUpgradeScanning</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Ore Detector Scanning Upgrade</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\OreDetectorUpgrades.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Large\NaniteOreDetectScanning.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="120"/>
+				<Component Subtype="Construction" Count="60"/>
+				<Component Subtype="SmallTube" Count="20"/>
+				<Component Subtype="Detector" Count="2"/>
+				<Component Subtype="Computer" Count="160"/>
+				<Component Subtype="Superconductor" Count="12"/>
+				<Component Subtype="Motor" Count="15"/>
+				<Component Subtype="SteelPlate" Count="40"/>
+			</Components>
+			<CriticalComponent Subtype="Computer" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>NaniteOreDetectorUpgradeScanning</BlockPairName>
+			<Description>Nanite Ore Detector upgrade that increases scanning.</Description>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<MirroringX>Z</MirroringX>
+			<MirroringZ>X</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<Upgrades>
+				<MyUpgradeModuleInfo>
+					<UpgradeType>Scanning</UpgradeType>
+					<Modifier>1</Modifier>
+					<ModifierType>Additive</ModifierType>
+				</MyUpgradeModuleInfo>
+			</Upgrades>
+			<PrimarySound>BlockModuleEfficiency</PrimarySound>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<PCU>25</PCU>
+			<GuiVisible>false</GuiVisible>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>NaniteOreDetectorUpgradeFilter</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Ore Detector Filter Upgrade</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\OreDetectorUpgrades.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Large\NaniteOreDetectFilter.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="120"/>
+				<Component Subtype="Construction" Count="75"/>
+				<Component Subtype="SmallTube" Count="30"/>
+				<Component Subtype="Computer" Count="200"/>
+				<Component Subtype="Superconductor" Count="20"/>
+				<Component Subtype="SteelPlate" Count="40"/>
+			</Components>
+			<CriticalComponent Subtype="Superconductor" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>NaniteOreDetectorUpgradeFilter</BlockPairName>
+			<Description>Nanite Ore Detector upgrade that allows you to filter ore.</Description>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<MirroringX>Z</MirroringX>
+			<MirroringZ>X</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<Upgrades>
+				<MyUpgradeModuleInfo>
+					<UpgradeType>Filter</UpgradeType>
+					<Modifier>1</Modifier>
+					<ModifierType>Additive</ModifierType>
+				</MyUpgradeModuleInfo>
+			</Upgrades>
+			<PrimarySound>BlockModuleEfficiency</PrimarySound>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<PCU>10</PCU>
+			<GuiVisible>false</GuiVisible>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
+			<Id>
+				<TypeId>UpgradeModule</TypeId>
+				<SubtypeId>NaniteOreDetectorUpgradePowerEfficiency</SubtypeId>
+			</Id>
+			<DisplayName>Nanite Ore Detector Power Efficiency Upgrade</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\OreDetectorUpgrades.dds</Icon>
+			<CubeSize>Large</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<ModelOffset x="0" y="0" z="0"/>
+			<Model>Models\Cubes\Large\NaniteOreDetectEfficiency.mwm</Model>
+			<Components>
+				<Component Subtype="InteriorPlate" Count="120"/>
+				<Component Subtype="Construction" Count="80"/>
+				<Component Subtype="SmallTube" Count="30"/>
+				<Component Subtype="Computer" Count="60"/>
+				<Component Subtype="Reactor" Count="12"/>
+				<Component Subtype="PowerCell" Count="75"/>
+				<Component Subtype="Superconductor" Count="150"/>
+				<Component Subtype="SteelPlate" Count="60"/>
+			</Components>
+			<CriticalComponent Subtype="Superconductor" Index="0"/>
+			<MountPoints>
+				<MountPoint Side="Left" StartX="0" StartY="0" EndX="1" EndY="1"/>
+			</MountPoints>
+			<BuildProgressModels>
+				<Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
+			</BuildProgressModels>
+			<BlockPairName>NaniteOreDetectorUpgradePowerEfficiency</BlockPairName>
+			<Description>Nanite Ore Detector upgrade that reduces power cost.</Description>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<MirroringX>Z</MirroringX>
+			<MirroringZ>X</MirroringZ>
+			<EdgeType>Light</EdgeType>
+			<Upgrades>
+				<MyUpgradeModuleInfo>
+					<UpgradeType>PowerEfficiency</UpgradeType>
+					<Modifier>1</Modifier>
+					<ModifierType>Additive</ModifierType>
+				</MyUpgradeModuleInfo>
+			</Upgrades>
+			<PrimarySound>BlockModuleEfficiency</PrimarySound>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+			<EmissiveColorPreset>Default</EmissiveColorPreset>
+			<PCU>15</PCU>
+			<GuiVisible>false</GuiVisible>
+		</Definition>
+
+
+<!-- Nanite welder and grinder placeholders -->		
+	
+	
+		<Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
+			<Id>
+				<TypeId>ShipWelder</TypeId>
+				<SubtypeId>TinyNaniteShipWelder</SubtypeId>
+			</Id>
+			<DisplayName>TinyNaniteShipWelder</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\Welder.dds</Icon>
+			<CubeSize>Small</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<Model>Models\TinyNaniteWelder.mwm</Model>
+			<UseModelIntersection>true</UseModelIntersection>
+			<Components>
+				<Component Subtype="SteelPlate" Count="1"/>
+			</Components>
+			<CriticalComponent Subtype="SteelPlate" Index="0"/>
+			<BlockPairName>TinyNaniteShipWelder</BlockPairName>
+			<Public>false</Public>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
+			<Id>
+				<TypeId>ShipWelder</TypeId>
+				<SubtypeId>SmallNaniteShipWelder</SubtypeId>
+			</Id>
+			<DisplayName>SmallNaniteShipWelder</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\Welder.dds</Icon>
+			<CubeSize>Small</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<Model>Models\SmallNaniteWelder.mwm</Model>
+			<UseModelIntersection>true</UseModelIntersection>
+			<Components>
+				<Component Subtype="SteelPlate" Count="1"/>
+			</Components>
+			<CriticalComponent Subtype="SteelPlate" Index="0"/>
+			<BlockPairName>SmallNaniteShipWelder</BlockPairName>
+			<Public>false</Public>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_ShipGrinderDefinition">
+			<Id>
+				<TypeId>ShipGrinder</TypeId>
+				<SubtypeId>TinyNaniteShipGrinder</SubtypeId>
+			</Id>
+			<DisplayName>TinyNaniteShipGrinder</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\Welder.dds</Icon>
+			<CubeSize>Small</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<Model>Models\TinyNaniteGrinder.mwm</Model>
+			<UseModelIntersection>true</UseModelIntersection>
+			<Components>
+				<Component Subtype="SteelPlate" Count="1"/>
+			</Components>
+			<CriticalComponent Subtype="SteelPlate" Index="0"/>
+			<BlockPairName>TinyNaniteShipGrinder</BlockPairName>
+			<Public>false</Public>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+		</Definition>
+		<Definition xsi:type="MyObjectBuilder_ShipGrinderDefinition">
+			<Id>
+				<TypeId>ShipGrinder</TypeId>
+				<SubtypeId>SmallNaniteShipGrinder</SubtypeId>
+			</Id>
+			<DisplayName>SmallNaniteShipGrinder</DisplayName>
+			<Icon>Textures\GUI\Icons\Cubes\Welder.dds</Icon>
+			<CubeSize>Small</CubeSize>
+			<BlockTopology>TriangleMesh</BlockTopology>
+			<Size x="1" y="1" z="1"/>
+			<Model>Models\SmallNaniteGrinder.mwm</Model>
+			<UseModelIntersection>true</UseModelIntersection>
+			<Components>
+				<Component Subtype="SteelPlate" Count="1"/>
+			</Components>
+			<CriticalComponent Subtype="SteelPlate" Index="0"/>
+			<BlockPairName>SmallNaniteShipGrinder</BlockPairName>
+			<Public>false</Public>
+			<DamageEffectId>214</DamageEffectId>
+			<DamagedSound>ParticleElectrical</DamagedSound>
+		</Definition>
+	</CubeBlocks>
+	<BlockPositions>
+		<BlockPosition>
+			<Name>NaniteControlFacility</Name>
+			<Position>
+				<X>0</X>
+				<Y>22</Y>
+			</Position>
+		</BlockPosition>
+		<BlockPosition>
+			<Name>UpgradeConstruct</Name>
+			<Position>
+				<X>1</X>
+				<Y>22</Y>
+			</Position>
+		</BlockPosition>
+		<BlockPosition>
+			<Name>NaniteBeaconConstruct</Name>
+			<Position>
+				<X>2</X>
+				<Y>22</Y>
+			</Position>
+		</BlockPosition>
+		<BlockPosition>
+			<Name>NaniteAreaBeacon</Name>
+			<Position>
+				<X>3</X>
+				<Y>22</Y>
+			</Position>
+		</BlockPosition>
+		<BlockPosition>
+			<Name>LargeNaniteOreDetector</Name>
+			<Position>
+				<X>4</X>
+				<Y>22</Y>
+			</Position>
+		</BlockPosition>
+		<BlockPosition>
+			<Name>NaniteOreDetectorUpgradeRange</Name>
+			<Position>
+				<X>5</X>
+				<Y>22</Y>
+			</Position>
+		</BlockPosition>
+		<BlockPosition>
+			<Name>NaniteMiningStationBase</Name>
+			<Position>
+				<X>6</X>
+				<Y>22</Y>
+			</Position>
+		</BlockPosition>
+	</BlockPositions>
 </Definitions>
