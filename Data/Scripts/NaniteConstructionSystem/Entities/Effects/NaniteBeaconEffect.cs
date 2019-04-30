@@ -1,4 +1,4 @@
-﻿using Sandbox.ModAPI;
+using Sandbox.ModAPI;
 using VRageMath;
 using Sandbox.Game.Lights;
 using Sandbox.Game.Entities;
@@ -134,17 +134,21 @@ namespace NaniteConstructionSystem.Entities.Effects
 
         public override void Unload()
         {
-            if (m_soundEmitter != null && m_soundEmitter.IsPlaying)
-                m_soundEmitter.StopSound(true);
+            try {
+                if (m_soundEmitter != null && m_soundEmitter.IsPlaying)
+                    m_soundEmitter.StopSound(true);
 
-            if (m_light != null)
-            {
-                m_light.GlareOn = false;
-                m_light.LightOn = false;
-                m_light.ReflectorOn = false;
-                m_light.UpdateLight();
-                MyLights.RemoveLight(m_light);
-            }
+                if (m_light != null)
+                {
+                    m_light.GlareOn = false;
+                    m_light.LightOn = false;
+                    m_light.ReflectorOn = false;
+                    m_light.UpdateLight();
+                    MyLights.RemoveLight(m_light);
+                }
+            } catch(Exception e)
+            { Logging.Instance.WriteLine($"CheckGridGroup() Error: {e.ToString()}"); }
+            
         }
     }
 }
