@@ -710,10 +710,13 @@ namespace NaniteConstructionSystem.Entities
         {
             MyAPIGateway.Parallel.Start(() =>
             {
-                IMySlimBlock block = null;
-                m_potentialInventoryBlocks.TryTake(out block);
-                if (block != null)
-                    TryAddToInventoryGroup(block);
+                while (!m_potentialInventoryBlocks.IsEmpty)
+                {
+                    IMySlimBlock block = null;
+                    m_potentialInventoryBlocks.TryTake(out block);
+                    if (block != null)
+                        TryAddToInventoryGroup(block);
+                }
             });
         }
 
