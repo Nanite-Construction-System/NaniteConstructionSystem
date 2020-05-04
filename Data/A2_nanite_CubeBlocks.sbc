@@ -144,7 +144,69 @@
 	</ResearchGroup>
   </ResearchGroups>
 
+<!--Block Groups -->
+    <BlockVariantGroups>
 
+        <!-- Reactors -->
+
+        <BlockVariantGroup>
+            <Id Type="MyObjectBuilder_BlockVariantGroup" Subtype="NaniteFacilityGroup" />
+            <Icon>Textures\GUI\Icons\Cubes\NaniteFactory.dds</Icon>
+            <DisplayName>DisplayName_BlockGroup_Nanite_Facility</DisplayName>
+            <Description>Construction on the nano scale.</Description>
+            <Blocks>
+                <Block Type="MyObjectBuilder_ShipWelder" Subtype="LargeNaniteControlFacility" />
+                <Block Type="MyObjectBuilder_OreDetector" Subtype="LargeNaniteOreDetector" />
+				
+            </Blocks>
+        </BlockVariantGroup>
+		
+        <BlockVariantGroup>
+            <Id Type="MyObjectBuilder_BlockVariantGroup" Subtype="NaniteBeaconGroup" />
+            <Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
+            <DisplayName>DisplayName_BlockGroup_NaniteBeacons</DisplayName>
+            <Description>Beacons to control Nanite behavior.</Description>
+            <Blocks>
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconDeconstruct" />
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconConstruct" />
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconProjection" />
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="SmallNaniteBeaconConstruct" />
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="SmallNaniteBeaconDeconstruct" />
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="SmallNaniteBeaconProjection" />
+                <Block Type="MyObjectBuilder_Projector" Subtype="LargeNaniteAreaBeacon" />
+            </Blocks>
+        </BlockVariantGroup>
+		
+        <BlockVariantGroup>
+            <Id Type="MyObjectBuilder_BlockVariantGroup" Subtype="NaniteUpgradeGroup" />
+            <Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
+            <DisplayName>DisplayName_BlockGroup_NaniteUpgrades</DisplayName>
+            <Description>Upgrades to control Nanite behavior.</Description>
+            <Blocks>
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteConstructUpgrade" />
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteDeconstructUpgrade" />
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteCleanupUpgrade" />
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteMiningUpgrade" />
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteMedicalUpgrade" />
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteSpeedUpgrade" />
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NanitePowerUpgrade" />
+            </Blocks>
+        </BlockVariantGroup>
+		
+        <BlockVariantGroup>
+            <Id Type="MyObjectBuilder_BlockVariantGroup" Subtype="NaniteMiningUpgradeGroup" />
+            <Icon>Textures\GUI\Icons\Cubes\OreDetectorUpgrades.dds</Icon>
+            <DisplayName>DisplayName_BlockGroup_MiningUpgrades</DisplayName>
+            <Description>Upgrades to control Mining behavior.</Description>
+            <Blocks>
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradeRange" />
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradeScanning" />
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradeFilter" />
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradePowerEfficiency" />
+            </Blocks>
+        </BlockVariantGroup>
+        
+  </BlockVariantGroups>
 
 <!-- All Nanite Blocks -->
 
@@ -1452,49 +1514,28 @@
 		<BlockPosition>
 			<Name>NaniteControlFacility</Name>
 			<Position>
-				<X>0</X>
+				<X>1</X>
 				<Y>22</Y>
 			</Position>
 		</BlockPosition>
 		<BlockPosition>
 			<Name>UpgradeConstruct</Name>
 			<Position>
-				<X>1</X>
+				<X>2</X>
 				<Y>22</Y>
 			</Position>
 		</BlockPosition>
 		<BlockPosition>
 			<Name>NaniteBeaconConstruct</Name>
 			<Position>
-				<X>2</X>
-				<Y>22</Y>
-			</Position>
-		</BlockPosition>
-		<BlockPosition>
-			<Name>NaniteAreaBeacon</Name>
-			<Position>
 				<X>3</X>
-				<Y>22</Y>
-			</Position>
-		</BlockPosition>
-		<BlockPosition>
-			<Name>LargeNaniteOreDetector</Name>
-			<Position>
-				<X>4</X>
 				<Y>22</Y>
 			</Position>
 		</BlockPosition>
 		<BlockPosition>
 			<Name>NaniteOreDetectorUpgradeRange</Name>
 			<Position>
-				<X>5</X>
-				<Y>22</Y>
-			</Position>
-		</BlockPosition>
-		<BlockPosition>
-			<Name>NaniteMiningStationBase</Name>
-			<Position>
-				<X>6</X>
+				<X>4</X>
 				<Y>22</Y>
 			</Position>
 		</BlockPosition>
