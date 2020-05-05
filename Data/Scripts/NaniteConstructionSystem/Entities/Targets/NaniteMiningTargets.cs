@@ -450,7 +450,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         try
                         {
                             if (m_constructionBlock.IsUserDefinedLimitReached())
-                            InvalidTargetReason("User defined maximum nanite limit reached");
+                                InvalidTargetReason("User defined maximum nanite limit reached");
                             else if (item != null)
                             {
                                 removeList.Add(item);
