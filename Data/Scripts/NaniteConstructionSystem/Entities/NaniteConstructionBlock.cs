@@ -310,9 +310,12 @@ namespace NaniteConstructionSystem.Entities
                     ScanForTargets(out m_scanningActive);
 
                     if (m_updateCount == m_assemblerUpdateTimer)
-                    {
+                    { 
                         if (m_factoryState == FactoryStates.MissingParts)
+                        {
+                            Logging.Instance.WriteLine("[Assembler] Missing components, processing assembler queue", 1);
                             ProcessAssemblerQueue();
+                        }
 
                         m_scanningActive = false;
                         m_lastScanStatusUpdate = m_updateCount;
@@ -379,7 +382,7 @@ namespace NaniteConstructionSystem.Entities
                 {
                     try
                     {
-                        Logging.Instance.WriteLine($"Slave factory {m_entityId} is no longer slaved to {Master.EntityId}. Reason: Master {reason}", 1);
+                        Logging.Instance.WriteLine($"[Master-Slave] Slave factory {m_entityId} is no longer slaved to {Master.EntityId}. Reason: Master {reason}", 1);
                         Master.Slaves.Remove(this);
                         Master = null; 
                     }
@@ -409,7 +412,7 @@ namespace NaniteConstructionSystem.Entities
                                     if (!Master.Slaves.Contains(this))
                                     {
                                         Master.Slaves.Add(this);
-                                        Logging.Instance.WriteLine($"Factory {m_entityId} is now slaved to {Master.EntityId}.", 1);
+                                        Logging.Instance.WriteLine($"[Master-Slave] Factory {m_entityId} is now slaved to {Master.EntityId}.", 1);
                                     }
 
                                     foreach (var slave in Slaves)
@@ -420,7 +423,7 @@ namespace NaniteConstructionSystem.Entities
                                         if (!Master.Slaves.Contains(slave))
                                         {
                                             Master.Slaves.Add(slave);
-                                            Logging.Instance.WriteLine($"Factory {slave.EntityId} is now slaved to {Master.EntityId}.", 1);
+                                            Logging.Instance.WriteLine($"[Master-Slave] Factory {slave.EntityId} is now slaved to {Master.EntityId}.", 1);
                                         }
                                     }
                                     Slaves.Clear();
@@ -676,7 +679,7 @@ namespace NaniteConstructionSystem.Entities
                 Sink.SetRequiredInputByType(MyResourceDistributorComponent.ElectricityId, _power);
             });
 
-            Logging.Instance.WriteLine($"Factory {ConstructionBlock.EntityId} updated power usage to {_power} MegaWatts", 1);
+            Logging.Instance.WriteLine($"[Power] Factory {ConstructionBlock.EntityId} updated power usage to {_power} MegaWatts", 1);
         }
 
         internal bool HasRequiredPowerForNewTarget(NaniteTargetBlocksBase target)
@@ -702,7 +705,7 @@ namespace NaniteConstructionSystem.Entities
                     connectedInventory = Master.InventoryManager.connectedInventory;
                 
                 GridHelper.TryMoveToFreeCargo((MyCubeBlock)m_constructionBlock, connectedInventory, true);
-                Logging.Instance.WriteLine($"PUSHING Factory inventory over 75% full: {m_constructionBlock.EntityId}", 1);
+                Logging.Instance.WriteLine($"[Inventory] Factory inventory over 75% full: {m_constructionBlock.EntityId}", 1);
             }
         }
 
@@ -727,7 +730,7 @@ namespace NaniteConstructionSystem.Entities
                 if (Master != null || m_factoryState == FactoryStates.Disabled)
                     return;
                 
-                Logging.Instance.WriteLine("Block added to grid.", 2);
+                Logging.Instance.WriteLine("[Grid] Block added to grid.", 2);
 
                 TryAddPotentialInventoryBlock(block);
             });
@@ -738,7 +741,7 @@ namespace NaniteConstructionSystem.Entities
             if (block.FatBlock == null || !(block.FatBlock is IMyTerminalBlock)) //|| block.FatBlock is MyDeviceBase)
                 return;
 
-            Logging.Instance.WriteLine($"Block {block.FatBlock.DisplayNameText} added to inventory check queue.", 2);
+            Logging.Instance.WriteLine($"[Inventory] Block {block.FatBlock.DisplayNameText} added to inventory check queue.", 2);
             m_potentialInventoryBlocks.Add(block);
         }
 
@@ -788,7 +791,7 @@ namespace NaniteConstructionSystem.Entities
                     {
                         if (!newGroup.Contains(grid))
                         {
-                            Logging.Instance.WriteLine("Removing disconnected grid from grid group.", 1);
+                            Logging.Instance.WriteLine("[Grids] Removing disconnected grid from grid group.", 1);
                             removalList.Add(grid);
                             grid.OnBlockAdded -= OnBlockAdded;
                         }
@@ -802,7 +805,7 @@ namespace NaniteConstructionSystem.Entities
                     {
                         if (!GridGroup.Contains(grid))
                         {
-                            Logging.Instance.WriteLine("Adding new grid to grid group.", 1);
+                            Logging.Instance.WriteLine("[Grids] Adding new grid to grid group.", 1);
 
                             MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                                 { GridGroup.Add(grid); });
@@ -877,8 +880,11 @@ namespace NaniteConstructionSystem.Entities
                         queueableAssemblers.Add((IMyProductionBlock)assembler);
                 }
 
-                if (queueableAssemblers.Count < 1) 
+                if (queueableAssemblers.Count < 1)
+                {
+                    Logging.Instance.WriteLine("[Assembler] No queuable assemblers found!", 1);
                     return;
+                }
 
                 MyAPIGateway.Parallel.ForEach(InventoryManager.ComponentsRequired, item =>
                 {
@@ -915,7 +921,7 @@ namespace NaniteConstructionSystem.Entities
                         if (amount < 1)
                             return;
 
-                        Logging.Instance.WriteLine(string.Format("ASSEMBLER Queuing {0} {1} for factory {2} ({4} - {3})", 
+                        Logging.Instance.WriteLine(string.Format("[Assembler] Queuing {0} {1} for factory {2} ({4} - {3})", 
                           amount, def.Id, m_constructionBlock.CustomName, blueprintCount, item.Value), 1);
 
                         MyAPIGateway.Utilities.InvokeOnGameThread(() =>
@@ -1343,8 +1349,7 @@ namespace NaniteConstructionSystem.Entities
                             newState = FactoryStates.SpoolingDown;
                         else
                             newState = FactoryStates.Disabled;
-                    }   
-
+                    }
                     else if ( (Master != null && (Master.FactoryState == FactoryStates.Active || Master.FactoryState == FactoryStates.SpoolingUp))
                       || ( (m_targetsCount > 0 && IsPowered()) || m_particleManager.Particles.Count > 0 ) )
                     {
@@ -1373,31 +1378,17 @@ namespace NaniteConstructionSystem.Entities
                         else if (m_targetsCount == 0 && m_potentialTargetsCount > 0)
                         {
                             newState = FactoryStates.InvalidTargets;
-
-                            foreach (var item in InventoryManager.ComponentsRequired.ToList())
-                                if (item.Value <= 0)
-                                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                                        { InventoryManager.ComponentsRequired.Remove(item.Key); });
-
-                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                            {
-                                if (InventoryManager.ComponentsRequired.Count > 0)
-                                {
-                                    m_factoryState = FactoryStates.MissingParts;
-                                    if (m_lastState != m_factoryState)
-                                        m_updateConnectedInventory = true;
-                                }
-                            });
                         }
                         else if (blockEntity.Enabled)
-                        { 
+                        {
                             if (m_spoolPosition <= 0)
-                                MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                            {
+                                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                                 {
                                     m_spoolPosition = 0;
                                     m_factoryState = FactoryStates.Enabled;
                                 });
-
+                            }
                             else
                                 newState = FactoryStates.SpoolingDown;
                         }
@@ -1413,7 +1404,11 @@ namespace NaniteConstructionSystem.Entities
                             m_factoryState = FactoryStates.SpoolingDown;
                             newState = FactoryStates.SpoolingDown;
                         }
-                            
+
+                        if(m_factoryState == FactoryStates.Active || m_factoryState == FactoryStates.Enabled || m_factoryState == FactoryStates.InvalidTargets)
+                            newState = CheckForMissingComponents(newState);
+
+                        Logging.Instance.WriteLine($"[Factory] Current state: {m_factoryState}, New state: {newState}", 1);
 
                         if (m_lastState != m_factoryState)
                             m_lastState = m_factoryState;
@@ -1429,6 +1424,29 @@ namespace NaniteConstructionSystem.Entities
                 catch (Exception e)
                     { Logging.Instance.WriteLine($"NaniteConstructionBlock.ProcessState exception: {e}"); }
             });
+        }
+
+        private FactoryStates CheckForMissingComponents(FactoryStates newState)
+        {
+            foreach (var item in InventoryManager.ComponentsRequired.ToList())
+                if (item.Value <= 0)
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                    { InventoryManager.ComponentsRequired.Remove(item.Key); });
+
+            Logging.Instance.WriteLine($"[Factory] Missing components: {InventoryManager.ComponentsRequired.Sum(x => x.Value)}", 1);
+
+            if (InventoryManager.ComponentsRequired.Count > 0)
+            {
+                newState = FactoryStates.MissingParts;
+
+                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                {
+                    if (m_lastState != newState)
+                        m_updateConnectedInventory = true;
+                });
+            }
+
+            return newState;
         }
         #endregion
 
