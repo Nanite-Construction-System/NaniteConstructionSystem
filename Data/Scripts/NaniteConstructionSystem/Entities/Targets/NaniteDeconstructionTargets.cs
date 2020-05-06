@@ -131,7 +131,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             return true;
         }
 
-        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> gridBlocks)
+        public override void ParallelUpdate(List<IMyCubeGrid> NaniteGridGroup, List<BlockTarget> gridBlocks)
         {
             try
             {
@@ -141,18 +141,23 @@ namespace NaniteConstructionSystem.Entities.Targets
                     
                     IMyCubeBlock item = (IMyCubeBlock)beaconBlock.Value.BeaconBlock;                        
 
-                    if (item == null || !((IMyFunctionalBlock)item).Enabled || !((IMyFunctionalBlock)item).IsFunctional || gridList.Contains(item.CubeGrid) 
-                      || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId))
-                      || m_validBeaconedGrids.FirstOrDefault(x => x.GridsProcessed.Contains(item.CubeGrid)) != null || !IsInRange( item.GetPosition() ) )
+                    if (item == null
+                        || item.CubeGrid == null
+                        || !((IMyFunctionalBlock)item).Enabled
+                        || !((IMyFunctionalBlock)item).IsFunctional
+                        || NaniteGridGroup.Contains(item.CubeGrid) 
+                        || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId))
+                        || m_validBeaconedGrids.FirstOrDefault(x => x.GridsProcessed.Contains(item.CubeGrid)) != null
+                        || !IsInRange(item.GetPosition())
+                        )
 						continue;
 
                     NaniteDeconstructionGrid deconstruct = new NaniteDeconstructionGrid(item.CubeGrid);
 
-                    if (item.CubeGrid == null)
-                        return;
-
+                    CreateGridStack(NaniteGridGroup, deconstruct, (MyCubeGrid)item.CubeGrid, (MyCubeBlock)item);
                     m_validBeaconedGrids.Add(deconstruct);
-                    CreateGridStack(deconstruct, (MyCubeGrid)item.CubeGrid, (MyCubeBlock)item);
+
+                    Logging.Instance.WriteLine($"GRID {item.CubeGrid.CustomName} queued for deconstruction", 1);
 
                     foreach (var slimBlock in deconstruct.RemoveList)
                     {
@@ -163,7 +168,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     deconstruct.RemoveList.Clear();
                 }
 
-                CheckAreaBeacons();
+                CheckAreaBeacons(NaniteGridGroup);
                 if (PotentialTargetList.Count > 0)
                 {
                     foreach (IMySlimBlock item in PotentialTargetList.ToList())
@@ -181,7 +186,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 { Logging.Instance.WriteLine($"Exception in NaniteDeconstructionTargets.ParallelUpdate:\n{e}"); }
         }
 
-        private void CheckAreaBeacons()
+        private void CheckAreaBeacons(List<IMyCubeGrid> NaniteGridGroup)
         {
             foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteAreaBeacon).ToList())
             {
@@ -206,7 +211,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     {
                         NaniteDeconstructionGrid deconstruct = new NaniteDeconstructionGrid(grid);
                         m_validBeaconedGrids.Add(deconstruct);
-                        CreateGridStack(deconstruct, (MyCubeGrid)grid, null);
+                        CreateGridStack(NaniteGridGroup, deconstruct, (MyCubeGrid)grid, null);
 
                         if (!m_areaTargetBlocks.ContainsKey(grid))
                             m_areaTargetBlocks.Add(grid, item);
@@ -564,10 +569,10 @@ namespace NaniteConstructionSystem.Entities.Targets
             return deconstruct.AddingList.Count + deconstruct.AddingGridList.Count + additional;
         }
 
-        private void CreateGridStack(NaniteDeconstructionGrid deconstruct, MyCubeGrid grid, MyCubeBlock beacon)
+        private void CreateGridStack(List<IMyCubeGrid> NaniteGridGroup, NaniteDeconstructionGrid deconstruct, MyCubeGrid grid, MyCubeBlock beacon)
         {
             DateTime start = DateTime.Now;
-            IMyCubeGrid mainGrid = MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)grid, GridLinkTypeEnum.Physical).OrderByDescending(x => ((MyCubeGrid)x).GetBlocks().Count).FirstOrDefault();
+            IMyCubeGrid mainGrid = MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)grid, GridLinkTypeEnum.Physical).SkipWhile(x => NaniteGridGroup.Contains(x)).OrderByDescending(x => ((MyCubeGrid)x).GetBlocks().Count).FirstOrDefault();
 
             if (mainGrid == null)
                 return;
