@@ -137,7 +137,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     AddTarget(item);
 
                     var def = item.BlockDefinition as MyCubeBlockDefinition;
-                    Logging.Instance.WriteLine(string.Format("ADDING Construction/Repair Target: conid={0} subtype={1} entityID={2} position={3}", 
+                    Logging.Instance.WriteLine(string.Format("[Construction] Adding Construction/Repair Target: conid={0} subtype={1} entityID={2} position={3}", 
                         m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, item.FatBlock != null ? item.FatBlock.EntityId : 0, item.Position), 1);
 
                     if (++targetListCount >= maxTargets) 
@@ -202,7 +202,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             if (Sync.IsServer)
             {
-                if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
+                if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active || (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.MissingParts && TargetList.Count > 0 && PotentialTargetList.Count > 0))
                     return;
 
                 if (!m_targetBlocks.ContainsKey(target))
@@ -251,7 +251,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 if (target.IsDestroyed || target.IsFullyDismounted || (target.FatBlock != null && target.FatBlock.Closed))
                 {
-                    Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to target being destroyed", 1);
+                    Logging.Instance.WriteLine("[Construction] Cancelling Construction/Repair Target due to target being destroyed", 1);
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                     {
                         if (target != null)
@@ -271,7 +271,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                         if (!target.HasDeformation && !target.CanContinueBuild( ((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory() ) && !MyAPIGateway.Session.CreativeMode)
                         {
-                            Logging.Instance.WriteLine("CANCELLING Construction/Repair Target due to missing components", 1);
+                            Logging.Instance.WriteLine("[Construction] Cancelling Construction/Repair Target due to missing components", 1);
 
                             CancelTarget(target);
                         }
@@ -283,7 +283,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (m_remoteTargets.Contains(target) 
                   && EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target) > MyAPIGateway.Session.SessionSettings.SyncDistance)
                 {
-                    Logging.Instance.WriteLine("CANCELLING Repair Target due to target being out of range", 1);
+                    Logging.Instance.WriteLine("[Construction] Cancelling Repair Target due to target being out of range", 1);
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                         { CancelTarget(target); });
                     return;
@@ -323,7 +323,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public void CompleteTarget(IMySlimBlock obj)
         {
-            Logging.Instance.WriteLine(string.Format("COMPLETING Construction/Repair Target: {0} - {1} (EntityID={2},Position={3})", 
+            Logging.Instance.WriteLine(string.Format("[Construction] Completing Construction/Repair Target: {0} - {1} (EntityID={2},Position={3})", 
               m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position), 1);
 
             if (Sync.IsServer)
@@ -338,7 +338,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public void CancelTarget(IMySlimBlock obj)
         {
-            Logging.Instance.WriteLine(string.Format("CANCELLING Construction/Repair Target: {0} - {1} (EntityID={2},Position={3})", 
+            Logging.Instance.WriteLine(string.Format("[Construction] Cancelling Construction/Repair Target: {0} - {1} (EntityID={2},Position={3})", 
               m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position), 1);
 
             if (Sync.IsServer)
@@ -394,7 +394,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 if (item == null || !item.Enabled || !item.IsFunctional
                   || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId))
-                  || !IsInRange( item.GetPosition() ) )
+                  || !IsInRange(item.GetPosition(), m_maxDistance) )
                     continue;
 
                 GetBeaconBlocks((IMyCubeGrid)item.CubeGrid);

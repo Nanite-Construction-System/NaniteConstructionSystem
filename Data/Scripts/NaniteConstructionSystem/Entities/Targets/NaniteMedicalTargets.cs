@@ -125,7 +125,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (!damaged)
                     continue;
 
-                if (IsInRange( item.GetPosition() ) )
+                if (IsInRange(item.GetPosition(), m_maxDistance))
                     PotentialTargetList.Add(item);
             }
         }
@@ -171,7 +171,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     {
                         AddTarget(item);
 
-                        Logging.Instance.WriteLine(string.Format("ADDING Medical Target: conid={0} type={1} playerName={2} position={3}", 
+                        Logging.Instance.WriteLine(string.Format("[Medical] Adding Medical Target: conid={0} type={1} playerName={2} position={3}", 
                           m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.DisplayName, item.GetPosition()), 1);
 
                         if (++TargetListCount >= maxTargets) 
@@ -216,7 +216,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 if (player.Controller == null || player.Controller.ControlledEntity == null || player.Controller.ControlledEntity.Entity == null)
                 {
-                    Logging.Instance.WriteLine("CANCELLING Medical Target due to entity not existing", 1);
+                    Logging.Instance.WriteLine("[Medical] Cancelling Medical Target due to entity not existing", 1);
                     CancelTarget(target);
                     return;
                 }
@@ -224,7 +224,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), player.GetPosition())
                   > MyAPIGateway.Session.SessionSettings.SyncDistance * MyAPIGateway.Session.SessionSettings.SyncDistance)
                 {
-                    Logging.Instance.WriteLine("CANCELLING Medical Target due to distance", 1);
+                    Logging.Instance.WriteLine("[Medical] Cancelling Medical Target due to distance", 1);
                     CancelTarget(target);
                     return;
                 }
@@ -355,7 +355,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_constructionBlock.ParticleManager.CancelTarget(obj);
 
             foreach (IMyPlayer item in TargetList.Where(x => (IMyPlayer)x == player))
-                Logging.Instance.WriteLine(string.Format("CANCELLING Medical Target: {0} - {1} (Player={2},Position={3})",
+                Logging.Instance.WriteLine(string.Format("[Medical] Cancelling Medical Target: {0} - {1} (Player={2},Position={3})",
                   m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.DisplayName, item.GetPosition()), 1);
 
             TargetList.RemoveAll(x => ((IMyPlayer)x).IdentityId == player.IdentityId);
@@ -379,7 +379,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_constructionBlock.ParticleManager.CompleteTarget(obj);
 
             foreach (IMyPlayer item in TargetList.Where(x => (IMyPlayer)x == player))
-                Logging.Instance.WriteLine(string.Format("COMPLETING Medical Target: {0} - {1} (Player={2},Position={3})",
+                Logging.Instance.WriteLine(string.Format("[Medical] Completing Medical Target: {0} - {1} (Player={2},Position={3})",
                   m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.DisplayName, item.GetPosition()), 1);
 
             TargetList.RemoveAll(x => ((IMyPlayer)x).IdentityId == player.IdentityId);

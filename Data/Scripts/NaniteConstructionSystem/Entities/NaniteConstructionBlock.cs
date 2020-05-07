@@ -254,7 +254,7 @@ namespace NaniteConstructionSystem.Entities
                         foreach (var item in ((MyCubeBlock)m_constructionBlock).UpgradeValues)
                             upgrades += string.Format("({0} - {1}) ", item.Key, item.Value);
 
-                        Logging.Instance.WriteLine(string.Format("STATUS Nanite Factory: {0} - (t: {1}  pt: {2}  pw: {3} st: {4}) - {5}", 
+                        Logging.Instance.WriteLine(string.Format("[Factory] Nanite Factory Status: {0} - (t: {1}  pt: {2}  pw: {3} st: {4}) - {5}", 
                           m_entityId, m_targetsCount, m_potentialTargetsCount, _power, m_factoryState, upgrades), 1);
                     }
                     catch (Exception e)
@@ -452,7 +452,7 @@ namespace NaniteConstructionSystem.Entities
                             {
                                 try
                                 {
-                                    Logging.Instance.WriteLine($"Slave factory {slave.EntityId} is no longer slaved to {m_entityId}. Reason: Slave {reason2}", 1);
+                                    Logging.Instance.WriteLine($"[Master-Slave] Slave factory {slave.EntityId} is no longer slaved to {m_entityId}. Reason: Slave {reason2}", 1);
                                     Slaves.Remove(slave);
                                     slave.Master = null;
                                 }
@@ -624,8 +624,8 @@ namespace NaniteConstructionSystem.Entities
 
                 if (m_totalScanBlocksCount > 0)
                 {
-                    string percent = (((m_totalScanBlocksCount - m_scanBlocksCache.Count)/m_totalScanBlocksCount) * 100).ToString("0.00");
-                    details.Append($"\nScanning ... {percent}%\n"
+                    string percent = (((float)(m_totalScanBlocksCount - m_scanBlocksCache.Count)/m_totalScanBlocksCount) * 100).ToString("0.00");
+                    details.Append($"\nScanning - {percent}%\n"
                       + $"{m_totalScanBlocksCount - m_scanBlocksCache.Count}/{m_totalScanBlocksCount} blocks\n\n");
                 }
                 else
@@ -1428,14 +1428,18 @@ namespace NaniteConstructionSystem.Entities
 
         private FactoryStates CheckForMissingComponents(FactoryStates newState)
         {
+            int missingComponents = 0;
+
             foreach (var item in InventoryManager.ComponentsRequired.ToList())
                 if (item.Value <= 0)
                     MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                     { InventoryManager.ComponentsRequired.Remove(item.Key); });
+                else
+                    missingComponents += item.Value;
 
-            Logging.Instance.WriteLine($"[Factory] Missing components: {InventoryManager.ComponentsRequired.Sum(x => x.Value)}", 1);
+            Logging.Instance.WriteLine($"[Factory] Missing components: {missingComponents}", 1);
 
-            if (InventoryManager.ComponentsRequired.Count > 0)
+            if (missingComponents > 0)
             {
                 newState = FactoryStates.MissingParts;
 
