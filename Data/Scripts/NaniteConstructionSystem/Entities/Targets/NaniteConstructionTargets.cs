@@ -202,7 +202,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             if (Sync.IsServer)
             {
-                if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active || (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.MissingParts && TargetList.Count > 0 && PotentialTargetList.Count > 0))
+                if (!((m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.Active || m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.MissingParts) && (TargetList.Count > 0 || PotentialTargetList.Count > 0)))
                     return;
 
                 if (!m_targetBlocks.ContainsKey(target))

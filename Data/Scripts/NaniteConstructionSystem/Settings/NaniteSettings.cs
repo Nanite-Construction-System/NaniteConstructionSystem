@@ -237,7 +237,7 @@ namespace NaniteConstructionSystem.Settings
             OreDetectorPowerPercentIncreasedPerScanningUpgrade = 1f;
             OreDetectorPowerPercentReducedPerEfficiencyUpgrade = 0.1f;
             AreaBeaconMaxDistanceFromNaniteFacility = 800f;
-            BlocksScannedPerSecond = 100;
+            BlocksScannedPerSecond = 500;
             MiningTargetsScannedPerSecond = 100;
             OreDetectorScanningSpeed = 10;
             Version = "2.0";
