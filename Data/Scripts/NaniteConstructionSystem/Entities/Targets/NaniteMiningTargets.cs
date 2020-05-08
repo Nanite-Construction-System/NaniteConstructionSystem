@@ -149,6 +149,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         {
                             int minimumAmount = NaniteConstructionManager.Settings != null ? NaniteConstructionManager.Settings.MiningTargetsScannedPerSecond : 100;
                             int amountToProcess = Math.Min(material.WorldPosition.Count, minimumAmount * 5);
+                            List<Vector3D> removeList = new List<Vector3D>();
                             for (int i = 0; i < amountToProcess; i++)
                             {
                                 try
@@ -160,7 +161,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                                         if (material.WorldPosition[i] == minedPos)
                                         {
                                             alreadyMined = true;
-                                            material.WorldPosition.RemoveAt(i);
+                                            removeList.Add(material.WorldPosition[i]);
                                             removePos = minedPos;
                                             Logging.Instance.WriteLine($"[Mining] Found an already mined position {minedPos}", 2);
                                             break;
@@ -208,7 +209,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                                     Logging.Instance.WriteLine($"Exception during NaniteMiningTargets.ParallelUpdate material iterations:\n{e}");
                                     continue;
                                 }
-                            }                            
+                            }
+
+                            foreach (Vector3D pos in removeList)
+                                material.WorldPosition.Remove(pos);
                         }
                         catch (Exception e) when (e.ToString().Contains("ArgumentOutOfRangeException")) 
                         { // because Keen thinks we shouldn't have access to this exception^ ...
@@ -238,16 +242,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                     List<NaniteMiningItem> removeList = new List<NaniteMiningItem>();
                     foreach (var target in m_potentialMiningTargets)
                     {
-                        bool allow = false;
 
-                        foreach (string mat in allowedMats)
-                            if (target.Definition.MinedOre.ToLower() == mat.ToLower())
-                            {
-                                allow = true;
-                                break;
-                            }
-
-                        if (!allow)
+                        if (allowedMats.Where(x => x.ToLower() == target.Definition.MinedOre.ToLower()).FirstOrDefault() == null)
                             removeList.Add(target);
 
                         MyAPIGateway.Parallel.Sleep(1);
@@ -437,7 +433,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     continue;
                 }
                 var nearestFactory = GetNearestFactory(TargetName, item.Position);
-                if (Vector3D.DistanceSquared(nearestFactory.ConstructionBlock.GetPosition(), item.Position) < m_maxDistance * m_maxDistance)
+                if (IsInRange(nearestFactory, item.Position, m_maxDistance))
                 {
                     Logging.Instance.WriteLine(string.Format("[Mining] Adding Mining Target: conid={0} pos={1} type={2}", 
                         m_constructionBlock.ConstructionBlock.EntityId, item.Position, MyDefinitionManager.Static.GetVoxelMaterialDefinition(item.VoxelMaterial).MinedOre), 1);
