@@ -1129,7 +1129,7 @@ namespace NaniteConstructionSystem.Entities
 
                 foreach (var block in m_scanBlocksCache)
                 {
-                    if (counter++ > (maxBlocksToScan * 5))
+                    if (counter++ > (maxBlocksToScan))
                         break;
 
                     blocksToGo.Add(block);
