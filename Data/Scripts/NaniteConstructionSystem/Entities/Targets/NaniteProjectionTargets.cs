@@ -181,8 +181,15 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
                     return;
 
+                if (!IsInRange(m_constructionBlock, target.Position, m_maxDistance))
+                {
+                    Logging.Instance.WriteLine("[Projection] Cancelling Projection Target due to being out of range", 1);
+                    CancelTarget(target);
+                }
+
                 double distance = EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target);
                 int time = (int)Math.Max(GetMinTravelTime() * 1000f, (distance / GetSpeed()) * 1000f);
+
                 if (!m_targetBlocks.ContainsKey(target))
                 {
                     NaniteProjectionTarget projectionTarget = new NaniteProjectionTarget();

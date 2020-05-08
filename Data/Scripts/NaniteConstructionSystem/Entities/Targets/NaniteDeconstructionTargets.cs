@@ -368,9 +368,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                     return;
                 }
 
-                if (EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target) > MyAPIGateway.Session.SessionSettings.SyncDistance)
+                if (!IsInRange(m_constructionBlock, target.Position, m_maxDistance))
                 {
-                    Logging.Instance.WriteLine("[Deconstruction] Cancelling Deconstruction Target due to target being out of range", 1);
+                    Logging.Instance.WriteLine("[Deconstruction] Cancelling Deconstruction Target due to being out of range", 1);
                     CancelTarget(target);
                     return;
                 }

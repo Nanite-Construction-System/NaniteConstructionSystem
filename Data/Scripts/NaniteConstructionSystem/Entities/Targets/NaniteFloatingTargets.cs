@@ -145,7 +145,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void ProcessItem(object target)
         {
-            var floating = target as IMyEntity;
+            IMyEntity floating = target as IMyEntity;
 
             if (floating == null)
                 return;
@@ -166,6 +166,12 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 if (m_targetTracker.ContainsKey(floating))
                 {
+                    if (!IsInRange(m_constructionBlock, floating.GetPosition(), m_maxDistance))
+                    {
+                        Logging.Instance.WriteLine("[Floating] Cancelling Cleanup Target due to being out of range", 1);
+                        CancelTarget(floating);
+                    }
+
                     var trackedItem = m_targetTracker[floating];
                     if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - trackedItem.StartTime >= trackedItem.CarryTime 
                         && MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - trackedItem.LastUpdate > 2000)

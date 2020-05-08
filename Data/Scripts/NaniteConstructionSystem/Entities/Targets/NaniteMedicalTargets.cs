@@ -197,6 +197,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         private void ProcessItem(object target)
         {
             var player = target as IMyPlayer;
+
             if (player == null)
                 return;
 
@@ -221,10 +222,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                     return;
                 }
 
-                if (Vector3D.DistanceSquared(m_constructionBlock.ConstructionBlock.GetPosition(), player.GetPosition())
-                  > MyAPIGateway.Session.SessionSettings.SyncDistance * MyAPIGateway.Session.SessionSettings.SyncDistance)
+                if (!IsInRange(m_constructionBlock, player.GetPosition(), m_maxDistance))
                 {
-                    Logging.Instance.WriteLine("[Medical] Cancelling Medical Target due to distance", 1);
+                    Logging.Instance.WriteLine("[Medical] Cancelling Medical Target due to being out of range", 1);
                     CancelTarget(target);
                     return;
                 }

@@ -157,20 +157,21 @@ namespace NaniteConstructionSystem.Entities.Targets
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        internal bool IsInRange(Vector3D itemPosition, float range = 300f)
+        internal bool IsInRange(Vector3D position, float range = 300f)
         {
-            foreach (var factory in m_constructionBlock.FactoryGroup)
-                if (factory.ConstructionBlock != null && IsEnabled(factory)
-                    && Vector3D.DistanceSquared(factory.ConstructionBlock.GetPosition(), itemPosition) < range * range)
+            foreach (NaniteConstructionBlock factory in m_constructionBlock.FactoryGroup)
+                if (IsInRange(factory, position, range))
                     return true;
 
             return false;
         }
 
-        internal bool IsInRange(NaniteConstructionBlock factory, Vector3D itemPosition, float range = 300f)
+        internal bool IsInRange(NaniteConstructionBlock factory, Vector3D position, float range = 300f)
         {
+            range = System.Math.Min(range, MyAPIGateway.Session.SessionSettings.SyncDistance);
+
             if (factory.ConstructionBlock != null && IsEnabled(factory)
-                && Vector3D.DistanceSquared(factory.ConstructionBlock.GetPosition(), itemPosition) < range * range)
+                && Vector3D.DistanceSquared(factory.ConstructionBlock.GetPosition(), position) < range * range)
                 return true;
 
             return false;
