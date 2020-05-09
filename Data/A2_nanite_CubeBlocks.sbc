@@ -1068,9 +1068,9 @@
 		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
 			<Id>
 				<TypeId>UpgradeModule</TypeId>
-				<SubtypeId>NaniteMedicalUpgrade</SubtypeId>
+				<SubtypeId>NaniteLifeSupportUpgrade</SubtypeId>
 			</Id>
-			<DisplayName>Nanite Medical Upgrade</DisplayName>
+			<DisplayName>Nanite Life Support Upgrade</DisplayName>
 			<Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
 			<CubeSize>Large</CubeSize>
 			<BlockTopology>TriangleMesh</BlockTopology>
@@ -1096,7 +1096,7 @@
 			<BuildProgressModels>
 				<Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
 			</BuildProgressModels>
-			<BlockPairName>MedicalNanites</BlockPairName>
+			<BlockPairName>LifeSupportNanites</BlockPairName>
 			<Description>Nanite upgrade that adds 3 medical nanites.</Description>
 			<MirroringX>Z</MirroringX>
 			<MirroringZ>X</MirroringZ>
