@@ -7,6 +7,8 @@ using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
 using NaniteConstructionSystem.Entities.Beacons;
+using NaniteConstructionSystem.Extensions;
+using VRage.ModAPI;
 
 namespace NaniteConstructionSystem.Entities.Targets
 {
@@ -157,7 +159,17 @@ namespace NaniteConstructionSystem.Entities.Targets
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>
-        internal bool IsInRange(Vector3D position, float range = 300f)
+        ///
+        internal bool IsInRange(IMySlimBlock block, float range)
+        {
+            foreach (NaniteConstructionBlock factory in m_constructionBlock.FactoryGroup)
+                if (IsInRange(factory, block, range))
+                    return true;
+
+            return false;
+        }
+
+        internal bool IsInRange(Vector3D position, float range)
         {
             foreach (NaniteConstructionBlock factory in m_constructionBlock.FactoryGroup)
                 if (IsInRange(factory, position, range))
@@ -166,7 +178,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             return false;
         }
 
-        internal bool IsInRange(NaniteConstructionBlock factory, Vector3D position, float range = 300f)
+        internal bool IsInRange(NaniteConstructionBlock factory, Vector3D position, float range)
         {
             range = System.Math.Min(range, MyAPIGateway.Session.SessionSettings.SyncDistance);
 
@@ -176,7 +188,18 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             return false;
         }
-        
+
+        internal bool IsInRange(NaniteConstructionBlock factory, IMySlimBlock block, float range)
+        {
+            range = System.Math.Min(range, MyAPIGateway.Session.SessionSettings.SyncDistance);
+
+            if (factory.ConstructionBlock != null && IsEnabled(factory)
+                && Vector3D.DistanceSquared(factory.ConstructionBlock.GetPosition(), EntityHelper.GetBlockPosition(block)) < range * range)
+                return true;
+
+            return false;
+        }
+
 
         internal void AddTarget(object target)
         {

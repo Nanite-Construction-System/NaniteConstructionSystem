@@ -12,6 +12,7 @@ using System.Linq;
 using VRage.ModAPI;
 using Sandbox.Game.Entities;
 using VRage.ObjectBuilders;
+using VRage;
 
 namespace NaniteConstructionSystem.Extensions
 {
@@ -25,16 +26,7 @@ namespace NaniteConstructionSystem.Extensions
 
         public static Vector3D GetBlockPosition(IMySlimBlock slimBlock)
         {
-            Vector3D slimBlockPosition = Vector3D.Zero;
-            if (slimBlock.FatBlock != null)
-                slimBlockPosition = slimBlock.FatBlock.GetPosition();
-            else
-            {
-                var size = slimBlock.CubeGrid.GridSizeEnum == MyCubeSize.Small ? 0.5f : 2.5f;
-                slimBlockPosition = Vector3D.Transform(new Vector3D(slimBlock.Position * size), slimBlock.CubeGrid.WorldMatrix);
-            }
-
-            return slimBlockPosition;
+            return slimBlock.CubeGrid.GridIntegerToWorld(slimBlock.Position);
         }
 
         public static MatrixD GetBlockWorldMatrix(IMySlimBlock slimBlock)
