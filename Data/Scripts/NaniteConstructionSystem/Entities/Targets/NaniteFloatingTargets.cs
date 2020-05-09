@@ -152,7 +152,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             if (Sync.IsServer)
             {
-                if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
+                if (!((m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.Active || m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.MissingParts) && (TargetList.Count > 0 || PotentialTargetList.Count > 0)))
                     return;
 
                 if (floating.Closed)
@@ -166,7 +166,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 if (m_targetTracker.ContainsKey(floating))
                 {
-                    if (!IsInRange(m_constructionBlock, floating.GetPosition(), m_maxDistance))
+                    if (!IsInRange(floating.GetPosition(), m_maxDistance))
                     {
                         Logging.Instance.WriteLine("[Floating] Cancelling Cleanup Target due to being out of range", 1);
                         CancelTarget(floating);

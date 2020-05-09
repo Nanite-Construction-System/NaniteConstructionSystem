@@ -108,7 +108,7 @@ namespace NaniteConstructionSystem.Entities
             ["Construction"] = true,
             ["Deconstruction"] = true,
             ["Cleanup"] = true,
-            ["Medical"] = true,
+            ["LifeSupport"] = true,
             ["Mining"] = true,
             ["Projection"] = true
         };
@@ -172,7 +172,7 @@ namespace NaniteConstructionSystem.Entities
             m_constructionCubeBlock.UpgradeValues.Add("DeconstructionNanites", 0f);
             m_constructionCubeBlock.UpgradeValues.Add("CleanupNanites", 0f);
             m_constructionCubeBlock.UpgradeValues.Add("MiningNanites", 0f);
-            m_constructionCubeBlock.UpgradeValues.Add("MedicalNanites", 0f);
+            m_constructionCubeBlock.UpgradeValues.Add("LifeSupportNanites", 0f);
             m_constructionCubeBlock.UpgradeValues.Add("SpeedNanites", 0f);
             m_constructionCubeBlock.UpgradeValues.Add("PowerNanites", 0f);
         }
@@ -195,8 +195,8 @@ namespace NaniteConstructionSystem.Entities
                 m_targets.Add(new NaniteDeconstructionTargets(this));
             if (NaniteConstructionManager.Settings.MiningEnabled)
                 m_targets.Add(new NaniteMiningTargets(this));
-            if (NaniteConstructionManager.Settings.MedicalEnabled)
-                m_targets.Add(new NaniteMedicalTargets(this));
+            if (NaniteConstructionManager.Settings.LifeSupportEnabled)
+                m_targets.Add(new NaniteLifeSupportTargets(this));
 
             m_effects = new List<NaniteBlockEffectBase>();
             m_effects.Add(new LightningBoltEffect((MyCubeBlock)m_constructionBlock));
@@ -1053,8 +1053,8 @@ namespace NaniteConstructionSystem.Entities
                     return (v * (float)s.SpeedIncreasePerUpgrade);
                 case "PowerNanites":
                     return (v * (float)s.PowerDecreasePerUpgrade);
-                case "MedicalNanites":
-                    return (v * (float)s.MedicalNanitesPerUpgrade);
+                case "LifeSupportNanites":
+                    return (v * (float)s.LifeSupportNanitesPerUpgrade);
                 case "MiningNanites":
                     return (v * (float)s.MiningNanitesPerUpgrade);
                 case "CleanupNanites":
@@ -1509,7 +1509,7 @@ namespace NaniteConstructionSystem.Entities
             TargetData data = new TargetData();
             data.EntityId = ConstructionBlock.EntityId;
             data.TargetId = target.IdentityId;
-            data.TargetType = TargetTypes.Medical;
+            data.TargetType = TargetTypes.LifeSupport;
             SendToPlayerInSyncRange(8951, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
@@ -1519,9 +1519,9 @@ namespace NaniteConstructionSystem.Entities
 
             try
             {
-                if (data.TargetType == TargetTypes.Medical)
+                if (data.TargetType == TargetTypes.LifeSupport)
                 {
-                    var target = GetTarget<NaniteMedicalTargets>().TargetList.FirstOrDefault(x => ((IMyPlayer)x).IdentityId == data.TargetId);
+                    var target = GetTarget<NaniteLifeSupportTargets>().TargetList.FirstOrDefault(x => ((IMyPlayer)x).IdentityId == data.TargetId);
                     if (target == null)
                     {
                         List<IMyPlayer> players = new List<IMyPlayer>();
@@ -1535,7 +1535,7 @@ namespace NaniteConstructionSystem.Entities
                             }
 
                         if (playerTarget != null)
-                            GetTarget<NaniteMedicalTargets>().TargetList.Add(playerTarget);
+                            GetTarget<NaniteLifeSupportTargets>().TargetList.Add(playerTarget);
                     }
                     return;
                 }
@@ -1643,7 +1643,7 @@ namespace NaniteConstructionSystem.Entities
             TargetData data = new TargetData();
             data.EntityId = ConstructionBlock.EntityId;
             data.TargetId = target.IdentityId;
-            data.TargetType = TargetTypes.Medical;
+            data.TargetType = TargetTypes.LifeSupport;
             SendToPlayerInSyncRange(8952, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
@@ -1658,7 +1658,7 @@ namespace NaniteConstructionSystem.Entities
                     GetTarget<NaniteFloatingTargets>().CompleteTarget(data.TargetId);
                     return;
                 }
-                else if (data.TargetType == TargetTypes.Medical)
+                else if (data.TargetType == TargetTypes.LifeSupport)
                 {
                     List<IMyPlayer> players = new List<IMyPlayer>();
                     MyAPIGateway.Players.GetPlayers(players);
@@ -1671,7 +1671,7 @@ namespace NaniteConstructionSystem.Entities
                         }
 
                     if (playerTarget != null)
-                        GetTarget<NaniteMedicalTargets>().CompleteTarget(playerTarget);
+                        GetTarget<NaniteLifeSupportTargets>().CompleteTarget(playerTarget);
 
                     return;
                 }
@@ -1750,7 +1750,7 @@ namespace NaniteConstructionSystem.Entities
             TargetData data = new TargetData();
             data.EntityId = ConstructionBlock.EntityId;
             data.TargetId = target.IdentityId;
-            data.TargetType = TargetTypes.Medical;
+            data.TargetType = TargetTypes.LifeSupport;
             SendToPlayerInSyncRange(8953, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
@@ -1775,7 +1775,7 @@ namespace NaniteConstructionSystem.Entities
 
                     return;
                 }
-                else if (data.TargetType == TargetTypes.Medical)
+                else if (data.TargetType == TargetTypes.LifeSupport)
                 {
                     List<IMyPlayer> players = new List<IMyPlayer>();
                     MyAPIGateway.Players.GetPlayers(players);
@@ -1788,7 +1788,7 @@ namespace NaniteConstructionSystem.Entities
                         }
 
                     if (playerTarget != null)
-                        GetTarget<NaniteMedicalTargets>().CancelTarget(playerTarget);
+                        GetTarget<NaniteLifeSupportTargets>().CancelTarget(playerTarget);
 
                     return;
                 }

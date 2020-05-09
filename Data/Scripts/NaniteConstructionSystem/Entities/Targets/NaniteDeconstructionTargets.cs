@@ -148,7 +148,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         || NaniteGridGroup.Contains(item.CubeGrid) 
                         || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId))
                         || m_validBeaconedGrids.FirstOrDefault(x => x.GridsProcessed.Contains(item.CubeGrid)) != null
-                        || !IsInRange(item.GetPosition())
+                        || !IsInRange(item.GetPosition(), m_maxDistance)
                         )
 						continue;
 
@@ -325,7 +325,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             if (Sync.IsServer)
             {
-                if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
+                if (!((m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.Active || m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.MissingParts) && (TargetList.Count > 0 || PotentialTargetList.Count > 0)))
                     return;
 
                 NaniteGrinder grinder = (NaniteGrinder)m_constructionBlock.ToolManager.Tools.FirstOrDefault(x => x.TargetBlock == target && x is NaniteGrinder);
@@ -368,7 +368,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     return;
                 }
 
-                if (!IsInRange(m_constructionBlock, target.Position, m_maxDistance))
+                if (!IsInRange(target, m_maxDistance))
                 {
                     Logging.Instance.WriteLine("[Deconstruction] Cancelling Deconstruction Target due to being out of range", 1);
                     CancelTarget(target);

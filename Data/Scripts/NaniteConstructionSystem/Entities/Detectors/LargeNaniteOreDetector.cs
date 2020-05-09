@@ -1,4 +1,5 @@
 using Sandbox.ModAPI;
+using VRage.Game;
 using VRageMath;
 
 namespace NaniteConstructionSystem.Entities.Detectors

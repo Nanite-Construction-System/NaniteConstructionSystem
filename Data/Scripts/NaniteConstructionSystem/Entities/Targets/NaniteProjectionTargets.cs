@@ -178,10 +178,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                     return;
                 }
 
-                if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
+                if (!((m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.Active || m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.MissingParts) && (TargetList.Count > 0 || PotentialTargetList.Count > 0)))
                     return;
 
-                if (!IsInRange(m_constructionBlock, target.Position, m_maxDistance))
+                if (!IsInRange(target, m_maxDistance))
                 {
                     Logging.Instance.WriteLine("[Projection] Cancelling Projection Target due to being out of range", 1);
                     CancelTarget(target);

@@ -12,36 +12,57 @@ using Sandbox.Game.Components;
 
 using NaniteConstructionSystem.Particles;
 using NaniteConstructionSystem.Extensions;
+using Sandbox.Game.EntityComponents;
+using Sandbox.Game.Entities.Character.Components;
 
 namespace NaniteConstructionSystem.Entities.Targets
 {
-    public class NaniteMedicalTarget
+    public class NaniteLifeSupportTarget
     {
         public int ParticleCount { get; set; }
         public double StartTime { get; set; }
-        public double HealTime { get; set; }
+        public double LifeSupportTime { get; set; }
         public double LastUpdate { get; set; }
     }
 
-    public class NaniteMedicalTargets : NaniteTargetBlocksBase
+    public class NaniteLifeSupportTargets : NaniteTargetBlocksBase
     {
         public override string TargetName
         {
             get
             {
-                return "Medical";
+                return "Life Support";
             }
         }
 
         private float m_maxDistance;
-        private Dictionary<IMyPlayer, NaniteMedicalTarget> m_targetTracker;
+
+        private float m_o2RefillLevel;
+        private float m_o2RefillPerTick;
+
+        private float m_h2RefillLevel;
+        private float m_h2RefillPerTick;
+
+        private MyDefinitionId m_oxygenId;
+        private MyDefinitionId m_hydrogenId;
+
+        private Dictionary<IMyPlayer, NaniteLifeSupportTarget> m_targetTracker;
         private MySoundPair m_progressSound;
         private MyEntity3DSoundEmitter m_progressSoundEmitter;
 
-        public NaniteMedicalTargets(NaniteConstructionBlock constructionBlock) : base(constructionBlock)
+        public NaniteLifeSupportTargets(NaniteConstructionBlock constructionBlock) : base(constructionBlock)
         {
-            m_maxDistance = NaniteConstructionManager.Settings.MedicalMaxDistance;
-            m_targetTracker = new Dictionary<IMyPlayer, NaniteMedicalTarget>();
+            m_maxDistance = NaniteConstructionManager.Settings.LifeSupportMaxDistance;
+            m_targetTracker = new Dictionary<IMyPlayer, NaniteLifeSupportTarget>();
+
+            m_o2RefillLevel = NaniteConstructionManager.Settings.LifeSupportOxygenRefillLevel;
+            m_h2RefillLevel = NaniteConstructionManager.Settings.LifeSupportHydrogenRefillLevel;
+
+            m_o2RefillPerTick = NaniteConstructionManager.Settings.LifeSupportOxygenPerTick;
+            m_h2RefillPerTick = NaniteConstructionManager.Settings.LifeSupportHydrogenPerTick;
+
+            m_oxygenId = MyCharacterOxygenComponent.OxygenId;
+            m_hydrogenId = MyCharacterOxygenComponent.HydrogenId;
 
             m_progressSoundEmitter = new MyEntity3DSoundEmitter((MyEntity)constructionBlock.ConstructionBlock);
             m_progressSound = new MySoundPair("BlockMedicalProgress");
@@ -49,25 +70,25 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override int GetMaximumTargets()
         {
-            return (int)Math.Min((NaniteConstructionManager.Settings.MedicalNanitesNoUpgrade * m_constructionBlock.FactoryGroup.Count)
-              + m_constructionBlock.UpgradeValue("MedicalNanites"), NaniteConstructionManager.Settings.MedicalMaxStreams);
+            return (int)Math.Min((NaniteConstructionManager.Settings.LifeSupportNanitesNoUpgrade * m_constructionBlock.FactoryGroup.Count)
+              + m_constructionBlock.UpgradeValue("LifeSupportNanites"), NaniteConstructionManager.Settings.LifeSupportMaxStreams);
         }
 
         public override float GetMinTravelTime()
         {
-            return Math.Max(1f, NaniteConstructionManager.Settings.MedicalMinTravelTime 
+            return Math.Max(1f, NaniteConstructionManager.Settings.LifeSupportMinTravelTime
               - m_constructionBlock.UpgradeValue("MinTravelTime"));
         }
 
         public override float GetPowerUsage()
         {
-            return Math.Max(1, NaniteConstructionManager.Settings.MedicalPowerPerStream
+            return Math.Max(1, NaniteConstructionManager.Settings.LifeSupportPowerPerStream
               - (int)m_constructionBlock.UpgradeValue("PowerNanites"));
         }
 
         public override float GetSpeed()
         {
-            return NaniteConstructionManager.Settings.MedicalDistanceDivisor
+            return NaniteConstructionManager.Settings.LifeSupportDistanceDivisor
               + m_constructionBlock.UpgradeValue("SpeedNanites");
         }
 
@@ -76,7 +97,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (!((IMyFunctionalBlock)factory.ConstructionBlock).Enabled
               || !((IMyFunctionalBlock)factory.ConstructionBlock).IsFunctional 
               || (NaniteConstructionManager.TerminalSettings.ContainsKey(factory.ConstructionBlock.EntityId) 
-              && !NaniteConstructionManager.TerminalSettings[factory.ConstructionBlock.EntityId].AllowMedical))
+              && !NaniteConstructionManager.TerminalSettings[factory.ConstructionBlock.EntityId].AllowLifeSupport))
             {
                 factory.EnabledParticleTargets[TargetName] = false;
                 return false;
@@ -95,7 +116,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
             catch
             {
-                Logging.Instance.WriteLine("NaniteMedicalTargets.ParallelUpdate: Error getting players, skipping");
+                Logging.Instance.WriteLine("NaniteLifeSupportTargets.ParallelUpdate: Error getting players, skipping");
                 return;
             }
 
@@ -106,23 +127,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (relations != MyRelationsBetweenPlayerAndBlock.Owner && relations != MyRelationsBetweenPlayerAndBlock.FactionShare)
                     continue;
 
-                if (item.Controller == null || item.Controller.ControlledEntity == null || item.Controller.ControlledEntity.Entity == null)
+                if (!DoesTargetNeedLifeSupport(item))
                     continue;
 
-                bool damaged = false;
-                foreach (var component in item.Controller.ControlledEntity.Entity.Components)
-                {
-                    var stat = component as MyCharacterStatComponent;
-                    if (stat != null)
-                    {
-                        if (stat.Health.Value < stat.Health.MaxValue)
-                            damaged = true;
-
-                        break;
-                    }
-                }
-
-                if (!damaged)
+                if (PotentialTargetList.Contains(item) || TargetList.Contains(item))
                     continue;
 
                 if (IsInRange(item.GetPosition(), m_maxDistance))
@@ -156,7 +164,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     bool found = false;
                     foreach (var block in blockList.ToList())
                     {
-                        if (block != null && block.Targets.First(x => x is NaniteMedicalTargets).TargetList.Contains(item))
+                        if (block != null && block.Targets.First(x => x is NaniteLifeSupportTargets).TargetList.Contains(item))
                         {
                             found = true;
                             InvalidTargetReason("Another factory has this block as a target");
@@ -171,7 +179,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     {
                         AddTarget(item);
 
-                        Logging.Instance.WriteLine(string.Format("[Medical] Adding Medical Target: conid={0} type={1} playerName={2} position={3}", 
+                        Logging.Instance.WriteLine(string.Format("[Life Support] Adding LifeSupport Target: conid={0} type={1} playerName={2} position={3}", 
                           m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.DisplayName, item.GetPosition()), 1);
 
                         if (++TargetListCount >= maxTargets) 
@@ -212,24 +220,24 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
                 */
 
-                if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
+                if (!((m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.Active || m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.MissingParts) && (TargetList.Count > 0 || PotentialTargetList.Count > 0)))
                     return;
 
                 if (player.Controller == null || player.Controller.ControlledEntity == null || player.Controller.ControlledEntity.Entity == null)
                 {
-                    Logging.Instance.WriteLine("[Medical] Cancelling Medical Target due to entity not existing", 1);
+                    Logging.Instance.WriteLine("[Life Support] Cancelling Life Support target due to entity not existing", 1);
                     CancelTarget(target);
                     return;
                 }
 
-                if (!IsInRange(m_constructionBlock, player.GetPosition(), m_maxDistance))
+                if (!IsInRange(player.GetPosition(), m_maxDistance))
                 {
-                    Logging.Instance.WriteLine("[Medical] Cancelling Medical Target due to being out of range", 1);
+                    Logging.Instance.WriteLine("[Life Support] Cancelling Life Support target due to being out of range", 1);
                     CancelTarget(target);
                     return;
                 }
 
-                if (!IsTargetDamaged((IMyPlayer)target))
+                if (!DoesTargetNeedLifeSupport((IMyPlayer)target) && !m_targetTracker.ContainsKey(player))
                 {
                     CompleteTarget(target);
                     return;
@@ -238,36 +246,50 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (m_targetTracker.ContainsKey(player))
                 {
                     var trackedItem = m_targetTracker[player];
-                    if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - trackedItem.StartTime >= trackedItem.HealTime &&
+                    if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - trackedItem.StartTime >= trackedItem.LifeSupportTime &&
                         MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - trackedItem.LastUpdate > 1000)
                     {
                         trackedItem.LastUpdate = MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds;
-                        trackedItem.HealTime += NaniteConstructionManager.Settings.MedicalSecondsPerHealTick * 1000;
+                        trackedItem.LifeSupportTime += NaniteConstructionManager.Settings.LifeSupportSecondsPerTick * 1000;
+
+                        bool healingDone = HealTarget(player);
+                        bool refillDone = RefillTarget(player);
                         
-                        if (HealTarget(player))
+                        if (healingDone && refillDone)
                         {
                             CompleteTarget(player);
                             return;
+                        }
+                        else
+                        {
+                            m_progressSoundEmitter.Entity = (MyEntity)player.Controller.ControlledEntity.Entity;
+                            m_progressSoundEmitter.PlaySound(m_progressSound, true, true);
                         }
                     }
                 }
             }
 
-            CreateMedicalParticles(player);
+            CreateLifeSupportParticles(player);
         }
 
-        private bool IsTargetDamaged(IMyPlayer player)
+        private bool DoesTargetNeedLifeSupport(IMyPlayer player)
         {
-            foreach (var item in player.Controller.ControlledEntity.Entity.Components)
-            {
-                var stat = item as MyCharacterStatComponent;
-                if (stat != null)
-                {
-                    if (stat.Health.Value < stat.Health.MaxValue)
-                        return true;
+            if (player.Controller == null || player.Controller.ControlledEntity == null || player.Controller.ControlledEntity.Entity == null)
+                return false;
 
-                    break;
-                }
+            var healthComp = GetPlayerHealthComponent(player);
+            var gasComp = player.Character.Components.Get<MyCharacterOxygenComponent>();
+
+            if (healthComp != null && healthComp.Health.Value < healthComp.Health.MaxValue)
+                return true;
+
+            if (gasComp != null)
+            {
+                float oLevel = gasComp.GetGasFillLevel(m_oxygenId);
+                float hLevel = gasComp.GetGasFillLevel(m_hydrogenId);
+
+                if (oLevel < m_o2RefillLevel || hLevel < m_h2RefillLevel)
+                    return true;
             }
 
             return false;
@@ -275,32 +297,68 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private bool HealTarget(IMyPlayer player)
         {
-            foreach (var item in player.Controller.ControlledEntity.Entity.Components)
+            var healthComp = GetPlayerHealthComponent(player);
+
+            
+
+            if (healthComp != null)
             {
-                var stat = item as MyCharacterStatComponent;
-                if (stat != null)
-                {
-                    if (stat.Health.Value <= stat.Health.MinValue)
-                        return true;
+                if (healthComp.Health.Value <= healthComp.Health.MinValue)
+                    return true;
 
-                    if (stat.Health.Value < stat.Health.MaxValue)
-                    {
-                        stat.Health.Value += NaniteConstructionManager.Settings.MedicalHealthPerHealTick;
-                        m_progressSoundEmitter.Entity = (MyEntity)player.Controller.ControlledEntity.Entity;
-                        m_progressSoundEmitter.PlaySound(m_progressSound, true, true);
-                    }
-                      
-                    if (stat.Health.Value >= stat.Health.MaxValue)
-                        return true;
+                if (healthComp.Health.Value < healthComp.Health.MaxValue)
+                    healthComp.Health.Value += NaniteConstructionManager.Settings.LifeSupportHealthPerTick;
 
-                    break;
-                }
+                if (healthComp.Health.Value >= healthComp.Health.MaxValue)
+                    return true;
             }
 
             return false;
         }
 
-        private void CreateMedicalParticles(IMyPlayer target)
+        private bool RefillTarget(IMyPlayer player)
+        {
+            var gasComp = player.Character.Components.Get<MyCharacterOxygenComponent>();
+
+            if (gasComp != null)
+            {
+                var oxygen = gasComp.GetGasFillLevel(m_oxygenId);
+                var hydrogen = gasComp.GetGasFillLevel(m_hydrogenId);
+
+                bool oxygenRefilled = false;
+                bool hydrogenRefilled = false;
+
+                if (oxygen < 1f && oxygen + m_o2RefillPerTick <= 1f)
+                    gasComp.UpdateStoredGasLevel(ref m_oxygenId, oxygen + m_o2RefillPerTick);
+                else
+                    oxygenRefilled = true;
+
+                if (hydrogen < 1f && hydrogen + m_h2RefillPerTick <= 1f)
+                    gasComp.UpdateStoredGasLevel(ref m_hydrogenId, hydrogen + m_h2RefillPerTick);
+                else
+                    hydrogenRefilled = true;
+
+                if (oxygenRefilled && hydrogenRefilled)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private MyCharacterStatComponent GetPlayerHealthComponent(IMyPlayer player)
+        {
+            foreach (var stat in player.Controller.ControlledEntity.Entity.Components)
+            {
+                var comp = stat as MyCharacterStatComponent;
+
+                if (comp != null)
+                    return comp;
+            }
+
+            return null;
+        }
+
+        private void CreateLifeSupportParticles(IMyPlayer target)
         {
             if (!m_targetTracker.ContainsKey(target))
                 CreateTrackerItem(target);
@@ -330,12 +388,12 @@ namespace NaniteConstructionSystem.Entities.Targets
             double distance = Vector3D.Distance(m_constructionBlock.ConstructionBlock.GetPosition(), target.GetPosition());
             int time = (int)Math.Max(GetMinTravelTime() * 1000f, (distance / GetSpeed()) * 1000f);
 
-            NaniteMedicalTarget medicalTarget = new NaniteMedicalTarget();
-            medicalTarget.ParticleCount = 0;
-            medicalTarget.StartTime = MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds;
-            medicalTarget.LastUpdate = MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds;
-            medicalTarget.HealTime = time * 0.66f; // - 1000;
-            m_targetTracker.Add(target, medicalTarget);
+            NaniteLifeSupportTarget lifeSupportTarget = new NaniteLifeSupportTarget();
+            lifeSupportTarget.ParticleCount = 0;
+            lifeSupportTarget.StartTime = MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds;
+            lifeSupportTarget.LastUpdate = MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds;
+            lifeSupportTarget.LifeSupportTime = time * 0.66f; // - 1000;
+            m_targetTracker.Add(target, lifeSupportTarget);
 
             m_constructionBlock.SendAddTarget(target);
         }
@@ -355,7 +413,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_constructionBlock.ParticleManager.CancelTarget(obj);
 
             foreach (IMyPlayer item in TargetList.Where(x => (IMyPlayer)x == player))
-                Logging.Instance.WriteLine(string.Format("[Medical] Cancelling Medical Target: {0} - {1} (Player={2},Position={3})",
+                Logging.Instance.WriteLine(string.Format("[Life Support] Cancelling Life Support target: {0} - {1} (Player={2},Position={3})",
                   m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.DisplayName, item.GetPosition()), 1);
 
             TargetList.RemoveAll(x => ((IMyPlayer)x).IdentityId == player.IdentityId);
@@ -379,7 +437,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_constructionBlock.ParticleManager.CompleteTarget(obj);
 
             foreach (IMyPlayer item in TargetList.Where(x => (IMyPlayer)x == player))
-                Logging.Instance.WriteLine(string.Format("[Medical] Completing Medical Target: {0} - {1} (Player={2},Position={3})",
+                Logging.Instance.WriteLine(string.Format("[Life Support] Completing Life Support target: {0} - {1} (Player={2},Position={3})",
                   m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.DisplayName, item.GetPosition()), 1);
 
             TargetList.RemoveAll(x => ((IMyPlayer)x).IdentityId == player.IdentityId);

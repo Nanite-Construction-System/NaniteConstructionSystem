@@ -7,6 +7,7 @@ using VRageMath;
 using VRage.Game.Components;
 using VRage.Collections;
 using Sandbox.ModAPI;
+using Sandbox.Game.Localization;
 using VRage.ModAPI;
 using VRage.Utils;
 using Sandbox.Game.Entities;
@@ -453,28 +454,28 @@ namespace NaniteConstructionSystem
             }
 
             // --- Medical Checkbox
-            if (Settings.MedicalEnabled)
+            if (Settings.LifeSupportEnabled)
             {
-                var medicalCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, Ingame.IMyShipWelder>("AllowMedical");
-                medicalCheck.Title = MyStringId.GetOrCompute("Medical");
-                medicalCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will attempt to heal players.");
-                medicalCheck.Getter = (x) =>
+                var lifeSupportCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, Ingame.IMyShipWelder>("AllowLifeSupport");
+                lifeSupportCheck.Title = MyStringId.GetOrCompute("Life Support");
+                lifeSupportCheck.Tooltip = MyStringId.GetOrCompute("When checked, the factory will attempt to heal players.");
+                lifeSupportCheck.Getter = (x) =>
                 {
                     if (!TerminalSettings.ContainsKey(x.EntityId))
                         TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
 
-                    return TerminalSettings[x.EntityId].AllowMedical;
+                    return TerminalSettings[x.EntityId].AllowLifeSupport;
                 };
 
-                medicalCheck.Setter = (x, y) =>
+                lifeSupportCheck.Setter = (x, y) =>
                 {
                     if (!TerminalSettings.ContainsKey(x.EntityId))
                         TerminalSettings.Add(x.EntityId, new NaniteTerminalSettings());
 
-                    TerminalSettings[x.EntityId].AllowMedical = y;
+                    TerminalSettings[x.EntityId].AllowLifeSupport = y;
                     m_sync.SendTerminalSettings(x);
                 };
-                m_customControls.Add(medicalCheck);
+                m_customControls.Add(lifeSupportCheck);
             }
 
             // --- Max Nanites
@@ -1123,7 +1124,7 @@ namespace NaniteConstructionSystem
 
             try
             {
-                
+
                 Localization.Help(messageText, out donothing, out message, out title);
                
                 if (!donothing)

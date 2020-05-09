@@ -281,7 +281,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
                 // NEW 12-1-2018 To save on performance, once a target is started, use SyncDistance only so we dont have to check each slave factory
                 if (m_remoteTargets.Contains(target) 
-                  && !IsInRange(m_constructionBlock, target.Position, m_maxDistance))
+                  && !IsInRange(target, m_maxDistance))
                 {
                     Logging.Instance.WriteLine("[Construction] Cancelling Repair Target due to being out of range", 1);
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => 

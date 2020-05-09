@@ -17,6 +17,7 @@ using NaniteConstructionSystem.Particles;
 using NaniteConstructionSystem.Extensions;
 using NaniteConstructionSystem.Entities.Detectors;
 using VRage.Voxels;
+using VRage.ModAPI;
 
 namespace NaniteConstructionSystem.Entities.Targets
 {
