@@ -70,7 +70,7 @@
       </UnlockedByGroups>
 	</ResearchBlock>
     <ResearchBlock xsi:type="ResearchBlock">
-        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteMedicalUpgrade" />
+        <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteLifeSupportUpgrade" />
       <UnlockedByGroups>
         <GroupSubtype>NaniteController</GroupSubtype>
       </UnlockedByGroups>
@@ -187,7 +187,7 @@
                 <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteDeconstructUpgrade" />
                 <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteCleanupUpgrade" />
                 <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteMiningUpgrade" />
-                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteMedicalUpgrade" />
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteLifeSupportUpgrade" />
                 <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteSpeedUpgrade" />
                 <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NanitePowerUpgrade" />
             </Blocks>
@@ -1076,7 +1076,7 @@
 			<BlockTopology>TriangleMesh</BlockTopology>
 			<Size x="1" y="1" z="1"/>
 			<ModelOffset x="0" y="0" z="0"/>
-			<Model>Models\Cubes\Large\NaniteHealing.mwm</Model>
+			<Model>Models\Cubes\Large\NaniteLifeSupport.mwm</Model>
 			<Components>
 				<Component Subtype="InteriorPlate" Count="120"/>
 				<Component Subtype="Construction" Count="60"/>
@@ -1097,7 +1097,7 @@
 				<Model BuildPercentUpperBound="0.80" File="Models\Cubes\Large\NaniteConstruction_Constr1.mwm"/>
 			</BuildProgressModels>
 			<BlockPairName>LifeSupportNanites</BlockPairName>
-			<Description>Nanite upgrade that adds 3 medical nanites.</Description>
+			<Description>Nanite upgrade that adds 3 life support nanites.</Description>
 			<MirroringX>Z</MirroringX>
 			<MirroringZ>X</MirroringZ>
 			<EdgeType>Light</EdgeType>
