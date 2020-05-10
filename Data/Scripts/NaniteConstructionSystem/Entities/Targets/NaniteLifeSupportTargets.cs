@@ -14,6 +14,9 @@ using NaniteConstructionSystem.Particles;
 using NaniteConstructionSystem.Extensions;
 using Sandbox.Game.EntityComponents;
 using Sandbox.Game.Entities.Character.Components;
+using Sandbox.Game;
+using VRage.Game.Components;
+using VRage.Utils;
 
 namespace NaniteConstructionSystem.Entities.Targets
 {
@@ -43,8 +46,10 @@ namespace NaniteConstructionSystem.Entities.Targets
         private float m_h2RefillLevel;
         private float m_h2RefillPerTick;
 
-        private MyDefinitionId m_oxygenId;
-        private MyDefinitionId m_hydrogenId;
+        private float m_energyRefillLevel;
+        private float m_energyRefillPerTick;
+
+        private float m_healthRefillPerTick;
 
         private Dictionary<IMyPlayer, NaniteLifeSupportTarget> m_targetTracker;
         private MySoundPair m_progressSound;
@@ -56,13 +61,15 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_targetTracker = new Dictionary<IMyPlayer, NaniteLifeSupportTarget>();
 
             m_o2RefillLevel = NaniteConstructionManager.Settings.LifeSupportOxygenRefillLevel;
-            m_h2RefillLevel = NaniteConstructionManager.Settings.LifeSupportHydrogenRefillLevel;
-
             m_o2RefillPerTick = NaniteConstructionManager.Settings.LifeSupportOxygenPerTick;
+
+            m_h2RefillLevel = NaniteConstructionManager.Settings.LifeSupportHydrogenRefillLevel;
             m_h2RefillPerTick = NaniteConstructionManager.Settings.LifeSupportHydrogenPerTick;
 
-            m_oxygenId = MyCharacterOxygenComponent.OxygenId;
-            m_hydrogenId = MyCharacterOxygenComponent.HydrogenId;
+            m_energyRefillLevel = NaniteConstructionManager.Settings.LifeSupportEnergyRefillLevel;
+            m_energyRefillPerTick = NaniteConstructionManager.Settings.LifeSupportEnergyPerTick;
+
+            m_healthRefillPerTick = NaniteConstructionManager.Settings.LifeSupportHealthPerTick;
 
             m_progressSoundEmitter = new MyEntity3DSoundEmitter((MyEntity)constructionBlock.ConstructionBlock);
             m_progressSound = new MySoundPair("BlockMedicalProgress");
@@ -274,43 +281,33 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private bool DoesTargetNeedLifeSupport(IMyPlayer player)
         {
-            if (player.Controller == null || player.Controller.ControlledEntity == null || player.Controller.ControlledEntity.Entity == null)
-                return false;
+            float health = MyVisualScriptLogicProvider.GetPlayersHealth(player.IdentityId);
+            float oxygen = MyVisualScriptLogicProvider.GetPlayersOxygenLevel(player.IdentityId);
+            float hydrogen = MyVisualScriptLogicProvider.GetPlayersHydrogenLevel(player.IdentityId);
+            float energy = MyVisualScriptLogicProvider.GetPlayersEnergyLevel(player.IdentityId);
 
-            var healthComp = GetPlayerHealthComponent(player);
-            var gasComp = player.Character.Components.Get<MyCharacterOxygenComponent>();
-
-            if (healthComp != null && healthComp.Health.Value < healthComp.Health.MaxValue)
+            if (health < 100f
+                || oxygen < m_o2RefillLevel
+                || hydrogen < m_h2RefillLevel
+                || energy < m_energyRefillLevel)
                 return true;
-
-            if (gasComp != null)
-            {
-                float oLevel = gasComp.GetGasFillLevel(m_oxygenId);
-                float hLevel = gasComp.GetGasFillLevel(m_hydrogenId);
-
-                if (oLevel < m_o2RefillLevel || hLevel < m_h2RefillLevel)
-                    return true;
-            }
 
             return false;
         }
 
         private bool HealTarget(IMyPlayer player)
         {
-            var healthComp = GetPlayerHealthComponent(player);
+            float health = MyVisualScriptLogicProvider.GetPlayersHealth(player.IdentityId);
 
-            
+            if (health <= 0)
+                return true;
 
-            if (healthComp != null)
+            if (health + m_healthRefillPerTick <= 100f)
+                MyVisualScriptLogicProvider.SetPlayersHealth(player.IdentityId, health + m_healthRefillPerTick);
+            else
             {
-                if (healthComp.Health.Value <= healthComp.Health.MinValue)
-                    return true;
-
-                if (healthComp.Health.Value < healthComp.Health.MaxValue)
-                    healthComp.Health.Value += NaniteConstructionManager.Settings.LifeSupportHealthPerTick;
-
-                if (healthComp.Health.Value >= healthComp.Health.MaxValue)
-                    return true;
+                MyVisualScriptLogicProvider.SetPlayersHealth(player.IdentityId, 100f);
+                return true;
             }
 
             return false;
@@ -318,44 +315,42 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private bool RefillTarget(IMyPlayer player)
         {
-            var gasComp = player.Character.Components.Get<MyCharacterOxygenComponent>();
+            float oxygen = MyVisualScriptLogicProvider.GetPlayersOxygenLevel(player.IdentityId);
+            float hydrogen = MyVisualScriptLogicProvider.GetPlayersHydrogenLevel(player.IdentityId);
+            float energy = MyVisualScriptLogicProvider.GetPlayersEnergyLevel(player.IdentityId);
 
-            if (gasComp != null)
+            bool oxygenRefilled = false;
+            bool hydrogenRefilled = false;
+            bool energyRefilled = false;
+
+            if (oxygen + m_o2RefillPerTick <= 1f)
+                MyVisualScriptLogicProvider.SetPlayersOxygenLevel(player.IdentityId, oxygen + m_o2RefillPerTick);
+            else
             {
-                var oxygen = gasComp.GetGasFillLevel(m_oxygenId);
-                var hydrogen = gasComp.GetGasFillLevel(m_hydrogenId);
-
-                bool oxygenRefilled = false;
-                bool hydrogenRefilled = false;
-
-                if (oxygen < 1f && oxygen + m_o2RefillPerTick <= 1f)
-                    gasComp.UpdateStoredGasLevel(ref m_oxygenId, oxygen + m_o2RefillPerTick);
-                else
-                    oxygenRefilled = true;
-
-                if (hydrogen < 1f && hydrogen + m_h2RefillPerTick <= 1f)
-                    gasComp.UpdateStoredGasLevel(ref m_hydrogenId, hydrogen + m_h2RefillPerTick);
-                else
-                    hydrogenRefilled = true;
-
-                if (oxygenRefilled && hydrogenRefilled)
-                    return true;
+                MyVisualScriptLogicProvider.SetPlayersOxygenLevel(player.IdentityId, 1f);
+                oxygenRefilled = true;
             }
+
+            if (hydrogen + m_h2RefillPerTick <= 1f)
+                MyVisualScriptLogicProvider.SetPlayersHydrogenLevel(player.IdentityId, hydrogen + m_h2RefillPerTick);
+            else
+            {
+                MyVisualScriptLogicProvider.SetPlayersHydrogenLevel(player.IdentityId, 1f);
+                hydrogenRefilled = true;
+            }
+
+            if (energy + m_energyRefillPerTick <= 1f)
+                MyVisualScriptLogicProvider.SetPlayersEnergyLevel(player.IdentityId, energy + m_energyRefillPerTick);
+            else
+            {
+                MyVisualScriptLogicProvider.SetPlayersEnergyLevel(player.IdentityId, 1f);
+                energyRefilled = true;
+            }
+
+            if (oxygenRefilled && hydrogenRefilled && energyRefilled)
+                return true;
 
             return false;
-        }
-
-        private MyCharacterStatComponent GetPlayerHealthComponent(IMyPlayer player)
-        {
-            foreach (var stat in player.Controller.ControlledEntity.Entity.Components)
-            {
-                var comp = stat as MyCharacterStatComponent;
-
-                if (comp != null)
-                    return comp;
-            }
-
-            return null;
         }
 
         private void CreateLifeSupportParticles(IMyPlayer target)

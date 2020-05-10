@@ -169,6 +169,10 @@ namespace NaniteConstructionSystem.Settings
         public float LifeSupportOxygenRefillLevel { get; set; }
         [ProtoMember(80)]
         public float LifeSupportHydrogenRefillLevel { get; set; }
+        [ProtoMember(81)]
+        public float LifeSupportEnergyRefillLevel { get; set; }
+        [ProtoMember(82)]
+        public float LifeSupportEnergyPerTick { get; set; }
 
         public string Version { get; set; }
 
@@ -252,6 +256,8 @@ namespace NaniteConstructionSystem.Settings
             LifeSupportHydrogenPerTick = 0.05f;
             LifeSupportOxygenRefillLevel = 0.5f;
             LifeSupportHydrogenRefillLevel = 0.5f;
+            LifeSupportEnergyRefillLevel = 0.5f;
+            LifeSupportEnergyPerTick = 0.05f;
             Version = "2.0";
         }
 
