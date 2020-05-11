@@ -55,6 +55,8 @@ namespace NaniteConstructionSystem.Entities.Targets
         private MySoundPair m_progressSound;
         private MyEntity3DSoundEmitter m_progressSoundEmitter;
 
+        public List<IMyGasTank> connectedGasTanks;
+
         public NaniteLifeSupportTargets(NaniteConstructionBlock constructionBlock) : base(constructionBlock)
         {
             m_maxDistance = NaniteConstructionManager.Settings.LifeSupportMaxDistance;
@@ -73,6 +75,8 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             m_progressSoundEmitter = new MyEntity3DSoundEmitter((MyEntity)constructionBlock.ConstructionBlock);
             m_progressSound = new MySoundPair("BlockMedicalProgress");
+
+            connectedGasTanks = new List<IMyGasTank>();
         }
 
         public override int GetMaximumTargets()
@@ -143,6 +147,17 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (IsInRange(item.GetPosition(), m_maxDistance))
                     PotentialTargetList.Add(item);
             }
+
+            List<IMyGasTank> removalList = new List<IMyGasTank>();
+
+            foreach (IMyGasTank tank in connectedGasTanks)
+            {
+                if (!GridHelper.IsValidGasConnection(m_constructionBlock.ConstructionCubeBlock, tank))
+                    removalList.Add(tank);
+            }
+
+            foreach (IMyGasTank tank in removalList)
+                connectedGasTanks.Remove(tank);
         }
 
         public override void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList)
@@ -323,20 +338,33 @@ namespace NaniteConstructionSystem.Entities.Targets
             bool hydrogenRefilled = false;
             bool energyRefilled = false;
 
-            if (oxygen + m_o2RefillPerTick <= 1f)
-                MyVisualScriptLogicProvider.SetPlayersOxygenLevel(player.IdentityId, oxygen + m_o2RefillPerTick);
-            else
+            bool hasOxygen = false;
+            bool hasHydrogen = false;
+
+            CheckTanks(out hasOxygen, out hasHydrogen);
+
+            Logging.Instance.WriteLine($"[Life Support] Tank status: Oxygen - {hasOxygen}, Hydrogen - {hasHydrogen}", 2);
+
+            if (hasOxygen)
             {
-                MyVisualScriptLogicProvider.SetPlayersOxygenLevel(player.IdentityId, 1f);
-                oxygenRefilled = true;
+                if (oxygen + m_o2RefillPerTick <= 1f)
+                    MyVisualScriptLogicProvider.SetPlayersOxygenLevel(player.IdentityId, oxygen + m_o2RefillPerTick);
+                else
+                {
+                    MyVisualScriptLogicProvider.SetPlayersOxygenLevel(player.IdentityId, 1f);
+                    oxygenRefilled = true;
+                }
             }
 
-            if (hydrogen + m_h2RefillPerTick <= 1f)
-                MyVisualScriptLogicProvider.SetPlayersHydrogenLevel(player.IdentityId, hydrogen + m_h2RefillPerTick);
-            else
+            if (hasHydrogen)
             {
-                MyVisualScriptLogicProvider.SetPlayersHydrogenLevel(player.IdentityId, 1f);
-                hydrogenRefilled = true;
+                if (hydrogen + m_h2RefillPerTick <= 1f)
+                    MyVisualScriptLogicProvider.SetPlayersHydrogenLevel(player.IdentityId, hydrogen + m_h2RefillPerTick);
+                else
+                {
+                    MyVisualScriptLogicProvider.SetPlayersHydrogenLevel(player.IdentityId, 1f);
+                    hydrogenRefilled = true;
+                }
             }
 
             if (energy + m_energyRefillPerTick <= 1f)
@@ -351,6 +379,24 @@ namespace NaniteConstructionSystem.Entities.Targets
                 return true;
 
             return false;
+        }
+
+        private void CheckTanks(out bool hasOxygen, out bool hasHydrogen)
+        {
+            hasOxygen = false;
+            hasHydrogen = false;
+
+            foreach (IMyGasTank tank in connectedGasTanks)
+            {
+                Logging.Instance.WriteLine($"[Life Support] Checking gas tank: {tank.DisplayNameText}", 2);
+
+                if (!hasOxygen && tank.DisplayNameText.ToLower().Contains("oxygen") && tank.FilledRatio > 0f)
+                    hasOxygen = true;
+                else if (!hasHydrogen && tank.DisplayNameText.ToLower().Contains("hydrogen") && tank.FilledRatio > 0f)
+                    hasHydrogen = true;
+                else
+                    return;
+            }
         }
 
         private void CreateLifeSupportParticles(IMyPlayer target)

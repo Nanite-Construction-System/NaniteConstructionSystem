@@ -136,6 +136,7 @@ namespace NaniteConstructionSystem.Entities
         public MyInventory ConstructionBlockInventory {get { return m_constructionBlockInventory;} }
 
         private ConcurrentBag<IMySlimBlock> m_potentialInventoryBlocks = new ConcurrentBag<IMySlimBlock>();
+        private ConcurrentBag<IMySlimBlock> m_potentialGasTanks = new ConcurrentBag<IMySlimBlock>();
 
         private long m_entityId;
         public long EntityId {get { return m_entityId;} }
@@ -296,7 +297,10 @@ namespace NaniteConstructionSystem.Entities
                     if (m_updateCount % 60 == 0)
                     {
                         if (FactoryIsRunning())
+                        {
                             CheckIfAGridBlockIsInventory();
+                            CheckIfAGridBlockIsGasTank();
+                        }
 
                         ToolManager.Update();
                     }
@@ -723,6 +727,20 @@ namespace NaniteConstructionSystem.Entities
             });
         }
 
+        private void CheckIfAGridBlockIsGasTank()
+        {
+            MyAPIGateway.Parallel.Start(() =>
+            {
+                while (!m_potentialGasTanks.IsEmpty)
+                {
+                    IMySlimBlock block = null;
+                    m_potentialGasTanks.TryTake(out block);
+                    if (block != null)
+                        TryAddToGasTankGroup(block);
+                }
+            });
+        }
+
         private void OnBlockAdded(IMySlimBlock block)
         {
             MyAPIGateway.Parallel.Start(() =>
@@ -733,6 +751,7 @@ namespace NaniteConstructionSystem.Entities
                 Logging.Instance.WriteLine("[Grid] Block added to grid.", 2);
 
                 TryAddPotentialInventoryBlock(block);
+                TryAddPotentialGasTank(block);
             });
         }
 
@@ -745,28 +764,60 @@ namespace NaniteConstructionSystem.Entities
             m_potentialInventoryBlocks.Add(block);
         }
 
-        private void TryAddToInventoryGroup(object block)
+        private void TryAddPotentialGasTank(IMySlimBlock block)
+        {
+            if (block.FatBlock == null || block.FatBlock as IMyGasTank == null)
+                return;
+
+            Logging.Instance.WriteLine($"[Inventory] Block {block.FatBlock.DisplayNameText} added to gas tank check queue.", 2);
+            m_potentialGasTanks.Add(block);
+        }
+
+        private void TryAddToGasTankGroup(IMySlimBlock block)
+        {
+            IMyGasTank tank = null;
+
+            foreach (var factory in FactoryGroup.ToList())
+            {
+                if (GridHelper.IsValidGasConnection(factory.ConstructionCubeBlock, block, out tank))
+                {
+                    var lifeSupport = (NaniteLifeSupportTargets)m_targets.Where(x => x is NaniteLifeSupportTargets).FirstOrDefault();
+
+                    if (lifeSupport == null || !lifeSupport.IsEnabled(this))
+                        return;
+
+                    if (!lifeSupport.connectedGasTanks.Contains(tank))
+                    {
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {
+                            if (!lifeSupport.connectedGasTanks.Contains(tank))
+                                lifeSupport.connectedGasTanks.Add(tank);
+                        });
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void TryAddToInventoryGroup(IMySlimBlock block)
         {
             IMyInventory inv = null;
 
-            if (block is IMySlimBlock)
-            {
-                var slimBlock = block as IMySlimBlock;
-                if (slimBlock.FatBlock == null || !(slimBlock.FatBlock is IMyTerminalBlock))
-                    return;
-            }
-           
             foreach (var factory in FactoryGroup.ToList())
+            {
                 if (GridHelper.IsValidInventoryConnection(factory.ConstructionBlockInventory, block, out inv))
+                {
                     if (!InventoryManager.connectedInventory.Contains(inv))
                     {
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         {
                             if (!InventoryManager.connectedInventory.Contains(inv))
                                 InventoryManager.connectedInventory.Add(inv);
                         });
                         break;
-                    }  
+                    }
+                }
+            }
         }
 
         /// <summary> Checks if the grid group has changed and quickly scans/adds any inventory blocks. Manages grid event handlers </summary>
@@ -830,8 +881,17 @@ namespace NaniteConstructionSystem.Entities
                 {                   
                     ConcurrentBag<IMySlimBlock> slimBlocks = new ConcurrentBag<IMySlimBlock>(((MyCubeGrid)grid).GetBlocks());
 
-                    foreach (var block in slimBlocks)
-                        TryAddPotentialInventoryBlock(block);
+                    while (!slimBlocks.IsEmpty)
+                    {
+                        IMySlimBlock slimBlock = null;
+                        slimBlocks.TryTake(out slimBlock);
+
+                        if (slimBlock != null)
+                        {
+                            TryAddPotentialInventoryBlock(slimBlock);
+                            TryAddPotentialGasTank(slimBlock);
+                        }
+                    }
                 }
                 catch (Exception e)
                     { Logging.Instance.WriteLine($"BuildConnectedInventory() Error: {e.ToString()}"); }
