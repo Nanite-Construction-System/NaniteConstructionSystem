@@ -437,7 +437,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (IsInRange(nearestFactory, item.Position, m_maxDistance))
                 {
                     Logging.Instance.WriteLine(string.Format("[Mining] Adding Mining Target: conid={0} pos={1} type={2}", 
-                        m_constructionBlock.ConstructionBlock.EntityId, item.Position, MyDefinitionManager.Static.GetVoxelMaterialDefinition(item.VoxelMaterial).MinedOre), 1);
+                    m_constructionBlock.ConstructionBlock.EntityId, item.Position, MyDefinitionManager.Static.GetVoxelMaterialDefinition(item.VoxelMaterial).MinedOre), 1);
 
                     removeList.Add(item);
                     usedPositions.Add(item.Position);

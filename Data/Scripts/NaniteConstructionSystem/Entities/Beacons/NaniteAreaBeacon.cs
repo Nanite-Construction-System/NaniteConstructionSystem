@@ -33,7 +33,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
             get
             {
                 if (!NaniteConstructionManager.BeaconTerminalSettings.ContainsKey(BeaconBlock.EntityId))
-                    NaniteConstructionManager.BeaconTerminalSettings.Add(BeaconBlock.EntityId, new Settings.NaniteBeaconTerminalSettings());
+                    NaniteConstructionManager.BeaconTerminalSettings.Add(BeaconBlock.EntityId, new NaniteBeaconTerminalSettings());
 
                 return NaniteConstructionManager.BeaconTerminalSettings[BeaconBlock.EntityId];
             }
