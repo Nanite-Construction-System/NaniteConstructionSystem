@@ -338,8 +338,8 @@ namespace NaniteConstructionSystem.Entities.Targets
             bool hydrogenRefilled = false;
             bool energyRefilled = false;
 
-            bool hasOxygen = false;
-            bool hasHydrogen = false;
+            bool hasOxygen;
+            bool hasHydrogen;
 
             CheckTanks(out hasOxygen, out hasHydrogen);
 

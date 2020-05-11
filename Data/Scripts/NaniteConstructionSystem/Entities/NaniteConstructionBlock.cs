@@ -624,7 +624,7 @@ namespace NaniteConstructionSystem.Entities
                 details.Append($"# {m_entityId}\n");
 
                 if (m_initInventory && Master == null)
-                    details.Append($"\n-INITIALIZING-\nTasks left: {m_potentialInventoryBlocks.Count}\n");
+                    details.Append($"\n-INITIALIZING-\nTasks left: {m_potentialInventoryBlocks.Count + m_potentialGasTanks.Count}\n");
 
                 if (m_totalScanBlocksCount > 0)
                 {
@@ -1171,7 +1171,10 @@ namespace NaniteConstructionSystem.Entities
                             m_initInventory = false;
 
                         foreach (IMySlimBlock block in newGridBlocks)
+                        {
+                            TryAddPotentialGasTank(block);
                             TryAddPotentialInventoryBlock(block);
+                        }
                     }
                         
 
