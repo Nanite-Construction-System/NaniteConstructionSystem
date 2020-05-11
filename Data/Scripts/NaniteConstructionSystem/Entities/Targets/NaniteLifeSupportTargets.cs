@@ -345,7 +345,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             Logging.Instance.WriteLine($"[Life Support] Tank status: Oxygen - {hasOxygen}, Hydrogen - {hasHydrogen}", 2);
 
-            if (hasOxygen)
+            if (hasOxygen && m_o2RefillLevel > 0f)
             {
                 if (oxygen + m_o2RefillPerTick <= 1f)
                     MyVisualScriptLogicProvider.SetPlayersOxygenLevel(player.IdentityId, oxygen + m_o2RefillPerTick);
@@ -356,7 +356,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
             }
 
-            if (hasHydrogen)
+            if (hasHydrogen && m_h2RefillLevel > 0f)
             {
                 if (hydrogen + m_h2RefillPerTick <= 1f)
                     MyVisualScriptLogicProvider.SetPlayersHydrogenLevel(player.IdentityId, hydrogen + m_h2RefillPerTick);
@@ -367,12 +367,15 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
             }
 
-            if (energy + m_energyRefillPerTick <= 1f)
-                MyVisualScriptLogicProvider.SetPlayersEnergyLevel(player.IdentityId, energy + m_energyRefillPerTick);
-            else
+            if (m_energyRefillLevel > 0f)
             {
-                MyVisualScriptLogicProvider.SetPlayersEnergyLevel(player.IdentityId, 1f);
-                energyRefilled = true;
+                if (energy + m_energyRefillPerTick <= 1f)
+                    MyVisualScriptLogicProvider.SetPlayersEnergyLevel(player.IdentityId, energy + m_energyRefillPerTick);
+                else
+                {
+                    MyVisualScriptLogicProvider.SetPlayersEnergyLevel(player.IdentityId, 1f);
+                    energyRefilled = true;
+                }
             }
 
             if (oxygenRefilled && hydrogenRefilled && energyRefilled)
