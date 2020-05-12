@@ -151,10 +151,8 @@ namespace NaniteConstructionSystem.Entities.Targets
             List<IMyGasTank> removalList = new List<IMyGasTank>();
 
             foreach (IMyGasTank tank in connectedGasTanks)
-            {
                 if (!GridHelper.IsValidGasConnection(m_constructionBlock.ConstructionCubeBlock, tank))
                     removalList.Add(tank);
-            }
 
             foreach (IMyGasTank tank in removalList)
                 connectedGasTanks.Remove(tank);
