@@ -51,6 +51,9 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private float m_healthRefillPerTick;
 
+        private bool m_hasOxygen;
+        private bool m_hasHydrogen;
+
         private Dictionary<IMyPlayer, NaniteLifeSupportTarget> m_targetTracker;
         private MySoundPair m_progressSound;
         private MyEntity3DSoundEmitter m_progressSoundEmitter;
@@ -77,6 +80,9 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_progressSound = new MySoundPair("BlockMedicalProgress");
 
             connectedGasTanks = new List<IMyGasTank>();
+
+            m_hasOxygen = false;
+            m_hasHydrogen = false;
         }
 
         public override int GetMaximumTargets()
@@ -156,6 +162,8 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             foreach (IMyGasTank tank in removalList)
                 connectedGasTanks.Remove(tank);
+
+            CheckTanks(out m_hasOxygen, out m_hasHydrogen);
         }
 
         public override void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList)
@@ -300,8 +308,8 @@ namespace NaniteConstructionSystem.Entities.Targets
             float energy = MyVisualScriptLogicProvider.GetPlayersEnergyLevel(player.IdentityId);
 
             if (health < 100f
-                || oxygen < m_o2RefillLevel
-                || hydrogen < m_h2RefillLevel
+                || (oxygen < m_o2RefillLevel && m_hasOxygen)
+                || (hydrogen < m_h2RefillLevel && m_hasHydrogen)
                 || energy < m_energyRefillLevel)
                 return true;
 
@@ -336,14 +344,9 @@ namespace NaniteConstructionSystem.Entities.Targets
             bool hydrogenRefilled = false;
             bool energyRefilled = false;
 
-            bool hasOxygen;
-            bool hasHydrogen;
+            Logging.Instance.WriteLine($"[Life Support] Tank status: Oxygen - {m_hasOxygen}, Hydrogen - {m_hasHydrogen}", 2);
 
-            CheckTanks(out hasOxygen, out hasHydrogen);
-
-            Logging.Instance.WriteLine($"[Life Support] Tank status: Oxygen - {hasOxygen}, Hydrogen - {hasHydrogen}", 2);
-
-            if (hasOxygen && m_o2RefillLevel > 0f)
+            if (m_hasOxygen && m_o2RefillLevel > 0f)
             {
                 if (oxygen + m_o2RefillPerTick <= 1f)
                     MyVisualScriptLogicProvider.SetPlayersOxygenLevel(player.IdentityId, oxygen + m_o2RefillPerTick);
@@ -353,8 +356,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                     oxygenRefilled = true;
                 }
             }
+            else
+                oxygenRefilled = true;
 
-            if (hasHydrogen && m_h2RefillLevel > 0f)
+            if (m_hasHydrogen && m_h2RefillLevel > 0f)
             {
                 if (hydrogen + m_h2RefillPerTick <= 1f)
                     MyVisualScriptLogicProvider.SetPlayersHydrogenLevel(player.IdentityId, hydrogen + m_h2RefillPerTick);
@@ -364,6 +369,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                     hydrogenRefilled = true;
                 }
             }
+            else
+                hydrogenRefilled = true;
 
             if (m_energyRefillLevel > 0f)
             {
@@ -375,6 +382,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                     energyRefilled = true;
                 }
             }
+            else
+                energyRefilled = true;
 
             if (oxygenRefilled && hydrogenRefilled && energyRefilled)
                 return true;
