@@ -7,8 +7,8 @@ using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
 using NaniteConstructionSystem.Entities.Beacons;
-using VRage.ModAPI;
 using NaniteConstructionSystem.Extensions;
+using VRage.ModAPI;
 
 namespace NaniteConstructionSystem.Entities.Targets
 {
