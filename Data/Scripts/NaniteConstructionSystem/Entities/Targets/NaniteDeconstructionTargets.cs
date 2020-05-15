@@ -325,7 +325,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             if (Sync.IsServer)
             {
-                if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
+                if (!((m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.Active || m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.MissingParts) && (TargetList.Count > 0 || PotentialTargetList.Count > 0)))
                     return;
 
                 NaniteGrinder grinder = (NaniteGrinder)m_constructionBlock.ToolManager.Tools.FirstOrDefault(x => x.TargetBlock == target && x is NaniteGrinder);

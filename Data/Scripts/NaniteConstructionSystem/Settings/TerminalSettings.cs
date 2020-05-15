@@ -43,7 +43,7 @@ namespace NaniteConstructionSystem.Settings
         public bool AllowCleanup { get; set; }
         public bool AllowDeconstruct { get; set; }
         public bool AllowMining { get; set; }
-        public bool AllowMedical { get; set; }
+        public bool AllowLifeSupport { get; set; }
         public int MaxNanites { get; set; }
         public bool UseAssemblers { get; set; }
 
@@ -54,7 +54,7 @@ namespace NaniteConstructionSystem.Settings
             AllowCleanup = true;
             AllowDeconstruct = true;
             AllowMining = true;
-            AllowMedical = true;
+            AllowLifeSupport = true;
             MaxNanites = 0;
             UseAssemblers = false;
         }

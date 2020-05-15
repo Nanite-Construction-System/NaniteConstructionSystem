@@ -147,7 +147,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         internal NaniteConstructionBlock GetNearestFactory(string targetName, Vector3D distance)
         {
-            foreach ( var factory in m_constructionBlock.FactoryGroup.OrderBy(x => x.ConstructionBlock != null ? Vector3D.Distance(x.ConstructionBlock.GetPosition(), distance) : double.MaxValue ) )
+            foreach ( var factory in m_constructionBlock.FactoryGroup.OrderBy(x => x.ConstructionBlock != null ? Vector3D.DistanceSquared(x.ConstructionBlock.GetPosition(), distance) : double.MaxValue ) )
                 if (factory.EnabledParticleTargets[targetName])
                     return factory;
 

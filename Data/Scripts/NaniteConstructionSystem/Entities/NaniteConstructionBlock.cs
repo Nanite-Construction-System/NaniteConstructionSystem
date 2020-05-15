@@ -108,7 +108,7 @@ namespace NaniteConstructionSystem.Entities
             ["Construction"] = true,
             ["Deconstruction"] = true,
             ["Cleanup"] = true,
-            ["Medical"] = true,
+            ["LifeSupport"] = true,
             ["Mining"] = true,
             ["Projection"] = true
         };
@@ -136,6 +136,7 @@ namespace NaniteConstructionSystem.Entities
         public MyInventory ConstructionBlockInventory {get { return m_constructionBlockInventory;} }
 
         private ConcurrentBag<IMySlimBlock> m_potentialInventoryBlocks = new ConcurrentBag<IMySlimBlock>();
+        private ConcurrentBag<IMySlimBlock> m_potentialGasTanks = new ConcurrentBag<IMySlimBlock>();
 
         private long m_entityId;
         public long EntityId {get { return m_entityId;} }
@@ -172,7 +173,7 @@ namespace NaniteConstructionSystem.Entities
             m_constructionCubeBlock.UpgradeValues.Add("DeconstructionNanites", 0f);
             m_constructionCubeBlock.UpgradeValues.Add("CleanupNanites", 0f);
             m_constructionCubeBlock.UpgradeValues.Add("MiningNanites", 0f);
-            m_constructionCubeBlock.UpgradeValues.Add("MedicalNanites", 0f);
+            m_constructionCubeBlock.UpgradeValues.Add("LifeSupportNanites", 0f);
             m_constructionCubeBlock.UpgradeValues.Add("SpeedNanites", 0f);
             m_constructionCubeBlock.UpgradeValues.Add("PowerNanites", 0f);
         }
@@ -195,8 +196,8 @@ namespace NaniteConstructionSystem.Entities
                 m_targets.Add(new NaniteDeconstructionTargets(this));
             if (NaniteConstructionManager.Settings.MiningEnabled)
                 m_targets.Add(new NaniteMiningTargets(this));
-            if (NaniteConstructionManager.Settings.MedicalEnabled)
-                m_targets.Add(new NaniteMedicalTargets(this));
+            if (NaniteConstructionManager.Settings.LifeSupportEnabled)
+                m_targets.Add(new NaniteLifeSupportTargets(this));
 
             m_effects = new List<NaniteBlockEffectBase>();
             m_effects.Add(new LightningBoltEffect((MyCubeBlock)m_constructionBlock));
@@ -296,7 +297,10 @@ namespace NaniteConstructionSystem.Entities
                     if (m_updateCount % 60 == 0)
                     {
                         if (FactoryIsRunning())
+                        {
                             CheckIfAGridBlockIsInventory();
+                            CheckIfAGridBlockIsGasTank();
+                        }
 
                         ToolManager.Update();
                     }
@@ -620,7 +624,7 @@ namespace NaniteConstructionSystem.Entities
                 details.Append($"# {m_entityId}\n");
 
                 if (m_initInventory && Master == null)
-                    details.Append($"\n-INITIALIZING-\nTasks left: {m_potentialInventoryBlocks.Count}\n");
+                    details.Append($"\n-INITIALIZING-\nTasks left: {m_potentialInventoryBlocks.Count + m_potentialGasTanks.Count}\n");
 
                 if (m_totalScanBlocksCount > 0)
                 {
@@ -723,6 +727,20 @@ namespace NaniteConstructionSystem.Entities
             });
         }
 
+        private void CheckIfAGridBlockIsGasTank()
+        {
+            MyAPIGateway.Parallel.Start(() =>
+            {
+                while (!m_potentialGasTanks.IsEmpty)
+                {
+                    IMySlimBlock block = null;
+                    m_potentialGasTanks.TryTake(out block);
+                    if (block != null)
+                        TryAddToGasTankGroup(block);
+                }
+            });
+        }
+
         private void OnBlockAdded(IMySlimBlock block)
         {
             MyAPIGateway.Parallel.Start(() =>
@@ -733,6 +751,7 @@ namespace NaniteConstructionSystem.Entities
                 Logging.Instance.WriteLine("[Grid] Block added to grid.", 2);
 
                 TryAddPotentialInventoryBlock(block);
+                TryAddPotentialGasTank(block);
             });
         }
 
@@ -745,28 +764,60 @@ namespace NaniteConstructionSystem.Entities
             m_potentialInventoryBlocks.Add(block);
         }
 
-        private void TryAddToInventoryGroup(object block)
+        private void TryAddPotentialGasTank(IMySlimBlock block)
+        {
+            if (block.FatBlock == null || block.FatBlock as IMyGasTank == null)
+                return;
+
+            Logging.Instance.WriteLine($"[Inventory] Block {block.FatBlock.DisplayNameText} added to gas tank check queue.", 2);
+            m_potentialGasTanks.Add(block);
+        }
+
+        private void TryAddToGasTankGroup(IMySlimBlock block)
+        {
+            IMyGasTank tank = null;
+
+            foreach (var factory in FactoryGroup.ToList())
+            {
+                if (GridHelper.IsValidGasConnection(factory.ConstructionCubeBlock, block, out tank))
+                {
+                    var lifeSupport = (NaniteLifeSupportTargets)m_targets.Where(x => x is NaniteLifeSupportTargets).FirstOrDefault();
+
+                    if (lifeSupport == null || !lifeSupport.IsEnabled(this))
+                        return;
+
+                    if (!lifeSupport.connectedGasTanks.Contains(tank))
+                    {
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {
+                            if (!lifeSupport.connectedGasTanks.Contains(tank))
+                                lifeSupport.connectedGasTanks.Add(tank);
+                        });
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void TryAddToInventoryGroup(IMySlimBlock block)
         {
             IMyInventory inv = null;
 
-            if (block is IMySlimBlock)
-            {
-                var slimBlock = block as IMySlimBlock;
-                if (slimBlock.FatBlock == null || !(slimBlock.FatBlock is IMyTerminalBlock))
-                    return;
-            }
-           
             foreach (var factory in FactoryGroup.ToList())
+            {
                 if (GridHelper.IsValidInventoryConnection(factory.ConstructionBlockInventory, block, out inv))
+                {
                     if (!InventoryManager.connectedInventory.Contains(inv))
                     {
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         {
                             if (!InventoryManager.connectedInventory.Contains(inv))
                                 InventoryManager.connectedInventory.Add(inv);
                         });
                         break;
-                    }  
+                    }
+                }
+            }
         }
 
         /// <summary> Checks if the grid group has changed and quickly scans/adds any inventory blocks. Manages grid event handlers </summary>
@@ -830,8 +881,17 @@ namespace NaniteConstructionSystem.Entities
                 {                   
                     ConcurrentBag<IMySlimBlock> slimBlocks = new ConcurrentBag<IMySlimBlock>(((MyCubeGrid)grid).GetBlocks());
 
-                    foreach (var block in slimBlocks)
-                        TryAddPotentialInventoryBlock(block);
+                    while (!slimBlocks.IsEmpty)
+                    {
+                        IMySlimBlock slimBlock = null;
+                        slimBlocks.TryTake(out slimBlock);
+
+                        if (slimBlock != null)
+                        {
+                            TryAddPotentialInventoryBlock(slimBlock);
+                            TryAddPotentialGasTank(slimBlock);
+                        }
+                    }
                 }
                 catch (Exception e)
                     { Logging.Instance.WriteLine($"BuildConnectedInventory() Error: {e.ToString()}"); }
@@ -1053,8 +1113,8 @@ namespace NaniteConstructionSystem.Entities
                     return (v * (float)s.SpeedIncreasePerUpgrade);
                 case "PowerNanites":
                     return (v * (float)s.PowerDecreasePerUpgrade);
-                case "MedicalNanites":
-                    return (v * (float)s.MedicalNanitesPerUpgrade);
+                case "LifeSupportNanites":
+                    return (v * (float)s.LifeSupportNanitesPerUpgrade);
                 case "MiningNanites":
                     return (v * (float)s.MiningNanitesPerUpgrade);
                 case "CleanupNanites":
@@ -1111,7 +1171,10 @@ namespace NaniteConstructionSystem.Entities
                             m_initInventory = false;
 
                         foreach (IMySlimBlock block in newGridBlocks)
+                        {
+                            TryAddPotentialGasTank(block);
                             TryAddPotentialInventoryBlock(block);
+                        }
                     }
                         
 
@@ -1509,7 +1572,7 @@ namespace NaniteConstructionSystem.Entities
             TargetData data = new TargetData();
             data.EntityId = ConstructionBlock.EntityId;
             data.TargetId = target.IdentityId;
-            data.TargetType = TargetTypes.Medical;
+            data.TargetType = TargetTypes.LifeSupport;
             SendToPlayerInSyncRange(8951, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
@@ -1519,9 +1582,9 @@ namespace NaniteConstructionSystem.Entities
 
             try
             {
-                if (data.TargetType == TargetTypes.Medical)
+                if (data.TargetType == TargetTypes.LifeSupport)
                 {
-                    var target = GetTarget<NaniteMedicalTargets>().TargetList.FirstOrDefault(x => ((IMyPlayer)x).IdentityId == data.TargetId);
+                    var target = GetTarget<NaniteLifeSupportTargets>().TargetList.FirstOrDefault(x => ((IMyPlayer)x).IdentityId == data.TargetId);
                     if (target == null)
                     {
                         List<IMyPlayer> players = new List<IMyPlayer>();
@@ -1535,7 +1598,7 @@ namespace NaniteConstructionSystem.Entities
                             }
 
                         if (playerTarget != null)
-                            GetTarget<NaniteMedicalTargets>().TargetList.Add(playerTarget);
+                            GetTarget<NaniteLifeSupportTargets>().TargetList.Add(playerTarget);
                     }
                     return;
                 }
@@ -1643,7 +1706,7 @@ namespace NaniteConstructionSystem.Entities
             TargetData data = new TargetData();
             data.EntityId = ConstructionBlock.EntityId;
             data.TargetId = target.IdentityId;
-            data.TargetType = TargetTypes.Medical;
+            data.TargetType = TargetTypes.LifeSupport;
             SendToPlayerInSyncRange(8952, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
@@ -1658,7 +1721,7 @@ namespace NaniteConstructionSystem.Entities
                     GetTarget<NaniteFloatingTargets>().CompleteTarget(data.TargetId);
                     return;
                 }
-                else if (data.TargetType == TargetTypes.Medical)
+                else if (data.TargetType == TargetTypes.LifeSupport)
                 {
                     List<IMyPlayer> players = new List<IMyPlayer>();
                     MyAPIGateway.Players.GetPlayers(players);
@@ -1671,7 +1734,7 @@ namespace NaniteConstructionSystem.Entities
                         }
 
                     if (playerTarget != null)
-                        GetTarget<NaniteMedicalTargets>().CompleteTarget(playerTarget);
+                        GetTarget<NaniteLifeSupportTargets>().CompleteTarget(playerTarget);
 
                     return;
                 }
@@ -1750,7 +1813,7 @@ namespace NaniteConstructionSystem.Entities
             TargetData data = new TargetData();
             data.EntityId = ConstructionBlock.EntityId;
             data.TargetId = target.IdentityId;
-            data.TargetType = TargetTypes.Medical;
+            data.TargetType = TargetTypes.LifeSupport;
             SendToPlayerInSyncRange(8953, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(data)));
         }
 
@@ -1775,7 +1838,7 @@ namespace NaniteConstructionSystem.Entities
 
                     return;
                 }
-                else if (data.TargetType == TargetTypes.Medical)
+                else if (data.TargetType == TargetTypes.LifeSupport)
                 {
                     List<IMyPlayer> players = new List<IMyPlayer>();
                     MyAPIGateway.Players.GetPlayers(players);
@@ -1788,7 +1851,7 @@ namespace NaniteConstructionSystem.Entities
                         }
 
                     if (playerTarget != null)
-                        GetTarget<NaniteMedicalTargets>().CancelTarget(playerTarget);
+                        GetTarget<NaniteLifeSupportTargets>().CancelTarget(playerTarget);
 
                     return;
                 }

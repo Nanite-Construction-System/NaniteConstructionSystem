@@ -152,7 +152,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             if (Sync.IsServer)
             {
-                if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
+                if (!((m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.Active || m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.MissingParts) && (TargetList.Count > 0 || PotentialTargetList.Count > 0)))
                     return;
 
                 if (floating.Closed)
@@ -170,6 +170,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     {
                         Logging.Instance.WriteLine("[Floating] Cancelling Cleanup Target due to being out of range", 1);
                         CancelTarget(floating);
+                        return;
                     }
 
                     var trackedItem = m_targetTracker[floating];
@@ -181,6 +182,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         {
                             Logging.Instance.WriteLine("[Floating] Cancelling Cleanup Target due to insufficient storage", 1);
                             CancelTarget(floating);
+                            return;
                         }
                     }
                 }

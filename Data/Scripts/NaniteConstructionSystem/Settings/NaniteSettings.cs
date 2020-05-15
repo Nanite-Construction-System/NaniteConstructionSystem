@@ -102,25 +102,25 @@ namespace NaniteConstructionSystem.Settings
         [ProtoMember(46)]
         public int MiningDepth { get; set; }
         [ProtoMember(47)]
-        public bool MedicalEnabled { get; set; }
+        public bool LifeSupportEnabled { get; set; }
         [ProtoMember(48)]
-        public int MedicalMaxStreams { get; set; }
+        public int LifeSupportMaxStreams { get; set; }
         [ProtoMember(49)]
-        public float MedicalMaxDistance { get; set; }
+        public float LifeSupportMaxDistance { get; set; }
         [ProtoMember(50)]
-        public float MedicalPowerPerStream { get; set; }
+        public float LifeSupportPowerPerStream { get; set; }
         [ProtoMember(51)]
-        public float MedicalMinTravelTime { get; set; }
+        public float LifeSupportMinTravelTime { get; set; }
         [ProtoMember(52)]
-        public float MedicalDistanceDivisor { get; set; }
+        public float LifeSupportDistanceDivisor { get; set; }
         [ProtoMember(53)]
-        public int MedicalNanitesPerUpgrade { get; set; }
+        public int LifeSupportNanitesPerUpgrade { get; set; }
         [ProtoMember(54)]
-        public int MedicalNanitesNoUpgrade { get; set; }
+        public int LifeSupportNanitesNoUpgrade { get; set; }
         [ProtoMember(55)]
-        public int MedicalSecondsPerHealTick { get; set; }
+        public int LifeSupportSecondsPerTick { get; set; }
         [ProtoMember(56)]
-        public float MedicalHealthPerHealTick { get; set; }
+        public float LifeSupportHealthPerTick { get; set; }
         [ProtoMember(57)]
         public float AreaBeaconMaxSize { get; set; }
         [ProtoMember(58)]
@@ -161,6 +161,18 @@ namespace NaniteConstructionSystem.Settings
         public int MiningTargetsScannedPerSecond { get; set; }
         [ProtoMember(76)]
         public int OreDetectorScanningSpeed { get; set; }
+        [ProtoMember(77)]
+        public float LifeSupportOxygenPerTick { get; set; }
+        [ProtoMember(78)]
+        public float LifeSupportHydrogenPerTick { get; set; }
+        [ProtoMember(79)]
+        public float LifeSupportOxygenRefillLevel { get; set; }
+        [ProtoMember(80)]
+        public float LifeSupportHydrogenRefillLevel { get; set; }
+        [ProtoMember(81)]
+        public float LifeSupportEnergyRefillLevel { get; set; }
+        [ProtoMember(82)]
+        public float LifeSupportEnergyPerTick { get; set; }
 
         public string Version { get; set; }
 
@@ -210,16 +222,16 @@ namespace NaniteConstructionSystem.Settings
             MiningDistanceDivisor = 15f;
             MiningNanitesPerUpgrade = 3;
             MiningNanitesNoUpgrade = 1;
-            MedicalEnabled = true;
-            MedicalMaxStreams = 15;
-            MedicalMaxDistance = 800f;
-            MedicalPowerPerStream = 26f;
-            MedicalMinTravelTime = 16f;
-            MedicalDistanceDivisor = 5f;
-            MedicalNanitesPerUpgrade = 3;
-            MedicalNanitesNoUpgrade = 1;
-            MedicalSecondsPerHealTick = 4;
-            MedicalHealthPerHealTick = 5f;
+            LifeSupportEnabled = true;
+            LifeSupportMaxStreams = 15;
+            LifeSupportMaxDistance = 800f;
+            LifeSupportPowerPerStream = 26f;
+            LifeSupportMinTravelTime = 16f;
+            LifeSupportDistanceDivisor = 5f;
+            LifeSupportNanitesPerUpgrade = 3;
+            LifeSupportNanitesNoUpgrade = 1;
+            LifeSupportSecondsPerTick = 1;
+            LifeSupportHealthPerTick = 5f;
             AreaBeaconMaxSize = 200f;
             AreaBeaconMinSize = 10f;
             SpeedIncreasePerUpgrade = 5f;
@@ -240,6 +252,12 @@ namespace NaniteConstructionSystem.Settings
             BlocksScannedPerSecond = 500;
             MiningTargetsScannedPerSecond = 100;
             OreDetectorScanningSpeed = 10;
+            LifeSupportOxygenPerTick = 0.05f;
+            LifeSupportHydrogenPerTick = 0.05f;
+            LifeSupportOxygenRefillLevel = 0.5f;
+            LifeSupportHydrogenRefillLevel = 0.5f;
+            LifeSupportEnergyRefillLevel = 0.5f;
+            LifeSupportEnergyPerTick = 0.05f;
             Version = "2.0";
         }
 

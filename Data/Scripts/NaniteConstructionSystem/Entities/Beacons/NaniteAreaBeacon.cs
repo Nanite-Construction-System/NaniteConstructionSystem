@@ -33,7 +33,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
             get
             {
                 if (!NaniteConstructionManager.BeaconTerminalSettings.ContainsKey(BeaconBlock.EntityId))
-                    NaniteConstructionManager.BeaconTerminalSettings.Add(BeaconBlock.EntityId, new Settings.NaniteBeaconTerminalSettings());
+                    NaniteConstructionManager.BeaconTerminalSettings.Add(BeaconBlock.EntityId, new NaniteBeaconTerminalSettings());
 
                 return NaniteConstructionManager.BeaconTerminalSettings[BeaconBlock.EntityId];
             }
@@ -86,7 +86,6 @@ namespace NaniteConstructionSystem.Entities.Beacons
             if (!drawBorder)
                 return;
 
-            var setting = NaniteConstructionManager.BeaconTerminalSettings[BeaconBlock.EntityId];
             var diff = (float)bb.Max.Max() / NaniteConstructionManager.Settings.AreaBeaconMaxSize;
             float lineSize = (0.1f * diff) + 0.01f;
 

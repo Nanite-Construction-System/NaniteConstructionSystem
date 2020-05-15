@@ -79,7 +79,7 @@ namespace NaniteConstructionSystem.Extensions
         Floating,
         Deconstruction,
         Voxel,
-        Medical
+        LifeSupport
     }
 
     [Serializable]

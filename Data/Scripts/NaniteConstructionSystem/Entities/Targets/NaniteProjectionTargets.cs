@@ -178,7 +178,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     return;
                 }
 
-                if (m_constructionBlock.FactoryState != NaniteConstructionBlock.FactoryStates.Active)
+                if (!((m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.Active || m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.MissingParts) && (TargetList.Count > 0 || PotentialTargetList.Count > 0)))
                     return;
 
                 if (!IsInRange(target, m_maxDistance))
@@ -377,7 +377,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 var projector = item.Value as IMyProjector;
                 if(projector != null && projector.ProjectedGrid == block.CubeGrid)
                 {
-                    projector.Build(block, m_constructionBlock.ConstructionBlock.OwnerId, m_constructionBlock.ConstructionBlock.EntityId, false);
+                    projector.Build(block, m_constructionBlock.ConstructionBlock.OwnerId, m_constructionBlock.ConstructionBlock.EntityId, false, m_constructionBlock.ConstructionBlock.OwnerId);
                     break;
                 }
             }

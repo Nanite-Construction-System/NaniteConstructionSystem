@@ -350,7 +350,7 @@ MyAPIGateway.Multiplayer.IsServerPlayer(Client): {MyAPIGateway.Multiplayer.IsSer
 {(NaniteConstructionManager.Settings.ConstructionEnabled ? "/nanite help construction OR /nanite help repair" : "")}
 {(NaniteConstructionManager.Settings.ProjectionEnabled ? "/nanite help projections" : "")}
 {(NaniteConstructionManager.Settings.DeconstructionEnabled ? "/nanite help deconstruction" : "")}
-{(NaniteConstructionManager.Settings.MedicalEnabled ? "/nanite help medical" : "")}
+{(NaniteConstructionManager.Settings.LifeSupportEnabled ? "/nanite help medical" : "")}
 {(NaniteConstructionManager.Settings.MiningEnabled ? "/nanite help mining" : "")}
 /nanite help upgrades
 /nanite help cooperation
@@ -402,7 +402,7 @@ Deconstruction: Increases deconstruction nanites by {NaniteConstructionManager.S
 
 Cleanup: Increases cleanup nanites by {NaniteConstructionManager.Settings.CleanupNanitesPerUpgrade}.
 
-Medical: Increases medical nanites by {NaniteConstructionManager.Settings.MedicalNanitesPerUpgrade}.
+Medical: Increases medical nanites by {NaniteConstructionManager.Settings.LifeSupportNanitesPerUpgrade}.
 
 Mining: Increases mining nanites by {NaniteConstructionManager.Settings.MiningNanitesPerUpgrade}.
 
@@ -616,7 +616,7 @@ to rescan the grid when new blocks are installed.
 
                 case "/nanite help medical":
 
-                    if (!NaniteConstructionManager.Settings.MedicalEnabled)
+                    if (!NaniteConstructionManager.Settings.LifeSupportEnabled)
                         donothing = true;
 
                     title = "Medical";
@@ -624,7 +624,7 @@ to rescan the grid when new blocks are installed.
 <--- {Localize(35)} --->
 
 When this box is checked in a Nanite Control Facility, it will scan
-for nearby players within {NaniteConstructionManager.Settings.MedicalMaxDistance}m of the facility.
+for nearby players within {NaniteConstructionManager.Settings.LifeSupportMaxDistance}m of the facility.
 If an injured player is found, the facility will produce
 WHITE nanites that will slowly increase the player's health.
 
@@ -913,7 +913,7 @@ Here's what they are currently configured to do:
 - Mining: {(NaniteConstructionManager.Settings.MiningEnabled ? "Enabled" : "Disabled")}
 - Cleanup loose objects: {(NaniteConstructionManager.Settings.CleanupEnabled ? "Enabled" : "Disabled")}
 - Build projections: {(NaniteConstructionManager.Settings.ProjectionEnabled ? "Enabled" : "Disabled")}
-- Heal players: {(NaniteConstructionManager.Settings.MedicalEnabled ? "Enabled" : "Disabled")}
+- Heal players: {(NaniteConstructionManager.Settings.LifeSupportEnabled ? "Enabled" : "Disabled")}
 
 Nanites are created and given orders in a Nanite Control Facility.
 These 'factory' blocks can be built on any grid just like any

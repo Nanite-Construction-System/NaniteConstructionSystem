@@ -82,6 +82,50 @@ namespace NaniteConstructionSystem.Extensions
             }
         }
 
+        public static bool IsValidGasConnection(MyCubeBlock factoryBlock, IMySlimBlock gasTankBlock, out IMyGasTank gasTank)
+        {
+            gasTank = null;
+
+            try
+            {
+                if (gasTankBlock.FatBlock == null || gasTankBlock.FatBlock as IMyGasTank == null)
+                    return false;
+
+                gasTank = gasTankBlock.FatBlock as IMyGasTank;
+
+                if (gasTank.GetInventory() == null
+                    || !((IMyInventory)factoryBlock.GetInventory()).IsConnectedTo(gasTank.GetInventory())
+                    || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(factoryBlock.GetUserRelationToOwner(gasTank.OwnerId)))
+                    return false;
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Logging.Instance.WriteLine($"IsValidGasConnection exception:\n{e}.");
+                return false;
+            }
+        }
+
+        public static bool IsValidGasConnection(MyCubeBlock factoryBlock, IMyGasTank gasTank)
+        {
+            try
+            {
+                if (gasTank == null
+                    || gasTank.GetInventory() == null
+                    || !((IMyInventory)factoryBlock.GetInventory()).IsConnectedTo(gasTank.GetInventory())
+                    || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(factoryBlock.GetUserRelationToOwner(gasTank.OwnerId)))
+                    return false;
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Logging.Instance.WriteLine($"IsValidGasConnection exception:\n{e}.");
+                return false;
+            }
+        }
+
         public static void TryMoveToFreeCargo(MyCubeBlock source, List<IMyInventory> connectedInventory, bool ignoreOtherFactories = false)
         {
             try
