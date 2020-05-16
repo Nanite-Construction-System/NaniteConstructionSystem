@@ -163,7 +163,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             foreach (IMyGasTank tank in removalList)
                 connectedGasTanks.Remove(tank);
 
-            CheckTanks(out m_hasOxygen, out m_hasHydrogen);
+            CheckTanks(ref m_hasOxygen, ref m_hasHydrogen);
         }
 
         public override void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList)
@@ -391,7 +391,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             return false;
         }
 
-        private void CheckTanks(out bool hasOxygen, out bool hasHydrogen)
+        private void CheckTanks(ref bool hasOxygen, ref bool hasHydrogen)
         {
             hasOxygen = false;
             hasHydrogen = false;
@@ -404,7 +404,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                     hasOxygen = true;
                 else if (!hasHydrogen && tank.DisplayNameText.ToLower().Contains("hydrogen") && tank.FilledRatio > 0f)
                     hasHydrogen = true;
-                else
+
+                if (hasOxygen && hasHydrogen)
                     return;
             }
         }

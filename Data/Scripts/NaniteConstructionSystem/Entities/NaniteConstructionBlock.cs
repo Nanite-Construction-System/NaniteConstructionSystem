@@ -796,6 +796,8 @@ namespace NaniteConstructionSystem.Entities
                         break;
                     }
                 }
+                else
+                    Logging.Instance.WriteLine($"[Inventory] Block {block.FatBlock.DisplayNameText} does not have a valid connection to the NCF", 2);
             }
         }
 
