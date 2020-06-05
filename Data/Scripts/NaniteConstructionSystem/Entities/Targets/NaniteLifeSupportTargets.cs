@@ -111,8 +111,8 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override bool IsEnabled(NaniteConstructionBlock factory)
         {
-            if (!((IMyFunctionalBlock)factory.ConstructionBlock).Enabled
-              || !((IMyFunctionalBlock)factory.ConstructionBlock).IsFunctional 
+            if (!factory.ConstructionBlock.Enabled
+              || !factory.ConstructionBlock.IsFunctional 
               || (NaniteConstructionManager.TerminalSettings.ContainsKey(factory.ConstructionBlock.EntityId) 
               && !NaniteConstructionManager.TerminalSettings[factory.ConstructionBlock.EntityId].AllowLifeSupport))
             {
@@ -137,7 +137,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 return;
             }
 
-            foreach (var item in players)
+            foreach (IMyPlayer item in players)
             {
                 var functional = m_constructionBlock.ConstructionBlock as IMyFunctionalBlock;
                 MyRelationsBetweenPlayerAndBlock relations = functional.GetUserRelationToOwner(item.IdentityId);
@@ -239,15 +239,6 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             if (Sync.IsServer)
             {
-                /*
-                if (!IsEnabled())
-                {
-                    Logging.Instance.WriteLine("CANCELLING Medical Target due to being disabled");
-                    CancelTarget(target);
-                    return;
-                }
-                */
-
                 if (!((m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.Active || m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.MissingParts) && (TargetList.Count > 0 || PotentialTargetList.Count > 0)))
                     return;
 
@@ -265,7 +256,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     return;
                 }
 
-                if (!DoesTargetNeedLifeSupport((IMyPlayer)target) && !m_targetTracker.ContainsKey(player))
+                if (!DoesTargetNeedLifeSupport(player) && !m_targetTracker.ContainsKey(player))
                 {
                     CompleteTarget(target);
                     return;

@@ -157,29 +157,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                 InvalidTargetReason(LastInvalidTargetReason);
         }
 
-        private int GetMissingComponentCount(NaniteConstructionInventory inventoryManager, IMySlimBlock block)
-        {
-            Dictionary<string, int> missing = new Dictionary<string, int>();
-            block.GetMissingComponents(missing);
-            if (missing.Count == 0)
-                return 0;
-
-            Dictionary<string, int> available = new Dictionary<string, int>();
-            inventoryManager.GetAvailableComponents(ref available);
-            for (int r = missing.Count - 1; r >= 0; r--)
-            {
-                var item = missing.ElementAt(r);
-                if (available.ContainsKey(item.Key))
-                {
-                    int amount = Math.Min(item.Value, available[item.Key]);
-                    available[item.Key] -= amount;
-                    missing[item.Key] -= amount;
-                }
-            }
-
-            return missing.Sum(x => x.Value);
-        }
-
         public override void Update()
         {
             MyAPIGateway.Parallel.Start(() =>

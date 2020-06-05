@@ -1190,7 +1190,7 @@ namespace NaniteConstructionSystem.Entities
                 int counter = 0;
                 List<BlockTarget> blocksToGo = new List<BlockTarget>();
 
-                int maxBlocksToScan = NaniteConstructionManager.Settings != null ? NaniteConstructionManager.Settings.BlocksScannedPerSecond : 100;
+                int maxBlocksToScan = NaniteConstructionManager.Settings != null ? NaniteConstructionManager.Settings.BlocksScannedPerSecond : 500;
 
                 foreach (var block in m_scanBlocksCache)
                 {
