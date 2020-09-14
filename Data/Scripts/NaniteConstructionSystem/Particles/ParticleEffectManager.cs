@@ -67,16 +67,20 @@ namespace NaniteConstructionSystem.Particles
 
         private void Cleanup()
         {
-            HashSet<TargetEntity> remove = new HashSet<TargetEntity>();
-
-            MyAPIGateway.Parallel.ForEach(m_particles, item => 
+            // Old method caused a race condition when the background process was still removing entities but the in-game class was already unloaded.
+            MyAPIGateway.Parallel.ForEach(new HashSet<TargetEntity>(m_particles), item => 
             { // Invocation 0
                 try
                 {
+                    if(item == null)
+                    {
+                        RemoveEntity(item);
+                        return;
+                    }
                     IMyEntity entity;
                     if (!MyAPIGateway.Entities.TryGetEntityById(item.TargetGridId, out entity))
                     {
-                        remove.Add(item);
+                        RemoveEntity(item);
                         return;
                     }
 
@@ -84,13 +88,13 @@ namespace NaniteConstructionSystem.Particles
                     IMySlimBlock slimBlock = grid.GetCubeBlock(item.TargetPosition);
                     if (slimBlock == null)
                     {
-                        remove.Add(item);
+                        RemoveEntity(item);
                         return;
                     }
 
                     if (slimBlock.IsDestroyed || slimBlock.IsFullyDismounted || (slimBlock.FatBlock != null && slimBlock.FatBlock.Closed))
                     {
-                        remove.Add(item);
+                        RemoveEntity(item);
                         return;
                     }
                 }
@@ -99,23 +103,19 @@ namespace NaniteConstructionSystem.Particles
                 catch (System.Exception e)
                     {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Cleanup (Invocation 0): \n{e}");}
             });
+        }
 
-            if (remove.Count < 1)
-                return;
-
-            MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+        public void RemoveEntity(TargetEntity item)
+        {
+            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
             { // Invocation 1
                 try
                 {
-                    foreach (var item in remove)
-                        if (item != null)
-                        {
-                            item.Unload();
-                            m_particles.Remove(item);
-                        }
+                    if (item != null) item.Unload();
+                    if (m_particles != null && m_particles.Contains(item)) m_particles.Remove(item);
                 }
                 catch (System.Exception e)
-                    {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Cleanup (Invocation 1): \n{e}");}
+                { VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Cleanup (Invocation 1): \n{e}"); }
             });
         }
     }
