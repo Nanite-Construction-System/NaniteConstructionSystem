@@ -68,6 +68,7 @@ namespace NaniteConstructionSystem.Particles
         private void Cleanup()
         {
             // Old method caused a race condition when the background process was still removing entities but the in-game class was already unloaded.
+            // Also a lot of other nasty bugs (leaks, crashes, hangs and SE not closing) appear to be caused by this.
             MyAPIGateway.Parallel.ForEach(new HashSet<TargetEntity>(m_particles), item => 
             { // Invocation 0
                 try
@@ -111,6 +112,7 @@ namespace NaniteConstructionSystem.Particles
             { // Invocation 1
                 try
                 {
+                    // double check since the m_particles could have changed
                     if (item != null) item.Unload();
                     if (m_particles != null && m_particles.Contains(item)) m_particles.Remove(item);
                 }
