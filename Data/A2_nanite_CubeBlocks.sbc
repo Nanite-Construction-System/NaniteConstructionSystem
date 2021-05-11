@@ -167,8 +167,8 @@
             <DisplayName>DisplayName_BlockGroup_NaniteBeacons</DisplayName>
             <Description>Beacons to control Nanite behavior.</Description>
             <Blocks>
-                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconDeconstruct" />
                 <Block Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconConstruct" />
+                <Block Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconDeconstruct" />
                 <Block Type="MyObjectBuilder_UpgradeModule" Subtype="LargeNaniteBeaconProjection" />
                 <Block Type="MyObjectBuilder_UpgradeModule" Subtype="SmallNaniteBeaconConstruct" />
                 <Block Type="MyObjectBuilder_UpgradeModule" Subtype="SmallNaniteBeaconDeconstruct" />

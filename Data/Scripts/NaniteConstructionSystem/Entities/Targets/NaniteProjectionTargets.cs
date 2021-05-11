@@ -8,6 +8,7 @@ using VRage.Game;
 using VRage.ModAPI;
 using VRageMath;
 using VRage.Game.ModAPI;
+using VRage.Utils;
 using Sandbox.Definitions;
 using Sandbox.Common.ObjectBuilders;
 
@@ -372,14 +373,32 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void ProcessBuildBlock(IMySlimBlock block)
         {
-            foreach(var item in NaniteConstructionManager.ProjectorBlocks)
-            {
-                var projector = item.Value as IMyProjector;
-                if(projector != null && projector.ProjectedGrid == block.CubeGrid)
+            try {
+                var blockDefinition = block.BlockDefinition as MyCubeBlockDefinition;
+                var localShipWelder = m_constructionBlock.ConstructionBlock as IMyShipWelder;
+
+                foreach(var item in NaniteConstructionManager.ProjectorBlocks)
                 {
-                    projector.Build(block, m_constructionBlock.ConstructionBlock.OwnerId, m_constructionBlock.ConstructionBlock.EntityId, false, m_constructionBlock.ConstructionBlock.OwnerId);
-                    break;
+                    var projector = item.Value as IMyProjector;
+                    if(projector != null && projector.ProjectedGrid == block.CubeGrid)
+                    {
+                        if (localShipWelder != null && blockDefinition != null) {
+                            var validator = localShipWelder.IsWithinWorldLimits(projector, blockDefinition.BlockPairName, blockDefinition.PCU);
+                            if (!validator) {
+                                CancelTarget(block);
+                                m_constructionBlock.UpdateOverLimit = true;
+                                break;
+                            }
+                        }
+
+                        m_constructionBlock.UpdateOverLimit = false;
+
+                        projector.Build(block, m_constructionBlock.ConstructionBlock.OwnerId, m_constructionBlock.ConstructionBlock.EntityId, false, m_constructionBlock.ConstructionBlock.OwnerId);
+                        break;
+                    }
                 }
+            } catch(Exception exc) {
+                MyLog.Default.WriteLineAndConsole($"##MOD: Chillout nanites, ERROR: {exc}");
             }
         }
     }

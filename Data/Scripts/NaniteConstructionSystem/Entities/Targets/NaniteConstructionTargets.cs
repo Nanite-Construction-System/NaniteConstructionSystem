@@ -13,6 +13,7 @@ using VRage.Game;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
+using VRage.Utils;
 using VRageMath;
 
 namespace NaniteConstructionSystem.Entities.Targets
@@ -177,97 +178,128 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void ProcessConstructionItem(IMySlimBlock target)
         {
-            if (Sync.IsServer)
-            {
-                if (!((m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.Active || m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.MissingParts) && (TargetList.Count > 0 || PotentialTargetList.Count > 0)))
-                    return;
-
-                if (!m_targetBlocks.ContainsKey(target))
-                    m_targetBlocks.Add(target, 0);
-
-                NaniteWelder welder = (NaniteWelder)m_constructionBlock.ToolManager.Tools.FirstOrDefault(x => x.TargetBlock == target && x is NaniteWelder);
-                if (welder == null)
+            try {
+                if (Sync.IsServer)
                 {
-                    double distance = EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target);
-                    int time = (int)Math.Max(GetMinTravelTime() * 1000f, (distance / GetSpeed()) * 1000f);
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                    if (!((m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.Active || m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.MissingParts) && (TargetList.Count > 0 || PotentialTargetList.Count > 0)))
+                        return;
+
+                    if (!m_targetBlocks.ContainsKey(target))
+                        m_targetBlocks.Add(target, 0);
+
+                    NaniteWelder welder = (NaniteWelder)m_constructionBlock.ToolManager.Tools.FirstOrDefault(x => x.TargetBlock == target && x is NaniteWelder);
+                    if (welder == null)
                     {
-                        if (target == null)
+                        double distance = EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target);
+                        int time = (int)Math.Max(GetMinTravelTime() * 1000f, (distance / GetSpeed()) * 1000f);
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {
+                            if (target == null)
+                                return;
+
+                            welder = new NaniteWelder(m_constructionBlock, target, (int)(time / 2.5f), false);
+                            m_constructionBlock.ToolManager.Tools.Add(welder);
+                            m_constructionBlock.SendAddTarget(target, TargetTypes.Construction);
+                        });
+                    }
+
+                    if (target.IsFullIntegrity && !target.HasDeformation)
+                    {
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {
+                            if (target != null)
+                                CompleteTarget(target);
+                        });
+                        return;
+                    }
+
+                    if (m_areaTargetBlocks.ContainsKey(target))
+                    {
+                        BoundingBoxD bb;
+                        target.GetWorldBoundingBox(out bb, true);
+                        if (!m_areaTargetBlocks[target].IsInsideBox(bb))
+                        {
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                            {
+                                if (target != null)
+                                    CancelTarget(target);
+                            });
                             return;
+                        }
+                    }
 
-                        welder = new NaniteWelder(m_constructionBlock, target, (int)(time / 2.5f), false);
-                        m_constructionBlock.ToolManager.Tools.Add(welder);
-                        m_constructionBlock.SendAddTarget(target, TargetTypes.Construction);
-                    });
-                }
-
-                if (target.IsFullIntegrity && !target.HasDeformation)
-                {
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                    if (target.IsDestroyed || target.IsFullyDismounted || (target.FatBlock != null && target.FatBlock.Closed))
                     {
-                        if (target != null)
-                            CompleteTarget(target);
-                    });
-                    return;
-                }
-
-                if (m_areaTargetBlocks.ContainsKey(target))
-                {
-                    BoundingBoxD bb;
-                    target.GetWorldBoundingBox(out bb, true);
-                    if (!m_areaTargetBlocks[target].IsInsideBox(bb))
-                    {
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                        Logging.Instance.WriteLine("[Construction] Cancelling Construction/Repair Target due to target being destroyed", 1);
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         {
                             if (target != null)
                                 CancelTarget(target);
                         });
                         return;
                     }
-                }
 
-                if (target.IsDestroyed || target.IsFullyDismounted || (target.FatBlock != null && target.FatBlock.Closed))
-                {
-                    Logging.Instance.WriteLine("[Construction] Cancelling Construction/Repair Target due to target being destroyed", 1);
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                    if (welder != null && MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - welder.StartTime >= welder.WaitTime)
                     {
-                        if (target != null)
-                            CancelTarget(target);
-                    });
-                    return;
-                }
-
-                if (welder != null && MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - welder.StartTime >= welder.WaitTime)
-                {
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                    {
-                        if (target == null)
-                            return;
-
-                        target.MoveItemsToConstructionStockpile(((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory());
-
-                        if (!target.HasDeformation && !target.CanContinueBuild( ((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory() ) && !MyAPIGateway.Session.CreativeMode)
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         {
-                            Logging.Instance.WriteLine("[Construction] Cancelling Construction/Repair Target due to missing components", 1);
+                            if (target == null)
+                                return;
 
-                            CancelTarget(target);
-                        }
-                    });
+                            var blockDefinition = target.BlockDefinition as MyCubeBlockDefinition;
+                            var localShipWelder = m_constructionBlock.ConstructionBlock as IMyShipWelder;
 
-                    return;
+                            m_constructionBlock.UpdateOverLimit = false;
+
+                            if (NaniteConstructionManager.ProjectorBlocks != null) {
+                                foreach(var item in NaniteConstructionManager.ProjectorBlocks)
+                                {
+                                    var projector = item.Value as IMyProjector;
+                                    if(projector != null && projector.ProjectedGrid == target.CubeGrid)
+                                    {
+                                        if (localShipWelder != null && blockDefinition != null) {
+                                            var validator = localShipWelder.IsWithinWorldLimits(projector, blockDefinition.BlockPairName, blockDefinition.PCU);
+                                            if (!validator) {
+                                                m_constructionBlock.UpdateOverLimit = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (m_constructionBlock.UpdateOverLimit) {
+                                CancelTarget(target);
+                                return;
+                            }
+
+                            target.MoveItemsToConstructionStockpile(((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory());
+
+                            if (!target.HasDeformation && !target.CanContinueBuild( ((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory() ) && !MyAPIGateway.Session.CreativeMode)
+                            {
+                                Logging.Instance.WriteLine("[Construction] Cancelling Construction/Repair Target due to missing components", 1);
+
+                                CancelTarget(target);
+                            }
+                        });
+
+                        return;
+                    }
+                    // NEW 12-1-2018 To save on performance, once a target is started, use SyncDistance only so we dont have to check each slave factory
+                    if (m_remoteTargets.Contains(target)
+                      && !IsInRange(target, m_maxDistance))
+                    {
+                        Logging.Instance.WriteLine("[Construction] Cancelling Repair Target due to being out of range", 1);
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                            { CancelTarget(target); });
+                        return;
+                    }
                 }
-                // NEW 12-1-2018 To save on performance, once a target is started, use SyncDistance only so we dont have to check each slave factory
-                if (m_remoteTargets.Contains(target) 
-                  && !IsInRange(target, m_maxDistance))
-                {
-                    Logging.Instance.WriteLine("[Construction] Cancelling Repair Target due to being out of range", 1);
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                        { CancelTarget(target); });
-                    return;
-                }
+
+                CreateConstructionParticle(target);
+            } catch(Exception exc) {
+                MyLog.Default.WriteLineAndConsole($"##MOD: Chillout nanites, ERROR: {exc}");
             }
-
-            CreateConstructionParticle(target);
         }
 
         private void CreateConstructionParticle(IMySlimBlock target)

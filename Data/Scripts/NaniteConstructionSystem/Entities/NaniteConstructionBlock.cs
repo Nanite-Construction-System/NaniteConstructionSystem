@@ -49,6 +49,13 @@ namespace NaniteConstructionSystem.Entities
         private IMyShipWelder m_constructionBlock;
         public IMyShipWelder ConstructionBlock {get {return m_constructionBlock;} }
 
+        private bool m_overLimit = false;
+        public bool UpdateOverLimit
+        {
+            get {return m_overLimit;}
+            set {m_overLimit = value;}
+        }
+
         private MyCubeBlock m_constructionCubeBlock;
         public MyCubeBlock ConstructionCubeBlock {get {return m_constructionCubeBlock;} }
 
@@ -619,7 +626,9 @@ namespace NaniteConstructionSystem.Entities
                         { Logging.Instance.WriteLine($"NaniteConstructionBlock.AppendingCustomInfo() exception: {e}"); }
                     
                 });
-
+                if (m_overLimit) {
+                    details.Append("-- PCU / blocks limit reached --\n");
+                }
                 details.Append("-- Nanite Factory v2.0 --\n");
                 details.Append($"# {m_entityId}\n");
 
