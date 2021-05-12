@@ -121,6 +121,11 @@ namespace NaniteConstructionSystem.Entities.Detectors
             get { return supportFilter && m_block.UpgradeValues["Filter"] > 0f; }
         }
 
+        public float ScanningUpgradesNum
+        {
+            get { return m_block.UpgradeValues["Scanning"]; }
+        }
+
         protected bool supportFilter = true;
         protected int maxScanningLevel = 0;
         protected float minRange = 0f;
@@ -384,9 +389,9 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 MyStringId stringId = MyStringId.GetOrCompute(item);
 
                 // Filter upgrade
-                if (m_block.UpgradeValues["Scanning"] < 1f && (stringId.String == "Uranium" || stringId.String == "Platinum" || stringId.String == "Deuterium" || stringId.String == "Silver" || stringId.String == "Gold"))
+                if (m_block.UpgradeValues["Filter"] < 1f && (stringId.String == "Uranium" || stringId.String == "Platinum" || stringId.String == "Deuterium" || stringId.String == "Silver" || stringId.String == "Gold"))
                     continue;
-                if (m_block.UpgradeValues["Scanning"] < 2f && (stringId.String == "Uranium" || stringId.String == "Platinum" || stringId.String == "Deuterium"))
+                if (m_block.UpgradeValues["Filter"] < 2f && (stringId.String == "Uranium" || stringId.String == "Platinum" || stringId.String == "Deuterium" || stringId.String == "Ravinium" || stringId.String == "Gardinium"))
                     continue;
 
                 MyTerminalControlListBoxItem listItem = new MyTerminalControlListBoxItem(stringId, stringId, null);
@@ -653,7 +658,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 Logging.Instance.WriteLine($"UpdateDeposits sphere still at some position", 1);
                 
                 if (m_tasksRunning < 1)
-                    SpawnQueueWorker();
+                    SpawnQueueWorker(detectorComponent);
                 
                 return;
             }
@@ -694,9 +699,14 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 { m_initialTasks = m_taskQueue.Count; });
         }
 
-        private void SpawnQueueWorker()
+        private void SpawnQueueWorker(NaniteOreDetector detectorComponent)
         {
             int scanningSpeed = NaniteConstructionManager.Settings != null ? NaniteConstructionManager.Settings.OreDetectorScanningSpeed : 10;
+
+            scanningSpeed += (int)detectorComponent.ScanningUpgradesNum * 2;
+
+            Logging.Instance.WriteLine($"scanningSpeed sphere moved {scanningSpeed}");
+
             Logging.Instance.WriteLine($"SpawnQueueWorker {Math.Min(m_taskQueue.Count, scanningSpeed)}", 1);               
             for (int i = 0; i < Math.Min(m_taskQueue.Count, scanningSpeed); i++)
             {
