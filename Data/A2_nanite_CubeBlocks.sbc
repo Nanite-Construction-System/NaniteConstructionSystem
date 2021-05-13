@@ -482,12 +482,12 @@
 				<SubtypeId>LargeNaniteBeaconDeconstruct</SubtypeId>
 			</Id>
 			<DisplayName>Nanite Beacon - Deconstruct</DisplayName>
-			<Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
+			<Icon>Textures\GUI\Icons\Cubes\ConstructionBeacon.dds</Icon>
 			<CubeSize>Large</CubeSize>
 			<BlockTopology>TriangleMesh</BlockTopology>
 			<Size x="1" y="1" z="1"/>
 			<ModelOffset x="0" y="0" z="0"/>
-			<Model>Models\Cubes\Large\NaniteBeacon.mwm</Model>
+			<Model>Models\Cubes\Large\DeconstructionBeacon.mwm</Model>
 			<Components>
 				<Component Subtype="SteelPlate" Count="1"/>
 				<Component Subtype="SmallTube" Count="1"/>
@@ -502,8 +502,8 @@
 				<MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
 			</MountPoints>
 			<BuildProgressModels>
-				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteBeacon_Constr1.mwm"/>
-				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NaniteBeacon_Constr2.mwm"/>
+				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\ConstructionBeacon_BS1.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\ConstructionBeacon_BS2.mwm"/>
 			</BuildProgressModels>
 			<BlockPairName>NaniteBeaconDeconstruct</BlockPairName>
 			<Description>Nanite beacon for deconstruction nanites to lock onto, place these on grids to take apart.</Description>
@@ -523,12 +523,12 @@
 				<SubtypeId>SmallNaniteBeaconDeconstruct</SubtypeId>
 			</Id>
 			<DisplayName>Nanite Beacon - Deconstruct</DisplayName>
-			<Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
+			<Icon>Textures\GUI\Icons\Cubes\ConstructionBeacon.dds</Icon>
 			<CubeSize>Small</CubeSize>
 			<BlockTopology>TriangleMesh</BlockTopology>
 			<Size x="1" y="2" z="1"/>
 			<ModelOffset x="0" y="0" z="0"/>
-			<Model>Models\Cubes\Small\NaniteBeaconSmall.mwm</Model>
+			<Model>Models\Cubes\Small\DeconstructionBeaconSB.mwm</Model>
 			<Components>
 				<Component Subtype="SteelPlate" Count="1"/>
 				<Component Subtype="SmallTube" Count="1"/>
@@ -543,8 +543,8 @@
 				<MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
 			</MountPoints>
 			<BuildProgressModels>
-				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Small\NaniteBeaconSmall_Constr1.mwm"/>
-				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\NaniteBeaconSmall_Constr2.mwm"/>
+				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Small\DeconstructionBeaconSB_BS1.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\DeconstructionBeaconSB_BS2.mwm"/>
 			</BuildProgressModels>
 			<BlockPairName>NaniteBeaconDeconstruct</BlockPairName>
 			<Description>Nanite beacon for deconstruction nanites to lock onto, place these on grids to take apart.</Description>
@@ -584,8 +584,8 @@
 				<MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
 			</MountPoints>
 			<BuildProgressModels>
-				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteBeacon_Constr1.mwm"/>
-				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NaniteBeacon_Constr2.mwm"/>
+				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\ConstructionBeacon_BS1.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\ConstructionBeacon_BS2.mwm"/>
 			</BuildProgressModels>
 			<BlockPairName>NaniteBeaconConstruct</BlockPairName>
 			<Description>Nanite beacon for construction nanites to lock onto, place these on grids to repair or construct them.</Description>
@@ -614,12 +614,12 @@
 				<SubtypeId>SmallNaniteBeaconConstruct</SubtypeId>
 			</Id>
 			<DisplayName>Nanite Beacon - Repair</DisplayName>
-			<Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
+			<Icon>Textures\GUI\Icons\Cubes\ConstructionBeacon.dds</Icon>
 			<CubeSize>Small</CubeSize>
 			<BlockTopology>TriangleMesh</BlockTopology>
-			<Size x="1" y="2" z="1"/>
+			<Size x="1" y="1" z="1"/>
 			<ModelOffset x="0" y="0" z="0"/>
-			<Model>Models\Cubes\Small\NaniteBeaconSmall.mwm</Model>
+			<Model>Models\Cubes\Small\ConstructionBeaconSB.mwm</Model>
 			<Components>
 				<Component Subtype="SteelPlate" Count="1"/>
 				<Component Subtype="SmallTube" Count="1"/>
@@ -634,8 +634,8 @@
 				<MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
 			</MountPoints>
 			<BuildProgressModels>
-				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Small\NaniteBeaconSmall_Constr1.mwm"/>
-				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\NaniteBeaconSmall_Constr2.mwm"/>
+				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Small\ConstructionBeaconSB_BS1.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\ConstructionBeaconSB_BS2.mwm"/>
 			</BuildProgressModels>
 			<BlockPairName>NaniteBeaconConstruct</BlockPairName>
 			<Description>Nanite beacon for construction nanites to lock onto, place these on grids to build or repair them.</Description>
@@ -669,7 +669,7 @@
 			<BlockTopology>TriangleMesh</BlockTopology>
 			<Size x="1" y="1" z="1"/>
 			<ModelOffset x="0" y="0" z="0"/>
-			<Model>Models\Cubes\Large\NaniteBeacon.mwm</Model>
+			<Model>Models\Cubes\Large\ConstructionBeacon.mwm</Model>
 			<Components>
 				<Component Subtype="SteelPlate" Count="1"/>
 				<Component Subtype="SmallTube" Count="1"/>
@@ -684,8 +684,8 @@
 				<MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
 			</MountPoints>
 			<BuildProgressModels>
-				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\NaniteBeacon_Constr1.mwm"/>
-				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\NaniteBeacon_Constr2.mwm"/>
+				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\ConstructionBeaconSB_BS1.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\ConstructionBeaconSB_BS2.mwm"/>
 			</BuildProgressModels>
 			<BlockPairName>NaniteBeaconProjection</BlockPairName>
 			<Description>Nanite beacon for projection nanites to lock onto, place these to build projections.</Description>
@@ -710,7 +710,7 @@
 			<BlockTopology>TriangleMesh</BlockTopology>
 			<Size x="1" y="2" z="1"/>
 			<ModelOffset x="0" y="0" z="0"/>
-			<Model>Models\Cubes\Small\NaniteBeaconSmall.mwm</Model>
+			<Model>Models\Cubes\Small\ConstructionBeaconSB.mwm</Model>
 			<Components>
 				<Component Subtype="SteelPlate" Count="1"/>
 				<Component Subtype="SmallTube" Count="1"/>
@@ -725,8 +725,8 @@
 				<MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
 			</MountPoints>
 			<BuildProgressModels>
-				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Small\NaniteBeaconSmall_Constr1.mwm"/>
-				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\NaniteBeaconSmall_Constr2.mwm"/>
+				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Small\ConstructionBeaconSB_BS1.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Small\ConstructionBeaconSB_BS2.mwm"/>
 			</BuildProgressModels>
 			<BlockPairName>NaniteBeaconProjection</BlockPairName>
 			<Description>Nanite beacon for projection nanites to lock onto, place these to build projections.</Description>
