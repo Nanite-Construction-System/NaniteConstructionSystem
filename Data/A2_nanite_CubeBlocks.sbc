@@ -564,12 +564,12 @@
 				<SubtypeId>LargeNaniteBeaconConstruct</SubtypeId>
 			</Id>
 			<DisplayName>Nanite Beacon - Repair</DisplayName>
-			<Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
+			<Icon>Textures\GUI\Icons\Cubes\ConstructionBeacon.dds</Icon>
 			<CubeSize>Large</CubeSize>
 			<BlockTopology>TriangleMesh</BlockTopology>
 			<Size x="1" y="1" z="1"/>
 			<ModelOffset x="0" y="0" z="0"/>
-			<Model>Models\Cubes\Large\NaniteBeacon.mwm</Model>
+			<Model>Models\Cubes\Large\ConstructionBeacon.mwm</Model>
 			<Components>
 				<Component Subtype="SteelPlate" Count="1"/>
 				<Component Subtype="SmallTube" Count="1"/>
