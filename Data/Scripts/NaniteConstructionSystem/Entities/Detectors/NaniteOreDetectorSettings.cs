@@ -36,7 +36,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
         public bool Load()
         {
             if (Detector.Storage == null)
-                return false;
+                Detector.Storage = new MyModStorageComponent();
 
             string rawData;
             bool success = false;
