@@ -47,10 +47,6 @@ namespace NaniteConstructionSystem.Entities.Detectors
             }
         }
 
-        private float LoadedRange = 0;
-        private bool LoadedRangeInitDone = false;
-        private bool LoadedRangeOnInit = false;
-
         public List<string> OreListSelected
         {
             get
@@ -318,12 +314,6 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
         private void UpdatePower()
         {
-            if (LoadedRange < Range && Range > 0 && !LoadedRangeOnInit) {
-                LoadedRange = Range;
-                LoadedRangeOnInit = true;
-                Logging.Instance.WriteLine($"OreDetectorId: Range values detected {Range}");
-            }
-
             if (!m_block.Enabled || !m_block.IsFunctional)
                 MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                 {
@@ -351,16 +341,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
             // this piece is resetting the range, the module check is delayed and it breaks saved values
             // however it also assigns the Range below the config values so I am keeping it in
-            if (Range > _maxRange)
-                Range = _maxRange;
-
-            // this piece is trying to fix and reassign the values loaded from mod storage, ONCE at startup
-            // that's what the flag is for
-            if (Range < LoadedRange && LoadedRange <= _maxRange && !LoadedRangeInitDone) {
-                Range = LoadedRange;
-                LoadedRangeInitDone = true;
-                Logging.Instance.WriteLine($"OreDetectorId: Range values fixed to {Range}");
-            }
+            Range = _maxRange;
 
             float powerPerRange = NaniteConstructionManager.Settings != null
               ? NaniteConstructionManager.Settings.OreDetectorPowerIncreasePerRangeUpgrade : POWER_PER_RANGE_UPGRADE;
