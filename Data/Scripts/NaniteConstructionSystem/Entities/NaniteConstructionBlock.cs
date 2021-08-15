@@ -15,6 +15,7 @@ using VRage.Collections;
 using VRage.Game.Components;
 using VRage.Game.Entity;
 using VRage.Game;
+using VRage.Game.ObjectBuilders.Definitions;
 using VRage.ModAPI;
 using VRageMath;
 using VRage.Utils;
@@ -92,11 +93,17 @@ namespace NaniteConstructionSystem.Entities
         public int SpoolPosition {get { return m_spoolPosition;} }
 
         internal MyResourceSinkInfo ResourceInfo;
+
+
         internal MyResourceSinkComponent Sink;
 
         private float _power = 0.0001f;
         public float Power
             {get { return Sink.CurrentInputByType(MyResourceDistributorComponent.ElectricityId);} }
+
+        public MyResourceDistributorComponent MyDistributor;
+        public MyDefinitionId PowerId = MyResourceDistributorComponent.ElectricityId;
+        public int chekcDistributorTimer = 0;
 
         private List<NaniteBlockEffectBase> m_effects;
         private MySoundPair m_soundPair;
@@ -123,7 +130,7 @@ namespace NaniteConstructionSystem.Entities
         private int m_assemblerUpdateTimer;
         private int m_takeComponentsTimer;
         private int m_lastScanStatusUpdate;
-        
+
         private StringBuilder m_syncDetails;
         private StringBuilder m_targetDetails;
         private StringBuilder m_invalidTargetDetails;
@@ -138,7 +145,7 @@ namespace NaniteConstructionSystem.Entities
         private bool m_clientEmissivesUpdate;
         private bool m_forceProcessState;
         private int m_forceProcessStateCooldown;
-        
+
         private MyInventory m_constructionBlockInventory;
         public MyInventory ConstructionBlockInventory {get { return m_constructionBlockInventory;} }
 
@@ -163,7 +170,10 @@ namespace NaniteConstructionSystem.Entities
         private bool m_initInventory = true;
         private bool m_isFunctional;
         public bool IsFunctional {get {return m_isFunctional;} }
-        
+        private bool firstPass = false;
+
+        private ushort POWERUPDATEID = 8999;
+
         private const int m_spoolingTime = 3000;
         #endregion
 
@@ -227,6 +237,7 @@ namespace NaniteConstructionSystem.Entities
             ((IMyTerminalBlock)m_constructionBlock).AppendingCustomInfo += AppendingCustomInfo;
 
             Sink = ((MyEntity)m_constructionBlock).Components.Get<MyResourceSinkComponent>();
+            PowerId = new MyDefinitionId(typeof(MyObjectBuilder_GasProperties), "Electricity");
 
             CheckGridGroup();
             m_entityId = ConstructionBlock.EntityId;
@@ -235,6 +246,10 @@ namespace NaniteConstructionSystem.Entities
             FactoryGroup.Add(this);
 
             m_isFunctional = ConstructionBlock.IsFunctional;
+
+            if (!MyAPIGateway.Multiplayer.IsServer) {
+                MyAPIGateway.Multiplayer.RegisterMessageHandler(POWERUPDATEID, RecievePowerUpdate);
+            }
         }
 
         private bool FactoryIsRunning()
@@ -246,7 +261,7 @@ namespace NaniteConstructionSystem.Entities
         { // Main update loop. Called each frame during game block logic
             if (ConstructionBlock.Closed || m_constructionBlock == null)
                 return;
-            
+
             m_updateCount++;
 
             if (!m_initialize)
@@ -262,7 +277,7 @@ namespace NaniteConstructionSystem.Entities
                         foreach (var item in ((MyCubeBlock)m_constructionBlock).UpgradeValues)
                             upgrades += string.Format("({0} - {1}) ", item.Key, item.Value);
 
-                        Logging.Instance.WriteLine(string.Format("[Factory] Nanite Factory Status: {0} - (t: {1}  pt: {2}  pw: {3} st: {4}) - {5}", 
+                        Logging.Instance.WriteLine(string.Format("[Factory] Nanite Factory Status: {0} - (t: {1}  pt: {2}  pw: {3} st: {4}) - {5}",
                           m_entityId, m_targetsCount, m_potentialTargetsCount, _power, m_factoryState, upgrades), 1);
                     }
                     catch (Exception e)
@@ -311,7 +326,7 @@ namespace NaniteConstructionSystem.Entities
 
                         ToolManager.Update();
                     }
-                        
+
                     if (m_updateCount == m_takeComponentsTimer && FactoryIsRunning())
                     {
                         MyAPIGateway.Parallel.StartBackground(() =>
@@ -321,7 +336,7 @@ namespace NaniteConstructionSystem.Entities
                     ScanForTargets(out m_scanningActive);
 
                     if (m_updateCount == m_assemblerUpdateTimer)
-                    { 
+                    {
                         if (m_factoryState == FactoryStates.MissingParts)
                         {
                             Logging.Instance.WriteLine("[Assembler] Missing components, processing assembler queue", 1);
@@ -337,11 +352,11 @@ namespace NaniteConstructionSystem.Entities
 
                 if (m_forceProcessState || !m_scanningActive || m_updateCount > m_assemblerUpdateTimer + 600)
                     ProcessState();                          // ^Prevent factorystate deadlocks
-            }            
-            
+            }
+
             UpdateSpoolPosition();
             ParticleManager.Update();
-            
+
             if (Sync.IsClient || !MyAPIGateway.Multiplayer.MultiplayerActive)
             {
                 UpdateClientEmissives();
@@ -353,7 +368,7 @@ namespace NaniteConstructionSystem.Entities
                 m_isFunctional = ConstructionBlock.IsFunctional;
                 ProcessTargetItems();
             }
-                
+
             if (m_updateCount % 120 == 0)
             {
                 ParticleManager.CheckParticleLife(); // removes stubborn Nanite particles
@@ -365,9 +380,39 @@ namespace NaniteConstructionSystem.Entities
                         m_userDefinedNaniteLimit = NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].MaxNanites;
                 });
             }
-                
+
             if (m_updateCount % 180 == 0)
                 UpdateTerminal();
+        }
+
+        private void RecievePowerUpdate(byte[] obj)
+        {
+            try {
+                if (obj == null)
+                    return;
+
+                string message = Encoding.ASCII.GetString(obj);
+                string[] parts = message.Split(';');
+
+                if (parts[0] != null && parts[1] != null) {
+                    long remoteEntityId = long.Parse(parts[0]);
+                    float newPower = float.Parse(parts[1]);
+
+                    MyLog.Default.WriteLineAndConsole($"##MOD: Chillout Cunt Detector, newPower client {newPower}");
+
+                    if (remoteEntityId == EntityId) {
+
+                        MyLog.Default.WriteLineAndConsole($"##MOD: Chillout Cunt Detector, id check passed client");
+
+                        _power = newPower;
+                        Sink.SetRequiredInputByType(PowerId, _power);
+                        Sink.SetMaxRequiredInputByType(PowerId, _power);
+                    }
+                }
+
+            } catch(Exception exc) {
+                MyLog.Default.WriteLineAndConsole($"##MOD: nanites ERROR {exc}");
+            }
         }
 
         public void Unload()
@@ -380,6 +425,10 @@ namespace NaniteConstructionSystem.Entities
 
             if (m_soundEmitter != null)
                 m_soundEmitter.StopSound(true);
+
+            if (!MyAPIGateway.Multiplayer.IsServer) {
+                MyAPIGateway.Multiplayer.UnregisterMessageHandler(POWERUPDATEID, RecievePowerUpdate);
+            }
         }
         #endregion
 
@@ -395,7 +444,7 @@ namespace NaniteConstructionSystem.Entities
                     {
                         Logging.Instance.WriteLine($"[Master-Slave] Slave factory {m_entityId} is no longer slaved to {Master.EntityId}. Reason: Master {reason}", 1);
                         Master.Slaves.Remove(this);
-                        Master = null; 
+                        Master = null;
                     }
                     catch (Exception e)
                     {
@@ -472,7 +521,7 @@ namespace NaniteConstructionSystem.Entities
                                     Logging.Instance.WriteLine($"Exception: CheckSlaveMaster, second InvokeOnGameThread: {e}");
                                 }
                             });
-                    }  
+                    }
                 }
             }
         }
@@ -501,7 +550,7 @@ namespace NaniteConstructionSystem.Entities
                 reason = "relationship was not friendly.";
                 return false;
             }
-            
+
             if (Vector3D.Distance(ConstructionBlock.GetPosition(), factory.ConstructionBlock.GetPosition()) > distance)
             {
                 Logging.Instance.WriteLine("Possible master was out of range ...", 2);
@@ -519,7 +568,7 @@ namespace NaniteConstructionSystem.Entities
                 {
                     reason = "was too far away and not in grid group.";
                     return false;
-                }   
+                }
             }
 
             return true;
@@ -535,7 +584,7 @@ namespace NaniteConstructionSystem.Entities
             {
                 CleanupTargets();
 
-                if (MyAPIGateway.Gui?.GetCurrentScreen == MyTerminalPageEnum.ControlPanel)          
+                if (MyAPIGateway.Gui?.GetCurrentScreen == MyTerminalPageEnum.ControlPanel)
                     UpdateTerminalClient();
             }
         }
@@ -560,14 +609,14 @@ namespace NaniteConstructionSystem.Entities
 
         /// <summary> Updates .CustomInfo of the factory. Viewed in the control panel </summary>
         private void AppendingCustomInfo(IMyTerminalBlock block, StringBuilder details)
-        { 
+        {
             if (m_factoryState == FactoryStates.Disabled || m_updateCount % 180 != 0)
                 return;
-            
+
             details.Clear();
 
             if (Sync.IsServer)
-            {    
+            {
                 MyAPIGateway.Parallel.Start(() =>
                 {
                     try
@@ -579,7 +628,7 @@ namespace NaniteConstructionSystem.Entities
                         bool missingCompTitleAppended = false;
 
                         NaniteConstructionBlock factory = Master != null ? Master : this;
-                        
+
                         foreach (var item in factory.Targets.ToList())
                         {
                             targetDetailsParallel.Append("-----\r\n"
@@ -603,7 +652,7 @@ namespace NaniteConstructionSystem.Entities
                             }
                         }
 
-                        if (factory.InventoryManager.ComponentsRequired.Count > 0) 
+                        if (factory.InventoryManager.ComponentsRequired.Count > 0)
                             foreach (var component in factory.InventoryManager.ComponentsRequired.ToList())
                                 if (component.Value > 0)
                                 {
@@ -624,13 +673,19 @@ namespace NaniteConstructionSystem.Entities
                     }
                     catch (Exception e)
                         { Logging.Instance.WriteLine($"NaniteConstructionBlock.AppendingCustomInfo() exception: {e}"); }
-                    
+
                 });
+
+                details.Append("-- Nanite Factory v2.0 --\n");
+                details.Append($"# {m_entityId}\n");
+
                 if (m_overLimit) {
                     details.Append("-- PCU / blocks limit reached --\n");
                 }
-                details.Append("-- Nanite Factory v2.0 --\n");
-                details.Append($"# {m_entityId}\n");
+                if (MyDistributor == null && firstPass) {
+                    details.Append("-- Missing control blocks --\n");
+                    details.Append("(build seat/cockpit/remote)\n");
+                }
 
                 if (m_initInventory && Master == null)
                     details.Append($"\n-INITIALIZING-\nTasks left: {m_potentialInventoryBlocks.Count + m_potentialGasTanks.Count}\n");
@@ -661,7 +716,7 @@ namespace NaniteConstructionSystem.Entities
                     m_syncDetails.Clear();
                     m_syncDetails.Append(details);
                     SendDetails();
-                }      
+                }
             }
             else
                 details.Append(m_syncDetails);
@@ -673,23 +728,37 @@ namespace NaniteConstructionSystem.Entities
         {
             if (!m_constructionBlock.Enabled || !m_isFunctional)
             {
-                MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                    { Sink.SetRequiredInputByType(MyResourceDistributorComponent.ElectricityId, 0.0001f); });
+                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                    { Sink.SetRequiredInputByType(PowerId, 0.0001f); });
 
                 return;
             }
 
-            float calculatePower = m_targets.Sum(x => (x.TargetList.Count) * x.GetPowerUsage()); 
+            float calculatePower = m_targets.Sum(x => (x.TargetList.Count) * x.GetPowerUsage());
 
             float totalPowerRequired = calculatePower == 0f ? 0.0001f : calculatePower;
+
+            // MyVisualScriptLogicProvider.ShowNotificationToAll($"power: {_power} {totalPowerRequired}", 3000);
 
             if (_power == totalPowerRequired)
                 return;
 
-            MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
             {
                 _power = (totalPowerRequired > 0f) ? totalPowerRequired : 0.0001f;
-                Sink.SetRequiredInputByType(MyResourceDistributorComponent.ElectricityId, _power);
+
+                // should send to client as well
+                if (MyAPIGateway.Multiplayer.IsServer) {
+
+                    var messageText = EntityId + ";" + _power;
+
+                    byte[] msg = Encoding.ASCII.GetBytes(messageText);
+
+                    MyAPIGateway.Multiplayer.SendMessageToOthers(POWERUPDATEID, msg, true);
+                }
+
+                Sink.SetRequiredInputByType(PowerId, _power);
+                Sink.SetMaxRequiredInputByType(PowerId, _power);
             });
 
             Logging.Instance.WriteLine($"[Power] Factory {ConstructionBlock.EntityId} updated power usage to {_power} MegaWatts", 1);
@@ -697,12 +766,61 @@ namespace NaniteConstructionSystem.Entities
 
         internal bool HasRequiredPowerForNewTarget(NaniteTargetBlocksBase target)
         {
-            return Sink.IsPowerAvailable(MyResourceDistributorComponent.ElectricityId, _power + target.GetPowerUsage());
+            if (!firstPass) {
+                firstPass = true;
+            }
+
+            if (m_constructionBlock == null) {
+                return false;
+            }
+
+            var MyCube = (MyCubeBlock)m_constructionBlock;
+            var MyGrid = MyCube.CubeGrid;
+
+            chekcDistributorTimer++;
+            if (MyDistributor == null || chekcDistributorTimer > 100) {
+                MyDistributor = GetEnergyDistributor(MyGrid);
+                chekcDistributorTimer = 0;
+            }
+
+
+            if (MyDistributor == null) {
+                return false;
+            } else {
+                var GridMaxPower = MyDistributor.MaxAvailableResourceByType(PowerId, MyGrid);
+                var GridCurrentPower = MyDistributor.TotalRequiredInputByType(PowerId, MyGrid);
+                var GridAvailablePower = GridMaxPower - GridCurrentPower;
+
+                if ((_power + target.GetPowerUsage()) < GridAvailablePower) {
+                    _power = _power + target.GetPowerUsage();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        internal MyResourceDistributorComponent GetEnergyDistributor(MyCubeGrid grid)
+        {
+            try {
+                if (grid == null || !grid.CubeBlocks.Any())
+                    return null;
+
+                var controller = grid.GetFatBlocks().FirstOrDefault(b => (b as MyShipController)?.GridResourceDistributor != null);
+                if (controller != null) {
+                    return ((MyShipController)controller).GridResourceDistributor;
+                }
+
+                return null;
+            } catch(Exception exc) {
+                MyLog.Default.WriteLineAndConsole($"##MOD: Chillout nanites Resource Distributor, ERROR: {exc}");
+                return null;
+            }
         }
 
         internal bool IsPowered()
         {
-            return Sink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId);
+            return Sink.IsPoweredByType(PowerId);
         }
         #endregion
 

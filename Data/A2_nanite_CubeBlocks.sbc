@@ -684,8 +684,8 @@
 				<MountPoint Side="Bottom" StartX="0.4" StartY="0.4" EndX="0.6" EndY="0.6"/>
 			</MountPoints>
 			<BuildProgressModels>
-				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\ConstructionBeaconSB_BS1.mwm"/>
-				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\ConstructionBeaconSB_BS2.mwm"/>
+				<Model BuildPercentUpperBound="0.66" File="Models\Cubes\Large\ConstructionBeacon_BS1.mwm"/>
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\Large\ConstructionBeacon_BS2.mwm"/>
 			</BuildProgressModels>
 			<BlockPairName>NaniteBeaconProjection</BlockPairName>
 			<Description>Nanite beacon for projection nanites to lock onto, place these to build projections.</Description>
