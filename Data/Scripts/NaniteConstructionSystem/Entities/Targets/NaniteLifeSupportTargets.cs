@@ -293,6 +293,9 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private bool DoesTargetNeedLifeSupport(IMyPlayer player)
         {
+            if (player == null)
+                return false;
+
             float health = MyVisualScriptLogicProvider.GetPlayersHealth(player.IdentityId);
             float oxygen = MyVisualScriptLogicProvider.GetPlayersOxygenLevel(player.IdentityId);
             float hydrogen = MyVisualScriptLogicProvider.GetPlayersHydrogenLevel(player.IdentityId);
@@ -309,6 +312,9 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private bool HealTarget(IMyPlayer player)
         {
+            if (player == null)
+                return false;
+
             float health = MyVisualScriptLogicProvider.GetPlayersHealth(player.IdentityId);
 
             if (health <= 0)

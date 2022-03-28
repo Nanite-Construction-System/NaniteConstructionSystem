@@ -1,14 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using VRage;
+using VRage.Collections;
 using VRage.Game;
+using VRage.Game.Components;
+using VRage.Game.ModAPI;
+using VRage.Game.ModAPI.Interfaces;
+using VRage.Game.Entity;
 using VRage.ModAPI;
 using VRageMath;
 using Ingame = Sandbox.ModAPI.Ingame;
-using VRage.Game.ModAPI;
 using Sandbox.Definitions;
 
 using NaniteConstructionSystem.Particles;
@@ -106,7 +112,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override float GetMinTravelTime()
         {
-            return Math.Max(1f, NaniteConstructionManager.Settings.DeconstructionMinTravelTime 
+            return Math.Max(1f, NaniteConstructionManager.Settings.DeconstructionMinTravelTime
               - m_constructionBlock.UpgradeValue("MinTravelTime"));
         }
 
@@ -120,13 +126,13 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             if (!((IMyFunctionalBlock)factory.ConstructionBlock).Enabled
               || !((IMyFunctionalBlock)factory.ConstructionBlock).IsFunctional
-              || (NaniteConstructionManager.TerminalSettings.ContainsKey(factory.ConstructionBlock.EntityId) 
+              || (NaniteConstructionManager.TerminalSettings.ContainsKey(factory.ConstructionBlock.EntityId)
               && !NaniteConstructionManager.TerminalSettings[factory.ConstructionBlock.EntityId].AllowDeconstruct))
             {
                 factory.EnabledParticleTargets[TargetName] = false;
                 return false;
             }
-                
+
             factory.EnabledParticleTargets[TargetName] = true;
             return true;
         }
@@ -135,17 +141,17 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             try
             {
-                // Add 
+                // Add
                 foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteBeaconDeconstruct))
                 {
-                    
-                    IMyCubeBlock item = (IMyCubeBlock)beaconBlock.Value.BeaconBlock;                        
+
+                    IMyCubeBlock item = (IMyCubeBlock)beaconBlock.Value.BeaconBlock;
 
                     if (item == null
                         || item.CubeGrid == null
                         || !((IMyFunctionalBlock)item).Enabled
                         || !((IMyFunctionalBlock)item).IsFunctional
-                        || NaniteGridGroup.Contains(item.CubeGrid) 
+                        || NaniteGridGroup.Contains(item.CubeGrid)
                         || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId))
                         || m_validBeaconedGrids.FirstOrDefault(x => x.GridsProcessed.Contains(item.CubeGrid)) != null
                         || !IsInRange(item.GetPosition(), m_maxDistance)
@@ -164,7 +170,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         if (slimBlock != null)
                             PotentialTargetList.Add(slimBlock);
                     }
-                        
+
                     deconstruct.RemoveList.Clear();
                 }
 
@@ -205,9 +211,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                 foreach (var entity in entities)
                 {
                     var grid = entity as IMyCubeGrid;
-                    if (grid != null && grid.Physics != null && grid.Physics.AngularVelocity.Length() == 0f 
+                    if (grid != null && grid.Physics != null && grid.Physics.AngularVelocity.Length() == 0f
                       && grid.Physics.LinearVelocity.Length() == 0f && m_validBeaconedGrids.FirstOrDefault(x => x.GridsProcessed.Contains(grid)) == null
-                      && !MyAPIGateway.GridGroups.GetGroup(grid, GridLinkTypeEnum.Physical).Contains(cubeBlock.CubeGrid) 
+                      && !MyAPIGateway.GridGroups.GetGroup(grid, GridLinkTypeEnum.Physical).Contains(cubeBlock.CubeGrid)
                       && (grid.GetPosition() - cubeBlock.GetPosition()).LengthSquared() < m_maxDistance * m_maxDistance && item.IsInsideBox(grid.WorldAABB, false))
                     {
                         NaniteDeconstructionGrid deconstruct = new NaniteDeconstructionGrid(grid);
@@ -235,7 +241,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             if (TargetList.Count >= maxTargets)
             {
-                if (PotentialTargetList.Count > 0) 
+                if (PotentialTargetList.Count > 0)
                     InvalidTargetReason("Maximum targets reached. Add more upgrades!");
 
                 return;
@@ -246,7 +252,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             foreach(IMySlimBlock item in PotentialTargetList.ToList())
             {
-                if (item == null || TargetList.Contains(item)) 
+                if (item == null || TargetList.Contains(item))
                     continue;
 
                 if (!m_constructionBlock.HasRequiredPowerForNewTarget(this))
@@ -274,14 +280,14 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 if (found)
                     continue;
-                    
+
                 AddTarget(item);
 
                 var def = item.BlockDefinition as MyCubeBlockDefinition;
-                Logging.Instance.WriteLine(string.Format("[Deconstruction] Adding Deconstruction Target: conid={0} subtypeid={1} entityID={2} position={3}", 
+                Logging.Instance.WriteLine(string.Format("[Deconstruction] Adding Deconstruction Target: conid={0} subtypeid={1} entityID={2} position={3}",
                   m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, item.FatBlock != null ? item.FatBlock.EntityId : 0, item.Position), 1);
 
-                if (++TargetListCount >= maxTargets) 
+                if (++TargetListCount >= maxTargets)
                     break;
             }
 
@@ -341,7 +347,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 if (m_areaTargetBlocks.ContainsKey(target.CubeGrid))
                 {
-                    if (!m_areaTargetBlocks[target.CubeGrid].IsInsideBox(target.CubeGrid.WorldAABB, false))                    
+                    if (!m_areaTargetBlocks[target.CubeGrid].IsInsideBox(target.CubeGrid.WorldAABB, false))
                     {
                         CancelTarget(target);
                         RemoveGridTarget(target.CubeGrid);
@@ -403,7 +409,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 m_targetBlocks.Add(target, 0);
 
             m_targetBlocks[target] = 0;
-            
+
             MyAPIGateway.Parallel.Start(() =>
             {
                 try
@@ -433,16 +439,17 @@ namespace NaniteConstructionSystem.Entities.Targets
                 catch (Exception e)
                     {Logging.Instance.WriteLine($"{e}");}
             });
-            
+
         }
 
         public void CompleteTarget(IMySlimBlock obj)
         {
             Logging.Instance.WriteLine(string.Format("[Deconstruction] Completing Deconstruction Target: {0} - {1} (EntityID={2},Position={3})",
-              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position), 1);
+            m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position), 1);
 
-            if (Sync.IsServer)
+            if (Sync.IsServer) {
                 m_constructionBlock.SendCompleteTarget(obj, TargetTypes.Deconstruction);
+            }
 
             m_constructionBlock.ParticleManager.CompleteTarget(obj);
             m_constructionBlock.ToolManager.Remove(obj);
@@ -632,7 +639,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
             }
 
-            // Find user defined priority blocks for deconstruction.  
+            // Find user defined priority blocks for deconstruction.
             FindPriorityBlocks(deconstruct, currentBlock);
 
             Logging.Instance.WriteLine($"[Deconstruction] Block Count: {deconstruct.RemoveList.Count}", 1);

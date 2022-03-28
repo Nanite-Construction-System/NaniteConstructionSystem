@@ -1,6 +1,8 @@
+using System;
 using Sandbox.Common.ObjectBuilders;
 using VRage.Game.Components;
 using VRage.ObjectBuilders;
+using VRage.Utils;
 using Sandbox.ModAPI;
 using NaniteConstructionSystem.Extensions;
 
@@ -38,8 +40,12 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
         public override void UpdateBeforeSimulation10()
         {
-            base.UpdateBeforeSimulation10();
-            m_beacon.Update();
+            try {
+                base.UpdateBeforeSimulation10();
+                m_beacon.Update();
+            } catch(Exception exc) {
+                MyLog.Default.WriteLineAndConsole($"##MOD: nanites UpdateBeforeSimulation10, ERROR: {exc}");
+            }
         }
     }
 }

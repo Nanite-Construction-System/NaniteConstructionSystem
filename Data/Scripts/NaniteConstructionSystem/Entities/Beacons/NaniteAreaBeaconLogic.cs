@@ -1,8 +1,9 @@
+using System;
 using Sandbox.Common.ObjectBuilders;
 using VRage.Game.Components;
 using VRage.ObjectBuilders;
+using VRage.Utils;
 using Sandbox.ModAPI;
-
 using NaniteConstructionSystem.Extensions;
 
 namespace NaniteConstructionSystem.Entities.Beacons
@@ -23,13 +24,18 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
         public override void UpdateOnceBeforeFrame()
         {
-            base.UpdateOnceBeforeFrame();
+            try {
+                base.UpdateOnceBeforeFrame();
 
-            Logging.Instance.WriteLine($"ADDING Area Beacon: {Entity.EntityId}", 1);
-            m_beacon = new NaniteAreaBeacon((IMyFunctionalBlock)Entity);
+                Logging.Instance.WriteLine($"ADDING Area Beacon: {Entity.EntityId}", 1);
+                m_beacon = new NaniteAreaBeacon((IMyFunctionalBlock)Entity);
 
-            if (Sync.IsClient)
-                NaniteConstructionManager.NaniteSync.SendNeedBeaconTerminalSettings(Entity.EntityId);
+                if (Sync.IsClient)
+                    NaniteConstructionManager.NaniteSync.SendNeedBeaconTerminalSettings(Entity.EntityId);
+
+            } catch(Exception exc) {
+                MyLog.Default.WriteLineAndConsole($"##MOD: nanites UpdateOnceBeforeFrame, ERROR: {exc}");
+            }
         }
 
         public override void Close()
@@ -38,7 +44,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
             {
                 if (m_beacon != null)
                     m_beacon.Close();
-            
+
                 base.Close();
             }
             catch (System.Exception e)
@@ -47,8 +53,12 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
         public override void UpdateBeforeSimulation()
         {
-            base.UpdateBeforeSimulation();
-            m_beacon.Update();
+            try {
+                base.UpdateBeforeSimulation();
+                m_beacon.Update();
+            } catch(Exception exc) {
+                MyLog.Default.WriteLineAndConsole($"##MOD: nanites UpdateBeforeSimulation, ERROR: {exc}");
+            }
         }
     }
 }

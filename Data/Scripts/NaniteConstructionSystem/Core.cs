@@ -33,6 +33,7 @@ using NaniteConstructionSystem.Particles;
 using NaniteConstructionSystem.Settings;
 using NaniteConstructionSystem.Entities.Detectors;
 using NaniteConstructionSystem;
+using NaniteConstructionSystem.Integration;
 
 namespace NaniteConstructionSystem
 {
@@ -230,7 +231,7 @@ namespace NaniteConstructionSystem
             {
                 Logging.Instance.WriteLine($"Logging Started: Nanite Control Facility | Version {NaniteVersion.Major}.{NaniteVersion.Revision} | Build {NaniteVersion.Build}");
                 Logging.Instance.WriteLine($"IsClient: {Sync.IsClient} | IsServer {Sync.IsServer} | IsDedicated {Sync.IsDedicated}");
-                
+
                 if (Sync.IsClient)
                 {
                     MyAPIGateway.Entities.OnEntityAdd += Entities_OnEntityAdd;
@@ -285,6 +286,8 @@ namespace NaniteConstructionSystem
 
         private void Session_OnSessionReady()
         {
+            ProjectorIntegration.LogVersion();
+
             CleanupOldBlocks();
 
             if (Sync.IsClient)
@@ -313,7 +316,7 @@ namespace NaniteConstructionSystem
             {
                 if (m_updateTimer++ % 60 == 0)
                     Logging.Instance.WriteToFile();
-                
+
                 ParticleManager.Update();
             }
             catch (Exception e)
@@ -1074,7 +1077,7 @@ namespace NaniteConstructionSystem
             {
                 if (block == null || block.BlockDefinition.IsNull() || block.BlockDefinition.SubtypeName == null)
                     return;
-            
+
                 Logging.Instance.WriteLine($"CustomControlGetter : {block.BlockDefinition.SubtypeName}");
                 if (block.BlockDefinition.SubtypeName == "LargeNaniteAreaBeacon")
                 {
@@ -1097,7 +1100,15 @@ namespace NaniteConstructionSystem
                     return;
                 }
                 else if (block.BlockDefinition.SubtypeName == "LargeNaniteControlFacility")
-                { 
+                {
+                    controls.RemoveAt(controls.Count - 1);
+                        // Remove "Help Others" checkbox, since the block is a ShipWelder
+
+                    foreach (var item in m_customControls)
+                        controls.Add(item);
+                }
+                else if (block.BlockDefinition.SubtypeName == "SmallNaniteControlFacility")
+                {
                     controls.RemoveAt(controls.Count - 1);
                         // Remove "Help Others" checkbox, since the block is a ShipWelder
 
@@ -1107,7 +1118,7 @@ namespace NaniteConstructionSystem
                 else if (block.BlockDefinition.SubtypeName == "LargeNaniteOreDetector")
                 {
                     controls.RemoveRange(controls.Count - 2, 2);
-                    (m_customOreDetectorControls[0] as IMyTerminalControlSlider).SetLimits(0, (block.GameLogic as LargeNaniteOreDetectorLogic).Detector.MaxRange);
+                    (m_customOreDetectorControls[0] as IMyTerminalControlSlider).SetLimits((block.GameLogic as LargeNaniteOreDetectorLogic).Detector.MaxRange, (block.GameLogic as LargeNaniteOreDetectorLogic).Detector.MaxRange);
                     controls.AddRange(m_customOreDetectorControls);
                     return;
                 }
@@ -1126,7 +1137,7 @@ namespace NaniteConstructionSystem
             {
 
                 Localization.Help(messageText, out donothing, out message, out title);
-               
+
                 if (!donothing)
                 {
                     MyAPIGateway.Utilities.ShowMissionScreen("Nanite Control Factory", title, "", message);
@@ -1155,6 +1166,14 @@ namespace NaniteConstructionSystem
         {
             var def = MyDefinitionManager.Static.GetCubeBlockDefinition(new MyDefinitionId(typeof(MyObjectBuilder_ShipWelder), "LargeNaniteControlFacility"));
             foreach (var item in def.Components)
+            {
+                item.Count = (int)((float)item.Count * m_settings.FactoryComponentMultiplier);
+                if (item.Count < 1)
+                    item.Count = 1;
+            }
+
+            var def2 = MyDefinitionManager.Static.GetCubeBlockDefinition(new MyDefinitionId(typeof(MyObjectBuilder_ShipWelder), "SmallNaniteControlFacility"));
+            foreach (var item in def2.Components)
             {
                 item.Count = (int)((float)item.Count * m_settings.FactoryComponentMultiplier);
                 if (item.Count < 1)
@@ -1218,7 +1237,7 @@ namespace NaniteConstructionSystem
             List<NaniteConstructionBlock> blockList = new List<NaniteConstructionBlock>();
 
             foreach (var item in NaniteBlocks)
-                if (MyAPIGateway.GridGroups.GetGroup(grid, GridLinkTypeEnum.Physical).Contains(item.Value.ConstructionBlock.CubeGrid) 
+                if (MyAPIGateway.GridGroups.GetGroup(grid, GridLinkTypeEnum.Physical).Contains(item.Value.ConstructionBlock.CubeGrid)
                   && !blockList.Contains(item.Value))
                     blockList.Add(item.Value);
 

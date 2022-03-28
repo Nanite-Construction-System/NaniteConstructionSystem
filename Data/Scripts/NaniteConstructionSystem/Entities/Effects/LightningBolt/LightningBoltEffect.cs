@@ -42,12 +42,17 @@ namespace NaniteConstructionSystem.Entities.Effects.LightningBolt
         {
             m_source = block;
             m_activeBolts = new List<LightningBoltInstance>();
+            var def = m_source.BlockDefinition as MyCubeBlockDefinition;
+            var isSmall = false;
+
+            if (def.Id.SubtypeId.ToString() == "SmallNaniteControlFacility")
+                isSmall = true;
 
             if (m_boltPool == null)
-                InitializeBoltPools();
+                InitializeBoltPools(isSmall);
         }
 
-        private void InitializeBoltPools()
+        private void InitializeBoltPools(bool isSmall)
         {
             m_boltPool = new List<LightningBoltItem>();
             m_boltPathPool = new List<LightningBoltPath>();
@@ -55,28 +60,32 @@ namespace NaniteConstructionSystem.Entities.Effects.LightningBolt
             for (int r = 0; r < 50; r++)
             {
                 for (int s = 0; s < 1; s++)
-                    m_boltPool.Add(new LightningBoltItem(Vector3D.Zero, new Vector3D(0f, 4f, 0f)));
+                    if (!isSmall) {
+                        m_boltPool.Add(new LightningBoltItem(Vector3D.Zero, new Vector3D(0f, 4f, 0f)));
+                    }
             }
 
-            m_boltPathPool.Add(new LightningBoltPath(new Vector3D(1.96f, 2.98f, 1.96f), new Vector3D(2.4f, 1.35, 2.4f), new Vector4(0.45f, 0.45f, 0.75f, 0.75f)));
-            m_boltPathPool.Add(new LightningBoltPath(new Vector3D(-1.96f, 2.98f, 1.96f), new Vector3D(-2.4f, 1.35, 2.4f), new Vector4(0.45f, 0.45f, 0.75f, 0.75f)));
-            m_boltPathPool.Add(new LightningBoltPath(new Vector3D(1.96f, 2.98f, -1.96f), new Vector3D(2.4f, 1.35, -2.4f), new Vector4(0.45f, 0.45f, 0.75f, 0.75f)));
-            m_boltPathPool.Add(new LightningBoltPath(new Vector3D(-1.96f, 2.98f, -1.96f), new Vector3D(-2.4f, 1.35, -2.4f), new Vector4(0.45f, 0.45f, 0.75f, 0.75f)));
+            if (!isSmall) {
+                m_boltPathPool.Add(new LightningBoltPath(new Vector3D(1.96f, 2.98f, 1.96f), new Vector3D(2.4f, 1.35, 2.4f), new Vector4(0.45f, 0.45f, 0.75f, 0.75f)));
+                m_boltPathPool.Add(new LightningBoltPath(new Vector3D(-1.96f, 2.98f, 1.96f), new Vector3D(-2.4f, 1.35, 2.4f), new Vector4(0.45f, 0.45f, 0.75f, 0.75f)));
+                m_boltPathPool.Add(new LightningBoltPath(new Vector3D(1.96f, 2.98f, -1.96f), new Vector3D(2.4f, 1.35, -2.4f), new Vector4(0.45f, 0.45f, 0.75f, 0.75f)));
+                m_boltPathPool.Add(new LightningBoltPath(new Vector3D(-1.96f, 2.98f, -1.96f), new Vector3D(-2.4f, 1.35, -2.4f), new Vector4(0.45f, 0.45f, 0.75f, 0.75f)));
 
-            m_boltPathPool.Add(new LightningBoltPath(new Vector3D(2.4f, 1.35, 2.4f), new Vector3D(1.96f, 2.98f, 1.96f), new Vector4(0.75f, 0.45f, 0.75f, 0.75f)));
-            m_boltPathPool.Add(new LightningBoltPath(new Vector3D(-2.4f, 1.35, 2.4f), new Vector3D(-1.96f, 2.98f, 1.96f), new Vector4(0.75f, 0.45f, 0.75f, 0.75f)));
-            m_boltPathPool.Add(new LightningBoltPath(new Vector3D(2.4f, 1.35, -2.4f), new Vector3D(1.96f, 2.98f, -1.96f), new Vector4(0.75f, 0.45f, 0.75f, 0.75f)));
-            m_boltPathPool.Add(new LightningBoltPath(new Vector3D(-2.4f, 1.35, -2.4f), new Vector3D(-1.96f, 2.98f, -1.96f), new Vector4(0.75f, 0.45f, 0.75f, 0.75f)));
+                m_boltPathPool.Add(new LightningBoltPath(new Vector3D(2.4f, 1.35, 2.4f), new Vector3D(1.96f, 2.98f, 1.96f), new Vector4(0.75f, 0.45f, 0.75f, 0.75f)));
+                m_boltPathPool.Add(new LightningBoltPath(new Vector3D(-2.4f, 1.35, 2.4f), new Vector3D(-1.96f, 2.98f, 1.96f), new Vector4(0.75f, 0.45f, 0.75f, 0.75f)));
+                m_boltPathPool.Add(new LightningBoltPath(new Vector3D(2.4f, 1.35, -2.4f), new Vector3D(1.96f, 2.98f, -1.96f), new Vector4(0.75f, 0.45f, 0.75f, 0.75f)));
+                m_boltPathPool.Add(new LightningBoltPath(new Vector3D(-2.4f, 1.35, -2.4f), new Vector3D(-1.96f, 2.98f, -1.96f), new Vector4(0.75f, 0.45f, 0.75f, 0.75f)));
 
-            m_boltPathPool.Add(new LightningBoltPath(new Vector3D(2.4f, 1.35, 2.4f), new Vector3D(1.96f, -0.25f, 1.96f), new Vector4(0.75f, 0.45f, 0.75f, 0.75f)));
-            m_boltPathPool.Add(new LightningBoltPath(new Vector3D(-2.4f, 1.35, 2.4f), new Vector3D(-1.96f, -0.25f, 1.96f), new Vector4(0.75f, 0.45f, 0.75f, 0.75f)));
-            m_boltPathPool.Add(new LightningBoltPath(new Vector3D(2.4f, 1.35, -2.4f), new Vector3D(1.96f, -0.25f, -1.96f), new Vector4(0.75f, 0.45f, 0.75f, 0.75f)));
-            m_boltPathPool.Add(new LightningBoltPath(new Vector3D(-2.4f, 1.35, -2.4f), new Vector3D(-1.96f, -0.25f, -1.96f), new Vector4(0.75f, 0.45f, 0.75f, 0.75f)));
+                m_boltPathPool.Add(new LightningBoltPath(new Vector3D(2.4f, 1.35, 2.4f), new Vector3D(1.96f, -0.25f, 1.96f), new Vector4(0.75f, 0.45f, 0.75f, 0.75f)));
+                m_boltPathPool.Add(new LightningBoltPath(new Vector3D(-2.4f, 1.35, 2.4f), new Vector3D(-1.96f, -0.25f, 1.96f), new Vector4(0.75f, 0.45f, 0.75f, 0.75f)));
+                m_boltPathPool.Add(new LightningBoltPath(new Vector3D(2.4f, 1.35, -2.4f), new Vector3D(1.96f, -0.25f, -1.96f), new Vector4(0.75f, 0.45f, 0.75f, 0.75f)));
+                m_boltPathPool.Add(new LightningBoltPath(new Vector3D(-2.4f, 1.35, -2.4f), new Vector3D(-1.96f, -0.25f, -1.96f), new Vector4(0.75f, 0.45f, 0.75f, 0.75f)));
 
-            m_boltPathPool.Add(new LightningBoltPath(new Vector3D(1.96f, -0.25f, 1.96f), new Vector3D(2.4f, 1.35, 2.4f), new Vector4(0.45f, 0.45f, 0.75f, 0.75f)));
-            m_boltPathPool.Add(new LightningBoltPath(new Vector3D(-1.96f, -0.25f, 1.96f), new Vector3D(-2.4f, 1.35, 2.4f), new Vector4(0.45f, 0.45f, 0.75f, 0.75f)));
-            m_boltPathPool.Add(new LightningBoltPath(new Vector3D(1.96f, -0.25f, -1.96f), new Vector3D(2.4f, 1.35, -2.4f), new Vector4(0.45f, 0.45f, 0.75f, 0.75f)));
-            m_boltPathPool.Add(new LightningBoltPath(new Vector3D(-1.96f, -0.25f, -1.96f), new Vector3D(-2.4f, 1.35, -2.4f), new Vector4(0.45f, 0.45f, 0.75f, 0.75f)));
+                m_boltPathPool.Add(new LightningBoltPath(new Vector3D(1.96f, -0.25f, 1.96f), new Vector3D(2.4f, 1.35, 2.4f), new Vector4(0.45f, 0.45f, 0.75f, 0.75f)));
+                m_boltPathPool.Add(new LightningBoltPath(new Vector3D(-1.96f, -0.25f, 1.96f), new Vector3D(-2.4f, 1.35, 2.4f), new Vector4(0.45f, 0.45f, 0.75f, 0.75f)));
+                m_boltPathPool.Add(new LightningBoltPath(new Vector3D(1.96f, -0.25f, -1.96f), new Vector3D(2.4f, 1.35, -2.4f), new Vector4(0.45f, 0.45f, 0.75f, 0.75f)));
+                m_boltPathPool.Add(new LightningBoltPath(new Vector3D(-1.96f, -0.25f, -1.96f), new Vector3D(-2.4f, 1.35, -2.4f), new Vector4(0.45f, 0.45f, 0.75f, 0.75f)));
+            }
         }
 
         public override void ActiveUpdate()
@@ -101,7 +110,7 @@ namespace NaniteConstructionSystem.Entities.Effects.LightningBolt
                 }
             }
 
-            if (m_activeBolts.Count < m_maxBolts && m_globalBolts < m_globalMaxBolts)
+            if (m_activeBolts.Count < m_maxBolts && m_globalBolts < m_globalMaxBolts && m_boltPathPool.Count > 0)
             {
                 int numAdd = Math.Min(2, m_maxBolts - m_activeBolts.Count);                
                 for (int r = 0; r < numAdd; r++)
@@ -118,7 +127,7 @@ namespace NaniteConstructionSystem.Entities.Effects.LightningBolt
             {
                 var activeItem = m_activeBolts[s];
 
-                Vector3D sourceBolt = new Vector3D(0f, 4f, 0f);
+                Vector3D sourceBolt = new Vector3D(0f, 2f, 0f);
                 Vector3D startBoltPoint = activeItem.Path.Start - new Vector3D(0f, 1.5f, 0f);
                 Vector3D endBoltPoint = activeItem.Path.End - new Vector3D(0f, 1.5f, 0f);
                 Vector3D endDiff = endBoltPoint - startBoltPoint;

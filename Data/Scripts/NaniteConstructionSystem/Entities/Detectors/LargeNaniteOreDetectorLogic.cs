@@ -9,6 +9,7 @@ using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.ObjectBuilders;
+using VRage.Utils;
 
 namespace NaniteConstructionSystem.Entities.Detectors
 {
@@ -32,86 +33,98 @@ namespace NaniteConstructionSystem.Entities.Detectors
             m_detector = new LargeNaniteOreDetector((IMyFunctionalBlock)Entity);
 
             base.Init(objectBuilder);
-            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;         
+            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
         }
 
         public override void UpdateOnceBeforeFrame()
         {
-            base.UpdateOnceBeforeFrame();
-            m_detector.Init();
+            try {
+                base.UpdateOnceBeforeFrame();
+                m_detector.Init();
 
-            NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
+                NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_100TH_FRAME;
 
-            if (Sync.IsClient)
-            {
-                NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_FRAME;
-                (Entity as IMyOreDetector).AppendingCustomInfo += m_detector.AppendingCustomInfo;
+                if (Sync.IsClient)
+                {
+                    NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_FRAME;
+                    (Entity as IMyOreDetector).AppendingCustomInfo += m_detector.AppendingCustomInfo;
+                }
+            } catch(Exception exc) {
+                MyLog.Default.WriteLineAndConsole($"##MOD: nanites UpdateOnceBeforeFrame, ERROR: {exc}");
             }
         }
 
         public override void UpdateBeforeSimulation()
         { // CLIENT ONLY
-            base.UpdateBeforeSimulation();
+            try {
+                base.UpdateBeforeSimulation();
 
-            m_detector.DrawStatus();
-            m_detector.DrawScanningSphere();
+                m_detector.DrawStatus();
+                m_detector.DrawScanningSphere();
+            } catch(Exception exc) {
+                MyLog.Default.WriteLineAndConsole($"##MOD: nanites UpdateBeforeSimulation, ERROR: {exc}");
+            }
         }
-        
+
         public override void UpdateBeforeSimulation100()
         {
-            base.UpdateBeforeSimulation100();
+            try {
+                base.UpdateBeforeSimulation100();
 
-            if (Sync.IsServer)
-            {
-                MyAPIGateway.Parallel.Start(() =>
+                if (Sync.IsServer)
                 {
-                    try
-                        { m_detector.CheckScan(); }
-                    catch (Exception e)
-                        {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteOreDetector.CheckScan exception: {e}");}
-                });
-
-                bool forceRescan = false;
-                if (OldRange != m_detector.Range)
-                {
-                    forceRescan = true;
-                    OldRange = m_detector.Range;
-                }
-                if (OldOreListSelected != m_detector.OreListSelected)
-                {
-                    forceRescan = true;
-                    OldOreListSelected = m_detector.OreListSelected;
-                }
-                if (forceRescan)
-                    m_detector.DepositGroup.Clear();
-
-                m_detector.UpdateStatus();
-            }
-                
-
-            if (Sync.IsClient && MyAPIGateway.Gui?.GetCurrentScreen == MyTerminalPageEnum.ControlPanel)
-            {
-                string oldCustomInfo = (Entity as IMyOreDetector).CustomInfo;
-                (Entity as IMyOreDetector).RefreshCustomInfo();
-
-                if ((Entity as IMyOreDetector).CustomInfo != oldCustomInfo)
-                {
-                    MyCubeBlock cubeBlock = (MyCubeBlock)(IMyCubeBlock)m_detector.Block;
-                    MyOwnershipShareModeEnum shareMode;
-                    long ownerId;
-
-                    if (cubeBlock.IDModule != null)
+                    MyAPIGateway.Parallel.Start(() =>
                     {
-                        ownerId = cubeBlock.IDModule.Owner;
-                        shareMode = cubeBlock.IDModule.ShareMode;
-                    }
-                    else
-                        return;
+                        try
+                            { m_detector.CheckScan(); }
+                        catch (Exception e)
+                            {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteOreDetector.CheckScan exception: {e}");}
+                    });
 
-                    cubeBlock.ChangeOwner(ownerId, shareMode == MyOwnershipShareModeEnum.None ? MyOwnershipShareModeEnum.Faction : MyOwnershipShareModeEnum.None);
-                    cubeBlock.ChangeOwner(ownerId, shareMode);
+                    bool forceRescan = false;
+                    if (OldRange != m_detector.Range)
+                    {
+                        forceRescan = true;
+                        OldRange = m_detector.Range;
+                    }
+                    if (OldOreListSelected != m_detector.OreListSelected)
+                    {
+                        forceRescan = true;
+                        OldOreListSelected = m_detector.OreListSelected;
+                    }
+                    if (forceRescan)
+                        m_detector.DepositGroup.Clear();
+
+                    m_detector.UpdateStatus();
                 }
-            }           
+
+
+                if (Sync.IsClient && MyAPIGateway.Gui?.GetCurrentScreen == MyTerminalPageEnum.ControlPanel)
+                {
+                    string oldCustomInfo = (Entity as IMyOreDetector).CustomInfo;
+                    (Entity as IMyOreDetector).RefreshCustomInfo();
+
+                    if ((Entity as IMyOreDetector).CustomInfo != oldCustomInfo)
+                    {
+                        MyCubeBlock cubeBlock = (MyCubeBlock)(IMyCubeBlock)m_detector.Block;
+                        MyOwnershipShareModeEnum shareMode;
+                        long ownerId;
+
+                        if (cubeBlock.IDModule != null)
+                        {
+                            ownerId = cubeBlock.IDModule.Owner;
+                            shareMode = cubeBlock.IDModule.ShareMode;
+                        }
+                        else
+                            return;
+
+                        cubeBlock.ChangeOwner(ownerId, shareMode == MyOwnershipShareModeEnum.None ? MyOwnershipShareModeEnum.Faction : MyOwnershipShareModeEnum.None);
+                        cubeBlock.ChangeOwner(ownerId, shareMode);
+                    }
+                }
+            } catch(Exception exc) {
+                MyLog.Default.WriteLineAndConsole($"##MOD: nanites UpdateBeforeSimulation100, ERROR: {exc}");
+            }
         }
 
         public override bool IsSerialized()

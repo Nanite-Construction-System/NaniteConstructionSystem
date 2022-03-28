@@ -63,10 +63,10 @@ namespace NaniteConstructionSystem
                 m_waitingList.Add(new WaitingToLog(text, logging));
                 return;
             }
-                
+
             if (NaniteConstructionManager.Settings.DebugLogging != null && NaniteConstructionManager.Settings.DebugLogging < logging)
                 return;
-            
+
             MyAPIGateway.Parallel.Start(() =>
             {
                 try
@@ -103,7 +103,7 @@ namespace NaniteConstructionSystem
 
                             i++;
                         }
-                            
+
                         while (!iterateList.IsEmpty)
                         {
                             WaitingToLog waitingItem = null;
@@ -112,8 +112,8 @@ namespace NaniteConstructionSystem
                             if (waitingItem != null)
                                 Instance.WriteLine(waitingItem.Text, waitingItem.Logging);
                         }
-                    }                    
-                    
+                    }
+
                     if (m_writer == null)
                     {
                         if (MyAPIGateway.Utilities == null)
@@ -138,7 +138,7 @@ namespace NaniteConstructionSystem
                     { MyLog.Default.WriteLineAndConsole($"Nanite.Logging.WriteToFile Error: {e.ToString()}"); }
                 finally
                     { m_busy = false; }
-                
+
             });
         }
 

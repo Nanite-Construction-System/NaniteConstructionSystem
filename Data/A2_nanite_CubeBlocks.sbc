@@ -57,7 +57,7 @@
         <GroupSubtype>NaniteController</GroupSubtype>
       </UnlockedByGroups>
 	</ResearchBlock>
-    <ResearchBlock xsi:type="ResearchBlock">	  
+    <ResearchBlock xsi:type="ResearchBlock">
         <Id Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteConstructUpgrade" />
       <UnlockedByGroups>
         <GroupSubtype>NaniteController</GroupSubtype>
@@ -157,10 +157,10 @@
             <Blocks>
                 <Block Type="MyObjectBuilder_ShipWelder" Subtype="LargeNaniteControlFacility" />
                 <Block Type="MyObjectBuilder_OreDetector" Subtype="LargeNaniteOreDetector" />
-				
+
             </Blocks>
         </BlockVariantGroup>
-		
+
         <BlockVariantGroup>
             <Id Type="MyObjectBuilder_BlockVariantGroup" Subtype="NaniteBeaconGroup" />
             <Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
@@ -176,7 +176,7 @@
                 <Block Type="MyObjectBuilder_Projector" Subtype="LargeNaniteAreaBeacon" />
             </Blocks>
         </BlockVariantGroup>
-		
+
         <BlockVariantGroup>
             <Id Type="MyObjectBuilder_BlockVariantGroup" Subtype="NaniteUpgradeGroup" />
             <Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
@@ -192,7 +192,7 @@
                 <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NanitePowerUpgrade" />
             </Blocks>
         </BlockVariantGroup>
-		
+
         <BlockVariantGroup>
             <Id Type="MyObjectBuilder_BlockVariantGroup" Subtype="NaniteMiningUpgradeGroup" />
             <Icon>Textures\GUI\Icons\Cubes\OreDetectorUpgrades.dds</Icon>
@@ -205,7 +205,7 @@
                 <Block Type="MyObjectBuilder_UpgradeModule" Subtype="NaniteOreDetectorUpgradePowerEfficiency" />
             </Blocks>
         </BlockVariantGroup>
-        
+
   </BlockVariantGroups>
 
 <!-- All Nanite Blocks -->
@@ -259,7 +259,7 @@
 				<Z>1</Z>
 			</InventorySize>
 			<BlockPairName>NaniteControlFacility</BlockPairName>
-			<Description>A facility that produces nanites that will mine, collect, weld, grind, and heal. It requires at least 100MW of power to operate. 
+			<Description>A facility that produces nanites that will mine, collect, weld, grind, and heal. It requires at least 100MW of power to operate.
 			Beacons are required for the nanites to lock onto grids. Ore, ingots, and components are picked up by the cleanup nanites.</Description>
 			<MirroringY>Z</MirroringY>
 			<MirroringZ>Y</MirroringZ>
@@ -275,7 +275,8 @@
 			<SensorOffset>0</SensorOffset>
 			<PCU>7500</PCU>
 		</Definition>
-	<!--	 <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
+
+	    <Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
 			<Id>
 				<TypeId>ShipWelder</TypeId>
 				<SubtypeId>SmallNaniteControlFacility</SubtypeId>
@@ -285,7 +286,7 @@
 			<CubeSize>Small</CubeSize>
 			<BlockTopology>TriangleMesh</BlockTopology>
 			<Size x="5" y="5" z="6" />
-			<Center x="0" y="0" z="0" />
+			<Center x="2" y="2" z="0" />
 			<ModelOffset x="0" y="0" z="0"/>
 			<Model>Models\Cubes\Small\SmallNaniteController.mwm</Model>
 			<Components>
@@ -303,7 +304,7 @@
 				<Component Subtype="SteelPlate" Count="90"/>
 				<Component Subtype="InteriorPlate" Count="40"/>
 			</Components>
-			<CriticalComponent Subtype="Display" Index="0"/>
+			<CriticalComponent Subtype="Motor" Index="0"/>
 			<MountPoints>
 				<MountPoint Side="Front" StartX="0.77" StartY="0.73" EndX="4.23" EndY="4.27" />
 				<MountPoint Side="Back" StartX="0.77" StartY="0.73" EndX="4.23" EndY="4.27" Default="true" />
@@ -317,8 +318,8 @@
 				<MountPoint Side="Top" StartX="0.53" StartY="1.93" EndX="0.84" EndY="4.07" />
 			</MountPoints>
 			<BuildProgressModels>
-				<Model BuildPercentUpperBound="0.50" File="Models\SmallNaniteController_Constr1.mwm" />
-				<Model BuildPercentUpperBound="1.00" File="Models\SmallNaniteController_Constr2.mwm" />
+				<Model BuildPercentUpperBound="0.50" File="Models\Cubes\small\SmallNaniteController_Constr1.mwm" />
+				<Model BuildPercentUpperBound="1.00" File="Models\Cubes\small\SmallNaniteController_Constr2.mwm" />
 			</BuildProgressModels>
 			<InventorySize>
 				<X>1</X>
@@ -326,7 +327,7 @@
 				<Z>1</Z>
 			</InventorySize>
 			<BlockPairName>NaniteControlFacility</BlockPairName>
-			<Description>A small version of the facility that only does cleanup and repair.</Description>
+			<Description>A small version of the facility that can't have any upgrade modules attached.</Description>
 			<MirroringY>Z</MirroringY>
 			<MirroringZ>Y</MirroringZ>
 			<BuildTimeSeconds>80</BuildTimeSeconds>
@@ -339,8 +340,8 @@
 			<EmissiveColorPreset>Default</EmissiveColorPreset>
 			<SensorRadius>.2</SensorRadius>
 			<SensorOffset>0</SensorOffset>
-			<PCU>2000</PCU>
-		</Definition> -->
+			<PCU>3000</PCU>
+		</Definition>
 
 		<!-- Nanite Ore Detector -->
 		<Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
@@ -404,7 +405,7 @@
 			<EmissiveColorPreset>Default</EmissiveColorPreset>
 			<PCU>5500</PCU>
 		</Definition>
-		
+
 		<!-- <Definition xsi:type="MyObjectBuilder_OreDetectorDefinition">
 			<Id>
 				<TypeId>OreDetector</TypeId>
@@ -468,13 +469,13 @@
 			<ResourceSinkGroup>Utility</ResourceSinkGroup>
 			<EmissiveColorPreset>Default</EmissiveColorPreset>
 			<PCU>5000</PCU>
-		</Definition> -->	
-	
-	
-	
-<!-- Beacons -->	
-	
-	
+		</Definition> -->
+
+
+
+<!-- Beacons -->
+
+
 		<!-- Nanite Upgrades -->
 		<Definition xsi:type="MyObjectBuilder_UpgradeModuleDefinition">
 			<Id>
@@ -1422,9 +1423,9 @@
 		</Definition>
 
 
-<!-- Nanite welder and grinder placeholders -->		
-	
-	
+<!-- Nanite welder and grinder placeholders -->
+
+
 		<Definition xsi:type="MyObjectBuilder_ShipWelderDefinition">
 			<Id>
 				<TypeId>ShipWelder</TypeId>

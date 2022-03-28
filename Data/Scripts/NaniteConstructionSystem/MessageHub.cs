@@ -238,6 +238,14 @@ namespace NaniteConstructionSystem
                     item.Count = 1;
             }
 
+            var def2 = MyDefinitionManager.Static.GetCubeBlockDefinition(new MyDefinitionId(typeof(MyObjectBuilder_ShipWelder), "SmallNaniteControlFacility"));
+            foreach (var item in def2.Components)
+            {
+                item.Count = (int)((float)item.Count * NaniteConstructionManager.Settings.FactoryComponentMultiplier);
+                if (item.Count < 1)
+                    item.Count = 1;
+            }
+
             foreach (var item in NaniteConstructionManager.NaniteBlocks)
             {
                 IMySlimBlock slimBlock = ((MyCubeBlock)item.Value.ConstructionBlock).SlimBlock as IMySlimBlock;

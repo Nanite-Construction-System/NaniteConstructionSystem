@@ -707,9 +707,9 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
             scanningSpeed += (int)detectorComponent.ScanningUpgradesNum * 2;
 
-            Logging.Instance.WriteLine($"scanningSpeed sphere moved {scanningSpeed}");
+            // Logging.Instance.WriteLine($"scanningSpeed sphere moved {scanningSpeed}");
 
-            Logging.Instance.WriteLine($"SpawnQueueWorker {Math.Min(m_taskQueue.Count, scanningSpeed)}", 1);               
+            // Logging.Instance.WriteLine($"SpawnQueueWorker {Math.Min(m_taskQueue.Count, scanningSpeed)}", 1);
             for (int i = 0; i < Math.Min(m_taskQueue.Count, scanningSpeed); i++)
             {
                 Vector3I vector;

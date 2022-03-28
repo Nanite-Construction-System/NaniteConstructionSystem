@@ -190,7 +190,7 @@ namespace NaniteConstructionSystem.Settings
 			if (MyAPIGateway.Utilities.FileExistsInWorldStorage(fileName, typeof(NaniteSettings))){
                 try{
                     Logging.Instance.WriteLine("Loading: " + fileName);
-					
+
 					using (var reader = MyAPIGateway.Utilities.ReadFileInWorldStorage(fileName, typeof(NaniteSettings)))
 						return MyAPIGateway.Utilities.SerializeFromXML<T>(reader.ReadToEnd());
 

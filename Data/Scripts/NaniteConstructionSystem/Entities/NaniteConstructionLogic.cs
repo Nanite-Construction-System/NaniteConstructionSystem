@@ -1,12 +1,14 @@
+using System;
 using Sandbox.Common.ObjectBuilders;
 using VRage.Game.Components;
 using VRage.ObjectBuilders;
 using VRage.Game.ModAPI;
+using VRage.Utils;
 using Sandbox.Game.Entities;
 
 namespace NaniteConstructionSystem.Entities
 {
-    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_ShipWelder), true, "LargeNaniteControlFacility")]
+    [MyEntityComponentDescriptor(typeof(MyObjectBuilder_ShipWelder), true, "LargeNaniteControlFacility", "SmallNaniteControlFacility")]
     public class LargeControlFacilityLogic : MyGameLogicComponent
     {
         private NaniteConstructionBlock m_block = null;
@@ -20,22 +22,27 @@ namespace NaniteConstructionSystem.Entities
 
         public override void UpdateOnceBeforeFrame()
         {
-            base.UpdateOnceBeforeFrame();
+            try {
+                base.UpdateOnceBeforeFrame();
 
-            m_block = new NaniteConstructionBlock(Entity);
+                m_block = new NaniteConstructionBlock(Entity);
 
-            if (!NaniteConstructionManager.NaniteBlocks.ContainsKey(Entity.EntityId))
-                NaniteConstructionManager.NaniteBlocks.Add(Entity.EntityId, m_block);
+                if (!NaniteConstructionManager.NaniteBlocks.ContainsKey(Entity.EntityId))
+                    NaniteConstructionManager.NaniteBlocks.Add(Entity.EntityId, m_block);
 
-            m_block.UpdateCount += NaniteConstructionManager.NaniteBlocks.Count * 30;
-            // Adds some gap between factory processing so they don't all process their targets at once.
+                m_block.UpdateCount += NaniteConstructionManager.NaniteBlocks.Count * 30;
+                // Adds some gap between factory processing so they don't all process their targets at once.
 
-            IMySlimBlock slimBlock = ((MyCubeBlock)m_block.ConstructionBlock).SlimBlock as IMySlimBlock;
-            Logging.Instance.WriteLine(string.Format("ADDING Nanite Factory: conid={0} physics={1} ratio={2}", 
-              Entity.EntityId, m_block.ConstructionBlock.CubeGrid.Physics == null, slimBlock.BuildLevelRatio), 1);
+                IMySlimBlock slimBlock = ((MyCubeBlock)m_block.ConstructionBlock).SlimBlock as IMySlimBlock;
+                Logging.Instance.WriteLine(string.Format("ADDING Nanite Factory: conid={0} physics={1} ratio={2}",
+                  Entity.EntityId, m_block.ConstructionBlock.CubeGrid.Physics == null, slimBlock.BuildLevelRatio), 1);
 
-            if (NaniteConstructionManager.NaniteSync != null)
-                NaniteConstructionManager.NaniteSync.SendNeedTerminalSettings(Entity.EntityId);
+                if (NaniteConstructionManager.NaniteSync != null)
+                    NaniteConstructionManager.NaniteSync.SendNeedTerminalSettings(Entity.EntityId);
+
+            } catch(Exception exc) {
+                MyLog.Default.WriteLineAndConsole($"##MOD: Nanites UpdateOnceBeforeFrame, ERROR: {exc}");
+            }
         }
 
         public override void UpdateBeforeSimulation()

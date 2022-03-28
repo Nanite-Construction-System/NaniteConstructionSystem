@@ -1,6 +1,8 @@
+using System;
 using Sandbox.Common.ObjectBuilders;
 using VRage.Game.Components;
 using VRage.ObjectBuilders;
+using VRage.Utils;
 using Sandbox.ModAPI;
 using NaniteConstructionSystem.Extensions;
 
@@ -21,10 +23,14 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
         public override void UpdateOnceBeforeFrame()
         {
-            base.UpdateOnceBeforeFrame();
+            try {
+                base.UpdateOnceBeforeFrame();
 
-            Logging.Instance.WriteLine($"ADDING Deconstruction Beacon: {Entity.EntityId}", 1);
-            m_beacon = new NaniteBeaconDeconstruct((IMyFunctionalBlock)Entity);
+                Logging.Instance.WriteLine($"ADDING Deconstruction Beacon: {Entity.EntityId}", 1);
+                m_beacon = new NaniteBeaconDeconstruct((IMyFunctionalBlock)Entity);
+            } catch(Exception exc) {
+                MyLog.Default.WriteLineAndConsole($"##MOD: nanites UpdateOnceBeforeFrame, ERROR: {exc}");
+            }
         }
 
         public override void Close()
@@ -38,8 +44,12 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
         public override void UpdateBeforeSimulation10()
         {
-            base.UpdateBeforeSimulation10();
-            m_beacon.Update();
+            try {
+                base.UpdateBeforeSimulation10();
+                m_beacon.Update();
+            } catch(Exception exc) {
+                MyLog.Default.WriteLineAndConsole($"##MOD: nanites UpdateBeforeSimulation10, ERROR: {exc}");
+            }
         }
     }
 }

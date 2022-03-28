@@ -113,15 +113,24 @@ namespace NaniteConstructionSystem.Particles
                 try
                 {
                     List<NaniteParticle> particlesToRemove = new List<NaniteParticle>();
-                    foreach (var particle in m_particles)
+                    foreach (var particle in m_particles) {
+                        if (particle == null)
+                            continue;
+
                         if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - particle.StartTime > particle.LifeTime)
                             particlesToRemove.Add(particle);
-                    foreach (var particle in particlesToRemove)
+                    }
+
+                    foreach (var particle in particlesToRemove) {
+                        if (particle == null)
+                            continue;
+
                         MyAPIGateway.Utilities.InvokeOnGameThread(() => 
                         {
                             particle.Complete(true);
                             m_particles.Remove(particle);
                         });
+                    }
                 }
                 catch (Exception ex)
                     {VRage.Utils.MyLog.Default.WriteLineAndConsole($"CheckParticleLife() Error: {ex.ToString()}");}

@@ -228,30 +228,37 @@ namespace NaniteConstructionSystem.Particles
 
         public void Complete(bool cancel = false)
         {
-            if (m_complete)
-                return;
-
-            m_complete = true;
-            m_cancel = cancel;
-            int currentIndex = GetCurrentListIndex();
-            if ((m_paths.Count == 3 && currentIndex < 2 && m_paths.Count > 2) ||
-                (m_paths.Count == 6 && currentIndex < 4 && m_paths.Count > 2))
+            try
             {
-                if (m_paths.Count == 3)
-                {
-                    for (int r = 0; r < 3; r++)
-                        m_paths.RemoveAt(0);
-                }
-                else
-                {
-                    for (int r = 0; r < 6; r++)
-                        m_paths.RemoveAt(0);
-                }
+                if (m_complete)
+                    return;
 
-                CreateCompletePath(currentIndex);
-                int timeRemaining = m_lifeTime - ((int)MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - m_startTime);
-                m_lifeTime = Math.Min(20000, Math.Max(8000, timeRemaining));
-                m_startTime = (int)MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds;
+                m_complete = true;
+                m_cancel = cancel;
+                int currentIndex = GetCurrentListIndex();
+                if ((m_paths.Count == 3 && currentIndex < 2 && m_paths.Count > 2) ||
+                    (m_paths.Count == 6 && currentIndex < 4 && m_paths.Count > 2))
+                {
+                    if (m_paths.Count == 3)
+                    {
+                        for (int r = 0; r < 3; r++)
+                            m_paths.RemoveAt(0);
+                    }
+                    else
+                    {
+                        for (int r = 0; r < 6; r++)
+                            m_paths.RemoveAt(0);
+                    }
+
+                    CreateCompletePath(currentIndex);
+                    int timeRemaining = m_lifeTime - ((int)MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - m_startTime);
+                    m_lifeTime = Math.Min(20000, Math.Max(8000, timeRemaining));
+                    m_startTime = (int)MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Logging.Instance.WriteLine(string.Format("Update Exception: {0} - {1} {2}", ex.ToString(), m_paths.Count, GetPathPointCount()));
             }
         }
 
