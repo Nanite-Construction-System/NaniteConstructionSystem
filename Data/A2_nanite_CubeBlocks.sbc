@@ -179,7 +179,7 @@
 
         <BlockVariantGroup>
             <Id Type="MyObjectBuilder_BlockVariantGroup" Subtype="NaniteUpgradeGroup" />
-            <Icon>Textures\GUI\Icons\Cubes\NaniteBeacon.dds</Icon>
+            <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
             <DisplayName>DisplayName_BlockGroup_NaniteUpgrades</DisplayName>
             <Description>Upgrades to control Nanite behavior.</Description>
             <Blocks>

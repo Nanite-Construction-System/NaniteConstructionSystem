@@ -326,7 +326,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 targetPosition = Vector3D.Transform(destinationPosition, target.CubeGrid.WorldMatrix);
             }
 
-            var nearestFactory = GetNearestFactory(TargetName, targetPosition);
+            var nearestFactory = m_constructionBlock;
 
             if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles)
                 MyAPIGateway.Utilities.InvokeOnGameThread(() =>

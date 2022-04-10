@@ -377,7 +377,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     Vector4 startColor = new Vector4(0.75f, 0.75f, 0.0f, 0.75f);
                     Vector4 endColor = new Vector4(0.20f, 0.20f, 0.0f, 0.75f);
 
-                    var nearestFactory = GetNearestFactory(TargetName, target.GetPosition());
+                    var nearestFactory = m_constructionBlock;
                     if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles)
                     MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                     {

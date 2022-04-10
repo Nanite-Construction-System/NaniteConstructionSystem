@@ -433,7 +433,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     removeList.Add(item);
                     continue;
                 }
-                var nearestFactory = GetNearestFactory(TargetName, item.Position);
+                var nearestFactory = m_constructionBlock;
                 if (IsInRange(nearestFactory, item.Position, m_maxDistance))
                 {
                     Logging.Instance.WriteLine(string.Format("[Mining] Adding Mining Target: conid={0} pos={1} type={2}", 
@@ -534,7 +534,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 Vector4 startColor = new Vector4(0.7f, 0.2f, 0.0f, 1f);
                 Vector4 endColor = new Vector4(0.2f, 0.05f, 0.0f, 0.35f);
 
-                var nearestFactory = GetNearestFactory(TargetName, target.Position);
+                var nearestFactory = m_constructionBlock;
 
                 if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles)
                     nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target, null);
@@ -545,7 +545,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void CreateTrackerItem(NaniteMiningItem target)
         {
-            var nearestFactory = GetNearestFactory(TargetName, target.Position);
+            var nearestFactory = m_constructionBlock;
             double distance = Vector3D.Distance(nearestFactory.ConstructionBlock.GetPosition(), target.Position);
             int time = (int)Math.Max(GetMinTravelTime() * 1000f, (distance / GetSpeed()) * 1000f);
 

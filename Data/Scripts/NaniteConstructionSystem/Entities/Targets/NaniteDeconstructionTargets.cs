@@ -425,7 +425,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         targetPosition = Vector3D.Transform(destinationPosition, target.CubeGrid.WorldMatrix);
                     }
 
-                    var nearestFactory = GetNearestFactory(TargetName, targetPosition);
+                    var nearestFactory = m_constructionBlock;
 
                     Vector4 startColor = new Vector4(0.55f, 0.95f, 0.95f, 0.75f);
                     Vector4 endColor = new Vector4(0.05f, 0.35f, 0.35f, 0.75f);
