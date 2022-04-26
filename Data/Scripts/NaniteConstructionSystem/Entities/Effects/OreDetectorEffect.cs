@@ -164,7 +164,8 @@ namespace NaniteConstructionSystem.Entities.Effects
                 else if (!active && m_coreSpeedIterator > 0 && m_updateCount % 30 == 0)
                     m_coreSpeedIterator--;
 
-                subpart.PositionComp.LocalMatrix = subpart.PositionComp.LocalMatrix * Matrix.CreateRotationY(m_coreSpeedIterator * 0.01f);
+                var m = subpart.PositionComp.LocalMatrixRef * Matrix.CreateRotationY(m_coreSpeedIterator * 0.01f);
+                subpart.PositionComp.SetLocalMatrix(ref m);
                 subpart.SetEmissiveParts(EMISSIVE_SUB_SPHERE, Color.Red, m_coreSpeedIterator * 0.01f);
             }
         }

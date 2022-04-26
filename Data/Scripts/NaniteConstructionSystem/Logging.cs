@@ -28,7 +28,7 @@ namespace NaniteConstructionSystem
         private TextWriter m_writer;
         private ConcurrentBag<string> m_writeCache;
         private ConcurrentBag<WaitingToLog> m_waitingList;
-        private FastResourceLock m_lock;
+        //private FastResourceLock m_lock;
         private bool m_busy;
         private string m_logFile;
 
@@ -64,7 +64,7 @@ namespace NaniteConstructionSystem
                 return;
             }
 
-            if (NaniteConstructionManager.Settings.DebugLogging != null && NaniteConstructionManager.Settings.DebugLogging < logging)
+            if (NaniteConstructionManager.Settings.DebugLogging < logging)
                 return;
 
             MyAPIGateway.Parallel.Start(() =>

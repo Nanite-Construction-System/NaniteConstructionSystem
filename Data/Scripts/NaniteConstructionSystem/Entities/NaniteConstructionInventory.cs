@@ -44,7 +44,7 @@ namespace NaniteConstructionSystem.Entities
         {
             if (MyAPIGateway.Session.CreativeMode || ComponentsRequired.Count < 1)
                 return;
-            
+
             List<IMyInventory> removalList = new List<IMyInventory>();
             try
             {
@@ -52,8 +52,8 @@ namespace NaniteConstructionSystem.Entities
                 {
                     IMyInventory inv = null;
                     IMyInventory constructionInventory = GetConstructionInventory();
-                    
-                    if (inventory == null || inventory.CurrentVolume == inventory.MaxVolume) 
+
+                    if (inventory == null || inventory.CurrentVolume == inventory.MaxVolume)
                         continue;
 
                     if (!GridHelper.IsValidInventoryConnection(constructionInventory, inventory, out inv))
@@ -66,30 +66,30 @@ namespace NaniteConstructionSystem.Entities
                     {
                         foreach (var componentNeeded in ComponentsRequired.ToList())
                         {
-                            if (inventoryItem.Content.TypeId != typeof(MyObjectBuilder_Component) || componentNeeded.Value <= 0 
-                            || (int)inventoryItem.Amount <= 0f || inventoryItem.Content.SubtypeName != componentNeeded.Key) 
+                            if (inventoryItem.Content.TypeId != typeof(MyObjectBuilder_Component) || componentNeeded.Value <= 0
+                            || (int)inventoryItem.Amount <= 0f || inventoryItem.Content.SubtypeName != componentNeeded.Key)
                                 continue;
 
-                            var validAmount = GetMaxComponentAmount(componentNeeded.Key, (float)constructionInventory.MaxVolume - (float)constructionInventory.CurrentVolume); 
+                            var validAmount = GetMaxComponentAmount(componentNeeded.Key, (float)constructionInventory.MaxVolume - (float)constructionInventory.CurrentVolume);
 
                             float amount;
 
-                            if (inventoryItem.Amount >= componentNeeded.Value) 
+                            if (inventoryItem.Amount >= componentNeeded.Value)
                                 amount = Math.Min(componentNeeded.Value, validAmount);
-                            else 
+                            else
                                 amount = Math.Min((float)inventoryItem.Amount, validAmount);
 
-                            if (!constructionInventory.CanItemsBeAdded((int)amount, new SerializableDefinitionId(typeof(MyObjectBuilder_Component), componentNeeded.Key))) 
+                            if (!constructionInventory.CanItemsBeAdded((int)amount, new SerializableDefinitionId(typeof(MyObjectBuilder_Component), componentNeeded.Key)))
                                 continue;
 
-                            MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                             {
                                 try
                                 {
                                     inventory.RemoveItemsOfType((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
                                     constructionInventory.AddItems((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
 
-                                    if (ComponentsRequired.ContainsKey(componentNeeded.Key)) 
+                                    if (ComponentsRequired.ContainsKey(componentNeeded.Key))
                                         ComponentsRequired[componentNeeded.Key] -= (int)amount;
                                 }
                                 catch (Exception ex)
@@ -101,7 +101,7 @@ namespace NaniteConstructionSystem.Entities
                     }
                 }
             }
-            catch (InvalidOperationException ex)
+            catch (InvalidOperationException)
             {
                 Logging.Instance.WriteLine("NaniteConstructionSystem.Extensions.GridHelper.TryMoveToFreeCargo: A list was modified. Aborting.", 1);
             }
@@ -111,7 +111,7 @@ namespace NaniteConstructionSystem.Entities
             }
 
             foreach (IMyInventory inv in removalList)
-                MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                     {connectedInventory.Remove(inv);});
         }
 

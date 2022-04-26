@@ -71,7 +71,7 @@ namespace NaniteConstructionSystem.Entities
         /// <param name="data"></param>
         /// <param name="steamId"></param>
         /// <param name="isServer"></param>
-        private void HandleUpdateState(ushort handlerId, byte[] data, ulong steamId, bool isServer )
+        private void HandleUpdateState(ushort handlerId, byte[] data, ulong steamId, bool isServer)
         {
             try
             {

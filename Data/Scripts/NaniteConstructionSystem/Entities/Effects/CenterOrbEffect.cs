@@ -34,7 +34,8 @@ namespace NaniteConstructionSystem.Entities.Effects
         public override void ActiveUpdate()
         {
             if (m_centerSphere != null) {
-                m_centerSphere.PositionComp.LocalMatrix = Matrix.CreateFromTransformScale(Quaternion.Identity, new Vector3(0f, 1.5f, 0f), Vector3.One) * Matrix.CreateRotationY(MathHelper.ToRadians(m_activePosition));
+                var m = Matrix.CreateFromTransformScale(Quaternion.Identity, new Vector3(0f, 1.5f, 0f), Vector3.One) * Matrix.CreateRotationY(MathHelper.ToRadians(m_activePosition));
+                m_centerSphere.PositionComp.SetLocalMatrix(ref m);
                 MyCubeBlockEmissive.SetEmissiveParts(m_centerSphere, 1f, Color.FromNonPremultiplied(new Vector4(0.05f, 0.05f, 0.35f, 0.75f)), Color.White);
             } else {
                 return;
@@ -71,8 +72,9 @@ namespace NaniteConstructionSystem.Entities.Effects
 
                 return;
             }
-            
-            m_centerSphere.PositionComp.LocalMatrix = Matrix.CreateFromTransformScale(Quaternion.Identity, new Vector3(0f, -1.0f, 0f), Vector3.One);
+
+            var m = Matrix.CreateFromTransformScale(Quaternion.Identity, new Vector3(0f, -1.0f, 0f), Vector3.One);
+            m_centerSphere.PositionComp.SetLocalMatrix(ref m);
             MyCubeBlockEmissive.SetEmissiveParts(m_centerSphere, 0.0f, Color.Black, Color.White);
             m_activePosition = 0;
         }
@@ -89,7 +91,8 @@ namespace NaniteConstructionSystem.Entities.Effects
                 return;
 
             Vector3D sphereDiff = new Vector3D(0f, 1.5f, 0f) - new Vector3D(0f, -1f, 0f);
-            m_centerSphere.PositionComp.LocalMatrix = Matrix.CreateFromTransformScale(Quaternion.Identity, new Vector3(0f, -1f, 0f) + sphereDiff * ((float)position / maxPosition), Vector3.One) * Matrix.CreateRotationY(MathHelper.ToRadians(position / 5f));
+            var m = Matrix.CreateFromTransformScale(Quaternion.Identity, new Vector3(0f, -1f, 0f) + sphereDiff * ((float)position / maxPosition), Vector3.One) * Matrix.CreateRotationY(MathHelper.ToRadians(position / 5f));
+            m_centerSphere.PositionComp.SetLocalMatrix(ref m);
             MyCubeBlockEmissive.SetEmissiveParts(m_centerSphere, 1f * ((float)position / maxPosition), Color.FromNonPremultiplied(new Vector4(0.05f, 0.05f, 0.35f, 0.75f)), Color.White);
         }
 
@@ -99,17 +102,18 @@ namespace NaniteConstructionSystem.Entities.Effects
                 return;
 
             MyEntitySubpart centerSphereSubpart;
-            
+
             if (block.TryGetSubpart("sphere", out centerSphereSubpart))
             {
                 m_centerSphere = centerSphereSubpart as MyEntity;
                 if (m_centerSphere == null)
-                    return;                    
+                    return;
 
                 m_centerSphere.Render.EnableColorMaskHsv = true;
                 m_centerSphere.Render.ColorMaskHsv = block.Render.ColorMaskHsv;
                 m_centerSphere.Render.PersistentFlags = MyPersistentEntityFlags2.CastShadows;
-                m_centerSphere.PositionComp.LocalMatrix = Matrix.CreateFromTransformScale(Quaternion.Identity, new Vector3(0f, -1.0f, 0f), Vector3.One);
+                var m  =  Matrix.CreateFromTransformScale(Quaternion.Identity, new Vector3(0f, -1.0f, 0f), Vector3.One);
+                m_centerSphere.PositionComp.SetLocalMatrix(ref m);
                 m_centerSphere.Flags = EntityFlags.Visible | EntityFlags.NeedsDraw | EntityFlags.NeedsDrawFromParent | EntityFlags.InvalidateOnMove;
                 m_centerSphere.OnAddedToScene(block);
 
@@ -125,7 +129,7 @@ namespace NaniteConstructionSystem.Entities.Effects
             if (MyAPIGateway.Session.Player == null)
                 return;
 
-            if (Vector3D.DistanceSquared(MyAPIGateway.Session.Player.GetPosition(), m_block.PositionComp.GetPosition()) > 50f * 50f)                
+            if (Vector3D.DistanceSquared(MyAPIGateway.Session.Player.GetPosition(), m_block.PositionComp.GetPosition()) > 50f * 50f)
                 return;
 
             for (int s = m_activeBolts.Count - 1; s >= 0; s--)
@@ -155,11 +159,11 @@ namespace NaniteConstructionSystem.Entities.Effects
             {
                 var activeItem = m_activeBolts[s];
 
-                Vector3D endBoltPosition = m_centerSphere.PositionComp.LocalMatrix.Translation + new Vector3D(0f, 1.5f, 0f);
+                Vector3D endBoltPosition = m_centerSphere.PositionComp.LocalMatrixRef.Translation + new Vector3D(0f, 1.5f, 0f);
 
                 int startPos = 0;
                 int maxPos = activeItem.Bolt.Points.Count;
-                var previousPoint = activeItem.Bolt.Points[startPos];                
+                var previousPoint = activeItem.Bolt.Points[startPos];
                 var color = new Vector4(0.35f, 0.05f, 0.35f, 0.75f);
                 if (active)
                     color = new Vector4(0.05f, 0.05f, 0.35f, 0.75f);

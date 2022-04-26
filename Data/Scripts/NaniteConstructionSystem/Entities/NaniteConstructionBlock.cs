@@ -247,7 +247,7 @@ namespace NaniteConstructionSystem.Entities
             m_isFunctional = ConstructionBlock.IsFunctional;
 
             if (!MyAPIGateway.Multiplayer.IsServer) {
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(POWERUPDATEID, RecievePowerUpdate);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(POWERUPDATEID, RecievePowerUpdate);
             }
         }
 
@@ -384,7 +384,7 @@ namespace NaniteConstructionSystem.Entities
                 UpdateTerminal();
         }
 
-        private void RecievePowerUpdate(byte[] obj)
+        private void RecievePowerUpdate(ushort handlerId, byte[] obj, ulong steamId, bool isServer)
         {
             try {
                 if (obj == null)
@@ -426,7 +426,7 @@ namespace NaniteConstructionSystem.Entities
                 m_soundEmitter.StopSound(true);
 
             if (!MyAPIGateway.Multiplayer.IsServer) {
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(POWERUPDATEID, RecievePowerUpdate);
+                MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(POWERUPDATEID, RecievePowerUpdate);
             }
         }
         #endregion
