@@ -21,24 +21,24 @@ namespace NaniteConstructionSystem.Entities
         {
             if (Sync.IsClient)
             {
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8950, HandleUpdateState);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8951, HandleAddTarget);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8952, HandleCompleteTarget);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8953, HandleCancelTarget);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8954, HandleDetails);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8960, HandleTerminalSettings);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8962, HandleAssemblerSettings);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8971, HandleBeaconTerminalSettings);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8974, HandleFactoryGroup);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(8950, HandleUpdateState);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(8951, HandleAddTarget);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(8952, HandleCompleteTarget);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(8953, HandleCancelTarget);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(8954, HandleDetails);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(8960, HandleTerminalSettings);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(8962, HandleAssemblerSettings);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(8971, HandleBeaconTerminalSettings);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(8974, HandleFactoryGroup);
             }
             else if (Sync.IsServer)
             {
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8961, HandleNeedTerminalSettings);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8963, HandleNeedAssemblerSettings);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8964, HandleTerminalSettings);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8965, HandleAssemblerSettings);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8972, HandleBeaconTerminalSettings);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8973, HandleNeedBeaconTerminalSettings);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(8961, HandleNeedTerminalSettings);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(8963, HandleNeedAssemblerSettings);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(8964, HandleTerminalSettings);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(8965, HandleAssemblerSettings);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(8972, HandleBeaconTerminalSettings);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(8973, HandleNeedBeaconTerminalSettings);
             }
 
             m_init = true;
@@ -48,27 +48,30 @@ namespace NaniteConstructionSystem.Entities
         {
             if (m_init)
             {
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8950, HandleUpdateState);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8951, HandleAddTarget);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8952, HandleCompleteTarget);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8953, HandleCancelTarget);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8954, HandleDetails);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8960, HandleTerminalSettings);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8962, HandleAssemblerSettings);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8961, HandleNeedTerminalSettings);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8963, HandleNeedAssemblerSettings);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8964, HandleTerminalSettings);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8965, HandleAssemblerSettings);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8972, HandleBeaconTerminalSettings);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8973, HandleNeedBeaconTerminalSettings);
+                MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(8950, HandleUpdateState);
+                MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(8951, HandleAddTarget);
+                MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(8952, HandleCompleteTarget);
+                MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(8953, HandleCancelTarget);
+                MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(8954, HandleDetails);
+                MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(8960, HandleTerminalSettings);
+                MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(8962, HandleAssemblerSettings);
+                MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(8961, HandleNeedTerminalSettings);
+                MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(8963, HandleNeedAssemblerSettings);
+                MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(8964, HandleTerminalSettings);
+                MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(8965, HandleAssemblerSettings);
+                MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(8972, HandleBeaconTerminalSettings);
+                MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(8973, HandleNeedBeaconTerminalSettings);
             }
         }
 
         /// <summary>
         /// Multiplayer packet handlers - Direct to the proper block handler
         /// </summary>
+        /// <param name="handlerId"></param>
         /// <param name="data"></param>
-        private void HandleUpdateState(byte[] data)
+        /// <param name="steamId"></param>
+        /// <param name="isServer"></param>
+        private void HandleUpdateState(ushort handlerId, byte[] data, ulong steamId, bool isServer )
         {
             try
             {
@@ -93,7 +96,7 @@ namespace NaniteConstructionSystem.Entities
         }
 
         // HandleAddTarget
-        private void HandleAddTarget(byte[] data)
+        private void HandleAddTarget(ushort handlerId, byte[] data, ulong steamId, bool isServer )
         {
             try
             {
@@ -118,7 +121,7 @@ namespace NaniteConstructionSystem.Entities
         }
 
         // HandleCompleteTarget
-        private void HandleCompleteTarget(byte[] data)
+        private void HandleCompleteTarget(ushort handlerId, byte[] data, ulong steamId, bool isServer )
         {
             try
             {
@@ -142,7 +145,7 @@ namespace NaniteConstructionSystem.Entities
         }
 
         // HandleCancelTarget
-        private void HandleCancelTarget(byte[] data)
+        private void HandleCancelTarget(ushort handlerId, byte[] data, ulong steamId, bool isServer )
         {
             try
             {
@@ -165,7 +168,7 @@ namespace NaniteConstructionSystem.Entities
             }
         }
 
-        private void HandleDetails(byte[] data)
+        private void HandleDetails(ushort handlerId, byte[] data, ulong steamId, bool isServer )
         {
             MyAPIGateway.Parallel.Start(() =>
             {
@@ -196,10 +199,10 @@ namespace NaniteConstructionSystem.Entities
                     Logging.Instance.WriteLine(string.Format("HandleDetails() Error: {0}", ex.ToString()));
                 }
             });
-            
+
         }
 
-        private void HandleFactoryGroup(byte[] data)
+        private void HandleFactoryGroup(ushort handlerId, byte[] data, ulong steamId, bool isServer )
         {
             MyAPIGateway.Parallel.Start(() =>
             {
@@ -257,7 +260,7 @@ namespace NaniteConstructionSystem.Entities
             }
         }
 
-        private void HandleTerminalSettings(byte[] data)
+        private void HandleTerminalSettings(ushort handlerId, byte[] data, ulong steamId, bool isServer )
         {
             Logging.Instance.WriteLine("HandleTerminalSettings", 2);
 
@@ -299,7 +302,7 @@ namespace NaniteConstructionSystem.Entities
                 MyAPIGateway.Multiplayer.SendMessageToOthers(8962, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(settings)));
         }
 
-        private void HandleAssemblerSettings(byte[] data)
+        private void HandleAssemblerSettings(ushort handlerId, byte[] data, ulong steamId, bool isServer)
         {
             try
             {
@@ -311,7 +314,7 @@ namespace NaniteConstructionSystem.Entities
                     NaniteConstructionManager.AssemblerSettings.Add(settings.Key, settings.Value);
 
                 NaniteConstructionManager.AssemblerSettings[settings.Key] = settings.Value;
-                
+
                 if (Sync.IsServer)
                     SendAssemblerSettings(settings.Key);
             }
@@ -321,7 +324,7 @@ namespace NaniteConstructionSystem.Entities
             }
         }
 
-        private void HandleNeedTerminalSettings(byte[] data)
+        private void HandleNeedTerminalSettings(ushort handlerId, byte[] data, ulong steamId, bool isServer )
         {
             try
             {
@@ -352,7 +355,7 @@ namespace NaniteConstructionSystem.Entities
             MyAPIGateway.Multiplayer.SendMessageToServer(8961, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(blockId)));
         }
 
-        private void HandleNeedAssemblerSettings(byte[] data)
+        private void HandleNeedAssemblerSettings(ushort handlerId, byte[] data, ulong steamId, bool isServer )
         {
             try
             {
@@ -406,7 +409,7 @@ namespace NaniteConstructionSystem.Entities
             }
         }
 
-        private void HandleBeaconTerminalSettings(byte[] data)
+        private void HandleBeaconTerminalSettings(ushort handlerId, byte[] data, ulong steamId, bool isServer )
         {
             try
             {
@@ -438,7 +441,7 @@ namespace NaniteConstructionSystem.Entities
             MyAPIGateway.Multiplayer.SendMessageToServer(8973, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(blockId)));
         }
 
-        private void HandleNeedBeaconTerminalSettings(byte[] data)
+        private void HandleNeedBeaconTerminalSettings(ushort handlerId, byte[] data, ulong steamId, bool isServer )
         {
             try
             {

@@ -51,25 +51,25 @@ namespace NaniteConstructionSystem.Particles
             {
                 if (m_updateCount % 120 == 0)
                 {
-                    MyAPIGateway.Parallel.ForEach(m_particles, particle => 
+                    MyAPIGateway.Parallel.ForEach(m_particles, particle =>
                     {
                         try
                             {particle.UpdateMatrix();}
                         catch (System.Exception e)
                             {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Update: {e}");}
-                    }); 
+                    });
 
                     if (Sync.IsClient)
                         Cleanup();
                 }
             });
-        } 
+        }
 
         private void Cleanup()
         {
             // Old method caused a race condition when the background process was still removing entities but the in-game class was already unloaded.
             // Also a lot of other nasty bugs (leaks, crashes, hangs and SE not closing) appear to be caused by this.
-            MyAPIGateway.Parallel.ForEach(new HashSet<TargetEntity>(m_particles), item => 
+            MyAPIGateway.Parallel.ForEach(new HashSet<TargetEntity>(m_particles), item =>
             { // Invocation 0
                 try
                 {
@@ -150,7 +150,7 @@ namespace NaniteConstructionSystem.Particles
         public void UpdateMatrix()
         {
             IMyEntity entity;
-            if (m_particle == null || m_targetGridId == null || m_targetPosition == null || !MyAPIGateway.Entities.TryGetEntityById(m_targetGridId, out entity))
+            if (m_particle == null || !MyAPIGateway.Entities.TryGetEntityById(m_targetGridId, out entity))
                 return;
 
             var grid = entity as IMyCubeGrid;
@@ -163,7 +163,7 @@ namespace NaniteConstructionSystem.Particles
 
             var matrix = EntityHelper.GetBlockWorldMatrix(slimBlock);
 
-            MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                 {m_particle.WorldMatrix = matrix;});
         }
     }

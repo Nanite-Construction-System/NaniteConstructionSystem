@@ -57,7 +57,7 @@ namespace NaniteConstructionSystem
 
                 foreach (var p in players.ToList())
                     if (p != null && p.SteamUserId != MyAPIGateway.Multiplayer.MyId && Vector3D.DistanceSquared(p.GetPosition(), syncPosition) <= distSq)
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                             {SendMessageToPlayer(p.SteamUserId, messageContainer);});
             });
         }
@@ -109,7 +109,7 @@ namespace NaniteConstructionSystem
             MyAPIGateway.Multiplayer.SendMessageTo(MessageId, byteData, steamId);
         }
 
-        public static void HandleMessage(byte[] data)
+        public static void HandleMessage(ushort handlerId, byte[] data, ulong steamId, bool isServer )
         {
             try
             {
@@ -310,7 +310,7 @@ namespace NaniteConstructionSystem
             if (logic == null)
                 return;
 
-            
+
             if (Settings == null)
             {
                 // Client request settings{
