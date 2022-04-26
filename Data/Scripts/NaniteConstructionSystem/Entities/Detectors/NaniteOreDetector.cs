@@ -234,13 +234,13 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 sb.Append("Turn the unit back on\nwhen the problem is resolved.");
                 return;
             }
-                
+
             sb.Append($"Frequency:\n");
             foreach (var freq in GetScanningFrequencies())
                 sb.Append($" - [{freq}]\n");
 
             // TODO remove debug only
-            sb.Append($"Range: {Range}\n"); 
+            sb.Append($"Range: {Range}\n");
             sb.Append($"Scan: {(m_scanProgress * 100).ToString("0.00")}%\n");
             sb.Append($"Ores:\n");
             sb.Append(m_oreListCache);
@@ -294,7 +294,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
             if (!ShowScanRadius || !m_block.Enabled || !m_block.IsFunctional || !Sink.IsPoweredByType(MyResourceDistributorComponent.ElectricityId))
                 return;
 
-            var matrix = m_block.PositionComp.WorldMatrix;
+            var matrix = m_block.PositionComp.WorldMatrixRef;
             Color color = Color.LightGoldenrodYellow;
             MySimpleObjectDraw.DrawTransparentSphere(ref matrix, Range, ref color, MySimpleObjectRasterizer.SolidAndWireframe, 20);
         }
@@ -308,7 +308,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 catch (Exception e)
                     {Logging.Instance.WriteLine($"NaniteOreDetector.UpdatePower() exception: {e.ToString()}");}
             });
-                
+
             UpdateStatus();
         }
 
@@ -422,7 +422,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
                       && detector.Value.DetectorState != DetectorStates.Disabled && detector.Value.Block.IsFunctional)
                     {
                         result = true;
-                        break;                            
+                        break;
                     }
 
                 MyAPIGateway.Utilities.InvokeOnGameThread(() =>
@@ -440,7 +440,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
                     m_depositGroupsByEntity.Clear();
                     m_inRangeCache.Clear();
                 });
-                
+
                 return;
             }
 
@@ -485,7 +485,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
             foreach (var item in m_depositGroupsByEntity.SelectMany((x) => x.Value.Materials.GetMaterialList()).GroupBy((x) => x.Material.MinedOre))
                 oreListCache.Append($"- {item.Key}: {item.Sum((x) => x.Count)}\n");
-            
+
             if (oreListCache != m_oreListCache)
             {
                 m_oreListCache = oreListCache;
@@ -651,17 +651,17 @@ namespace NaniteConstructionSystem.Entities.Detectors
                 Logging.Instance.WriteLine($"UpdateDeposits First scan", 1);
 
                 detectorComponent.ClearMinedPositions();
-                
+
                 m_lastDetectionMax = minCorner;
                 m_lastDetectionMin = maxCorner;
             }
             else if (m_lastDetectionMin == minCorner && m_lastDetectionMax == maxCorner)
             { // sphere still at some position
                 Logging.Instance.WriteLine($"UpdateDeposits sphere still at some position", 1);
-                
+
                 if (m_tasksRunning < 1)
                     SpawnQueueWorker(detectorComponent);
-                
+
                 return;
             }
             else if (m_lastDetectionMin != minCorner || m_lastDetectionMax != maxCorner)
@@ -720,7 +720,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
 
                 MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                     { m_tasksRunning++; });
-                
+
                 MyAPIGateway.Parallel.Sleep(100);
             }
         }
@@ -826,10 +826,10 @@ namespace NaniteConstructionSystem.Entities.Detectors
                     sleepTimer += changeAmount * 100;
                 else
                     sleepTimer = Math.Max(sleepTimer - 1, 1);
-                
-                MyAPIGateway.Parallel.Sleep(sleepTimer);                    
+
+                MyAPIGateway.Parallel.Sleep(sleepTimer);
             }
-                
+
             //if (m_miningDebug)
                 //Logging.Instance.WriteLine($"ProcessCell.ReadRange(1) took {(stopwatch.ElapsedTicks * 1000000)/Stopwatch.Frequency} microseconds");
 
@@ -872,7 +872,7 @@ namespace NaniteConstructionSystem.Entities.Detectors
                                             }
                                     }
                                     else
-                                        Materials.AddMaterial(b, vector3I + p);  
+                                        Materials.AddMaterial(b, vector3I + p);
                                 }
                                 else
                                     Materials.AddMaterial(b, vector3I + p);

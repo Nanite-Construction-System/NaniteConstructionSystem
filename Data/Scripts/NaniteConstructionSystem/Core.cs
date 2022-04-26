@@ -239,7 +239,7 @@ namespace NaniteConstructionSystem
                 }
 
                 m_sync.Initialize();
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(MessageHub.MessageId, MessageHub.HandleMessage);
+                MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(MessageHub.MessageId, MessageHub.HandleMessage);
 
                 if (Sync.IsServer)
                 {
@@ -262,7 +262,7 @@ namespace NaniteConstructionSystem
         {
             try
             {
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(MessageHub.MessageId, MessageHub.HandleMessage);
+                MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(MessageHub.MessageId, MessageHub.HandleMessage);
                 m_sync.Unload();
 
                 if (!Sync.IsServer)

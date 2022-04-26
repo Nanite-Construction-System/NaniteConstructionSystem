@@ -414,11 +414,11 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                         // no defined owner
                         if (ownerId == 0) {
-                            if (block.CubeGrid != null && block.CubeGrid.BigOwners[0] != null) {
+                            if (block.CubeGrid != null) {
                                 ownerId = block.CubeGrid.BigOwners[0];
                             }
 
-                            if (ownerId == 0 && localBlockBuiltBy != null && localBlockBuiltBy.BuiltBy != null) {
+                            if (ownerId == 0 && localBlockBuiltBy != null) {
                                 ownerId = localBlockBuiltBy.BuiltBy;
                             }
                         }
