@@ -206,12 +206,12 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - m_targetBlocks[target].StartTime >= time / 2.5 && !m_targetBlocks[target].CheckInventory)
                 {
                     m_targetBlocks[target].CheckInventory = true;
-                    if (!m_constructionBlock.InventoryManager.ProcessMissingComponents(target) && !MyAPIGateway.Session.CreativeMode)
+                    /*if (!m_constructionBlock.InventoryManager.ProcessMissingComponents(target) && !MyAPIGateway.Session.CreativeMode)
                     {
                         Logging.Instance.WriteLine("[Projection] Cancelling Projection Target due to missing components", 1);
                         CancelTarget(target);
                         return;
-                    }
+                    }*/
                 }
 
                 if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - m_targetBlocks[target].StartTime >= time / 2)

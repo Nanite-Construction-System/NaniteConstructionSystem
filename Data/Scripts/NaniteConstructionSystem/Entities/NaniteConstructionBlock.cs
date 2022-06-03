@@ -328,8 +328,7 @@ namespace NaniteConstructionSystem.Entities
 
                     if (m_updateCount == m_takeComponentsTimer && FactoryIsRunning())
                     {
-                        MyAPIGateway.Parallel.StartBackground(() =>
-                            { InventoryManager.TakeRequiredComponents(); });
+                        InventoryManager.TakeRequiredComponents();
                     }
 
                     ScanForTargets(out m_scanningActive);

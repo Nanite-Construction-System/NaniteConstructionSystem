@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Linq;
+using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
 using VRage;
 using VRage.Game;
+using VRage.Game.Components;
 using VRage.Game.Entity;
+using VRage.Game.ObjectBuilders.ComponentSystem;
 using VRage.ModAPI;
 using VRageMath;
 using VRage.Utils;
@@ -44,52 +47,82 @@ namespace NaniteConstructionSystem.Entities
         {
             if (MyAPIGateway.Session.CreativeMode || ComponentsRequired.Count < 1)
                 return;
-            
+
             List<IMyInventory> removalList = new List<IMyInventory>();
             try
             {
+                // there seems to be an issue when nanites are taking stuff from multiple inventories, they tend to
+                // overstuff themselves over their limit, which leads to the loss of shit. I have made this flag
+                // for testing purposes
+                // TODO: remove once better sollution is found
+                //var itemsMoved = false;
+
+                // go through inventories connected with the nanite control facility
                 foreach (IMyInventory inventory in connectedInventory)
                 {
                     IMyInventory inv = null;
+
+                    // this is the inventory of nanite facility
                     IMyInventory constructionInventory = GetConstructionInventory();
-                    
-                    if (inventory == null || inventory.CurrentVolume == inventory.MaxVolume) 
+
+                    // inventory does not exist or is empty, skip
+                    if (inventory == null || inventory.CurrentVolume == inventory.MaxVolume)
                         continue;
 
+                    // if there is no valid inventory with the nanite facility, remove from the list and skip
                     if (!GridHelper.IsValidInventoryConnection(constructionInventory, inventory, out inv))
                     {
                         removalList.Add(inventory);
                         continue;
                     }
 
+                    // go through each inventory item in the connected inventory
                     foreach (var inventoryItem in inventory.GetItems().ToList())
                     {
+                        // go through each required item by the facility
                         foreach (var componentNeeded in ComponentsRequired.ToList())
                         {
-                            if (inventoryItem.Content.TypeId != typeof(MyObjectBuilder_Component) || componentNeeded.Value <= 0 
-                            || (int)inventoryItem.Amount <= 0f || inventoryItem.Content.SubtypeName != componentNeeded.Key) 
+                            //if (itemsMoved)
+                            //    break;
+
+                            // component in the inventory is not a component, we have 0 of them or is different than we need, skip
+                            if (inventoryItem.Content.TypeId != typeof(MyObjectBuilder_Component) || componentNeeded.Value <= 0
+                            || (int)inventoryItem.Amount <= 0f || inventoryItem.Content.SubtypeName != componentNeeded.Key)
                                 continue;
 
-                            var validAmount = GetMaxComponentAmount(componentNeeded.Key, (float)constructionInventory.MaxVolume - (float)constructionInventory.CurrentVolume); 
+                            // get maximum ammount of components we want to move
+                            var validAmount = GetMaxComponentAmount(componentNeeded.Key, (float)constructionInventory.MaxVolume - (float)constructionInventory.CurrentVolume);
 
                             float amount;
 
-                            if (inventoryItem.Amount >= componentNeeded.Value) 
+                            // if we have more, get some, if we have less, get all
+                            if (inventoryItem.Amount >= componentNeeded.Value)
                                 amount = Math.Min(componentNeeded.Value, validAmount);
-                            else 
+                            else
                                 amount = Math.Min((float)inventoryItem.Amount, validAmount);
 
-                            if (!constructionInventory.CanItemsBeAdded((int)amount, new SerializableDefinitionId(typeof(MyObjectBuilder_Component), componentNeeded.Key))) 
+                            // if items can't be added, skip
+                            var NcfInventory = (MyInventory)constructionInventory;
+                            var ObjectBuilder = new MyObjectBuilder_PhysicalObject();
+                            ObjectBuilder = new MyObjectBuilder_Component() { SubtypeName = inventoryItem.Content.SubtypeName };
+                            var space = NcfInventory.ComputeAmountThatFits(ObjectBuilder.GetId());
+
+                            if ((int)amount >= space)
+                                amount = (float)space;
+
+                            if (!constructionInventory.CanItemsBeAdded((int)amount, new SerializableDefinitionId(typeof(MyObjectBuilder_Component), componentNeeded.Key)))
                                 continue;
 
-                            MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                            // itemsMoved = true;
+
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                             {
                                 try
                                 {
                                     inventory.RemoveItemsOfType((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
                                     constructionInventory.AddItems((int)amount, (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializer.CreateNewObject(typeof(MyObjectBuilder_Component), componentNeeded.Key));
 
-                                    if (ComponentsRequired.ContainsKey(componentNeeded.Key)) 
+                                    if (ComponentsRequired.ContainsKey(componentNeeded.Key))
                                         ComponentsRequired[componentNeeded.Key] -= (int)amount;
                                 }
                                 catch (Exception ex)
@@ -111,7 +144,7 @@ namespace NaniteConstructionSystem.Entities
             }
 
             foreach (IMyInventory inv in removalList)
-                MyAPIGateway.Utilities.InvokeOnGameThread(() => 
+                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                     {connectedInventory.Remove(inv);});
         }
 
@@ -315,32 +348,21 @@ namespace NaniteConstructionSystem.Entities
                 }
 
                 Dictionary<string, int> missingComponents = new Dictionary<string, int>();
-                // Target block is on a real grid
-                if (target.CubeGrid.Physics != null)
+                // target block is projection
+                if (target.CubeGrid.Physics == null)
                 {
-                    target.GetMissingComponents(missingComponents);
-                    if (missingComponents.Count == 0)
-                        return true;
-                }
-                else // Target block is projection, let's just put 1 item in it
-                {
-                    try
-                    {
+                    try {
                         MyCubeBlockDefinition blockDefinition = (MyCubeBlockDefinition)target.BlockDefinition;
                         missingComponents.Add(blockDefinition.Components[0].Definition.Id.SubtypeName, 1);
-                    }
-                    catch (Exception ex)
-                    {
+                    } catch (Exception ex) {
                         Logging.Instance.WriteLine($"NaniteConstructionInventory.ProcessMissingComponents():\n{ex.ToString()}");
                         return false;
                     }
-
                 }
 
-                foreach (var item in inventory.GetItems().ToList())
-                {
-                    if (missingComponents.ContainsKey(item.Content.SubtypeName))
-                    {
+                var firstPass = false;
+                foreach (var item in inventory.GetItems().ToList()) {
+                    if (missingComponents.ContainsKey(item.Content.SubtypeName) && !firstPass) {
                         var amount = (float)missingComponents[item.Content.SubtypeName];
                         if (amount >= (float)item.Amount)
                             amount = (float)item.Amount;
@@ -350,6 +372,7 @@ namespace NaniteConstructionSystem.Entities
                             missingComponents.Remove(item.Content.SubtypeName);
 
                         inventory.RemoveItemsOfType((int)amount, (MyObjectBuilder_PhysicalObject)item.Content);
+                        firstPass = true;
                     }
                 }
 
