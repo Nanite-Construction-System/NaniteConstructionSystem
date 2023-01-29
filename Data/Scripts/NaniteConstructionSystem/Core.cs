@@ -972,17 +972,17 @@ namespace NaniteConstructionSystem
             detectRangeSlider.SetLimits(0, 350);
             detectRangeSlider.Getter = (x) =>
             {
-                return (x.GameLogic as LargeNaniteOreDetectorLogic).Detector.Range;
+                return (x.GameLogic.GetAs<LargeNaniteOreDetectorLogic>()).Detector.Range; //x.GameLogic.GetAs<LargeNaniteOreDetectorLogic>() OLD -> x.GameLogic as LargeNaniteOreDetectorLogic
             };
 
             detectRangeSlider.Setter = (x, y) =>
             {
-                (x.GameLogic as LargeNaniteOreDetectorLogic).Detector.Range = y;
+                (x.GameLogic.GetAs<LargeNaniteOreDetectorLogic>()).Detector.Range = y;
             };
 
             detectRangeSlider.Writer = (x, y) =>
             {
-                y.Append($"{Math.Round((x.GameLogic as LargeNaniteOreDetectorLogic).Detector.Range)} m");
+                y.Append($"{Math.Round((x.GameLogic.GetAs<LargeNaniteOreDetectorLogic>()).Detector.Range)} m"); 
             };
             m_customOreDetectorControls.Add(detectRangeSlider);
 
@@ -992,11 +992,11 @@ namespace NaniteConstructionSystem
             showScanRadius.Tooltip = MyStringId.GetOrCompute("When checked, it will show you the scan range this detector covers");
             showScanRadius.Getter = (x) =>
             {
-                return (x.GameLogic as LargeNaniteOreDetectorLogic).Detector.ShowScanRadius;
+                return (x.GameLogic.GetAs<LargeNaniteOreDetectorLogic>()).Detector.ShowScanRadius;
             };
             showScanRadius.Setter = (x, y) =>
             {
-                (x.GameLogic as LargeNaniteOreDetectorLogic).Detector.ShowScanRadius = y;
+                (x.GameLogic.GetAs<LargeNaniteOreDetectorLogic>()).Detector.ShowScanRadius = y;
             };
             m_customOreDetectorControls.Add(showScanRadius);
 
@@ -1027,7 +1027,7 @@ namespace NaniteConstructionSystem
             };
             oreList.Visible = (x) =>
             {
-                return (x.GameLogic as LargeNaniteOreDetectorLogic).Detector.HasFilterUpgrade;
+                return (x.GameLogic.GetAs<LargeNaniteOreDetectorLogic>()).Detector.HasFilterUpgrade;
             };
             m_customOreDetectorControls.Add(oreList);
         }

@@ -8,7 +8,7 @@
       </Id>
       <Category>BLOCK</Category>
       <MaxDistance>15</MaxDistance>
-      <Volume>0.9</Volume>
+      <Volume>0.4</Volume>
       <Loopable>true</Loopable>
       <Waves>
         <Wave Type="D3">
@@ -26,7 +26,7 @@
       </Id>
       <Category>BLOCK</Category>
       <MaxDistance>15</MaxDistance>
-      <Volume>0.6</Volume>
+      <Volume>0.2</Volume>
       <Loopable>true</Loopable>
       <Waves>
         <Wave Type="D3">
@@ -44,7 +44,7 @@
       </Id>
       <Category>BLOCK</Category>
       <MaxDistance>30</MaxDistance>
-      <Volume>1.5</Volume>
+      <Volume>1.2</Volume>
       <Loopable>true</Loopable>
       <Waves>
         <Wave Type="D3">
@@ -55,6 +55,7 @@
         </Wave>
       </Waves>
     </Sound>
+    <!--
     <Sound>
       <Id>
         <TypeId>AudioDefinition</TypeId>
@@ -62,7 +63,7 @@
       </Id>
       <Category>BLOCK</Category>
       <MaxDistance>45</MaxDistance>
-      <Volume>1.5</Volume>
+      <Volume>0.5</Volume>
       <Waves>
         <Wave Type="D3">
           <Start>Audio\thump_mono.xwm</Start>
@@ -71,6 +72,6 @@
           <Start>Audio\thump.xwm</Start>
         </Wave>
       </Waves>
-    </Sound>
+    </Sound>-->
   </Sounds>
 </Definitions>
