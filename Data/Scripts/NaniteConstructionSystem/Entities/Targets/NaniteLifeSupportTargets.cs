@@ -17,6 +17,7 @@ using Sandbox.Game.Entities.Character.Components;
 using Sandbox.Game;
 using VRage.Game.Components;
 using VRage.Utils;
+using MyItemType = VRage.Game.ModAPI.Ingame.MyItemType;
 
 namespace NaniteConstructionSystem.Entities.Targets
 {
@@ -392,14 +393,19 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             hasOxygen = false;
             hasHydrogen = false;
-
+			MyItemType oxygenBottle = new MyItemType("MyObjectBuilder_OxygenContainerObject", "OxygenBottle");
+			MyItemType hydrogenBottle = new MyItemType("MyObjectBuilder_GasContainerObject", "HydrogenBottle");
+  
             foreach (IMyGasTank tank in connectedGasTanks)
             {
                 Logging.Instance.WriteLine($"[Life Support] Checking gas tank: {tank.DisplayNameText}", 2);
+				List<MyItemType> types = new List<MyItemType>();
+				tank.GetInventory().GetAcceptedItems(types);
+                Logging.Instance.WriteLine($"[Life Support] Checking gas tank: {types[0].SubtypeId}", 2);
 
-                if (!hasOxygen && tank.DisplayNameText.ToLower().Contains("oxygen") && tank.FilledRatio > 0f)
+                if (!hasOxygen && types.Contains(oxygenBottle) && tank.FilledRatio > 0f)
                     hasOxygen = true;
-                else if (!hasHydrogen && tank.DisplayNameText.ToLower().Contains("hydrogen") && tank.FilledRatio > 0f)
+                else if (!hasHydrogen && types.Contains(hydrogenBottle) && tank.FilledRatio > 0f)
                     hasHydrogen = true;
 
                 if (hasOxygen && hasHydrogen)
