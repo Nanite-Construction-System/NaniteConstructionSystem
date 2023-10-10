@@ -12,7 +12,6 @@ using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRageMath;
-using static NaniteConstructionSystem.Entities.Detectors.NaniteOreDetector;
 using NaniteConstructionSystem.Extensions;
 
 namespace NaniteConstructionSystem
@@ -46,20 +45,20 @@ namespace NaniteConstructionSystem
         /// <param name="content"></param>
         public static void SendToPlayerInSyncRange(MessageBase messageContainer, Vector3D syncPosition)
         {
-            MyAPIGateway.Parallel.Start(() =>
-            {
-                var distSq = MyAPIGateway.Session.SessionSettings.SyncDistance;
-                distSq += 1000; // some safety padding, avoid desync
-                distSq *= distSq;
+            var distSq = MyAPIGateway.Session.SessionSettings.SyncDistance;
+            distSq += 1000; // some safety padding, avoid desync
+            distSq *= distSq;
 
-                var players = new List<IMyPlayer>();
-                MyAPIGateway.Players.GetPlayers(players);
+            var players = new List<IMyPlayer>();
+            MyAPIGateway.Players.GetPlayers(players);
 
-                foreach (var p in players.ToList())
-                    if (p != null && p.SteamUserId != MyAPIGateway.Multiplayer.MyId && Vector3D.DistanceSquared(p.GetPosition(), syncPosition) <= distSq)
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() => 
-                            {SendMessageToPlayer(p.SteamUserId, messageContainer);});
-            });
+            foreach (var p in players.ToList()) {
+                if (p != null && p.SteamUserId != MyAPIGateway.Multiplayer.MyId && Vector3D.DistanceSquared(p.GetPosition(), syncPosition) <= distSq) {
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {
+                        SendMessageToPlayer(p.SteamUserId, messageContainer);
+                    });
+                }
+            }
         }
 
         /// <summary>
@@ -136,10 +135,6 @@ namespace NaniteConstructionSystem
     [ProtoContract]
     [ProtoInclude(5001, typeof(MessageClientConnected))]
     [ProtoInclude(5002, typeof(MessageConfig))]
-    [ProtoInclude(5003, typeof(MessageOreDetectorSettings))]
-    [ProtoInclude(5004, typeof(MessageOreDetectorStateChange))]
-    [ProtoInclude(5005, typeof(MessageOreDetectorScanProgress))]
-    [ProtoInclude(5006, typeof(MessageOreDetectorScanComplete))]
     public abstract class MessageBase
     {
         /// <summary>
@@ -275,152 +270,6 @@ namespace NaniteConstructionSystem
             Logging.Instance.WriteLine(string.Format("Sending config to new client: {0}", SenderSteamId), 1);
             // Send new clients the configuration
             MessageHub.SendMessageToPlayer(SenderSteamId, new MessageConfig() { Settings = NaniteConstructionManager.Settings });
-        }
-    }
-
-    [ProtoContract]
-    public class MessageOreDetectorSettings : MessageBase
-    {
-        [ProtoMember(10)]
-        public long EntityId;
-
-        [ProtoMember(11)]
-        public Entities.Detectors.ProtoNaniteOreDetectorSettings Settings;
-
-        public override void ProcessClient()
-        {
-            IMyEntity ent;
-            if (!MyAPIGateway.Entities.TryGetEntityById(EntityId, out ent) || ent.Closed)
-                return;
-
-            var logic = ent.GameLogic.GetAs<Entities.Detectors.LargeNaniteOreDetectorLogic>();
-            if (logic == null)
-                return;
-
-            logic.Detector.Settings.Settings = Settings;
-        }
-
-        public override void ProcessServer()
-        {
-            IMyEntity ent;
-            if (!MyAPIGateway.Entities.TryGetEntityById(EntityId, out ent) || ent.Closed)
-                return;
-
-            var logic = ent.GameLogic.GetAs<Entities.Detectors.LargeNaniteOreDetectorLogic>();
-            if (logic == null)
-                return;
-
-            
-            if (Settings == null)
-            {
-                // Client request settings{
-                Logging.Instance.WriteLine(string.Format("Sending ore detector settings to client: {0}", SenderSteamId), 1);
-                MessageHub.SendMessageToPlayer(SenderSteamId, new MessageOreDetectorSettings()
-                {
-                    EntityId = ent.EntityId,
-                    Settings = logic.Detector.Settings.Settings
-                });
-                // Send state update as well
-                MessageHub.SendMessageToPlayer(SenderSteamId, new MessageOreDetectorStateChange()
-                {
-                    EntityId = ent.EntityId,
-                    State = logic.Detector.m_detectorState
-                });
-            }
-            else
-            {
-                // Client update Settings
-                logic.Detector.Settings.Settings = Settings;
-                Logging.Instance.WriteLine(string.Format("Sending ore detector settings to other client: {0}", SenderSteamId), 1);
-                MessageHub.SendMessageToAllOtherPlayers(SenderSteamId, new MessageOreDetectorSettings()
-                {
-                    EntityId = ent.EntityId,
-                    Settings = logic.Detector.Settings.Settings
-                });
-            }
-        }
-    }
-
-    [ProtoContract]
-    public class MessageOreDetectorStateChange : MessageBase
-    {
-        [ProtoMember(10)]
-        public long EntityId;
-
-        [ProtoMember(11)]
-        public DetectorStates State;
-
-        [ProtoMember(12)]
-        public bool TooClose;
-
-        public override void ProcessClient()
-        {
-            IMyEntity ent;
-            if (!MyAPIGateway.Entities.TryGetEntityById(EntityId, out ent) || ent.Closed)
-                return;
-
-            var logic = ent.GameLogic.GetAs<Entities.Detectors.LargeNaniteOreDetectorLogic>();
-            if (logic == null)
-                return;
-
-            logic.Detector.m_detectorState = State;
-            logic.Detector.m_tooCloseToOtherDetector = TooClose;
-        }
-
-        public override void ProcessServer()
-        {
-        }
-    }
-
-    [ProtoContract]
-    public class MessageOreDetectorScanProgress : MessageBase
-    {
-        [ProtoMember(10)]
-        public long EntityId;
-
-        [ProtoMember(11)]
-        public float Progress;
-
-        public override void ProcessClient()
-        {
-            IMyEntity ent;
-            if (!MyAPIGateway.Entities.TryGetEntityById(EntityId, out ent) || ent.Closed)
-                return;
-
-            var logic = ent.GameLogic.GetAs<Entities.Detectors.LargeNaniteOreDetectorLogic>();
-            if (logic == null) return;
-
-            logic.Detector.m_scanProgress = Progress;
-        }
-
-        public override void ProcessServer()
-        {
-        }
-    }
-
-    [ProtoContract]
-    public class MessageOreDetectorScanComplete : MessageBase
-    {
-        [ProtoMember(10)]
-        public long EntityId;
-
-        [ProtoMember(11)]
-        public string OreListCache;
-
-        public override void ProcessClient()
-        {
-            IMyEntity ent;
-            if (!MyAPIGateway.Entities.TryGetEntityById(EntityId, out ent) || ent.Closed)
-                return;
-
-            var logic = ent.GameLogic.GetAs<Entities.Detectors.LargeNaniteOreDetectorLogic>();
-            if (logic == null) return;
-
-            logic.Detector.OreListCache = new StringBuilder(OreListCache);
-        }
-
-        public override void ProcessServer()
-        {
         }
     }
 }

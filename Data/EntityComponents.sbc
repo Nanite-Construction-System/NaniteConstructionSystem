@@ -1,13 +1,13 @@
 ﻿<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <EntityComponents>
-    <EntityComponent xsi:type="MyObjectBuilder_ModStorageComponentDefinition">
-      <Id>
-        <TypeId>ModStorageComponent</TypeId>
-        <SubtypeId>NaniteSystem</SubtypeId>
-      </Id>
-      <RegisteredStorageGuids>
-        <guid>7D46082D-747A-45AF-8CD1-99A03E68CF97</guid>
-      </RegisteredStorageGuids>
-    </EntityComponent>
-  </EntityComponents>
+    <EntityComponents>
+        <EntityComponent xsi:type="MyObjectBuilder_ModStorageComponentDefinition">
+            <Id>
+                <TypeId>ModStorageComponent</TypeId>
+                <SubtypeId>NaniteSystem</SubtypeId>
+            </Id>
+            <RegisteredStorageGuids>
+                <guid>7D46082D-747A-45AF-8CD1-99A03E68CF97</guid>
+            </RegisteredStorageGuids>
+        </EntityComponent>
+    </EntityComponents>
 </Definitions>

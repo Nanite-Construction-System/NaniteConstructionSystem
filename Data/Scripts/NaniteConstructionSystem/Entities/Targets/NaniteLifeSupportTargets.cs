@@ -412,24 +412,21 @@ namespace NaniteConstructionSystem.Entities.Targets
             if (!m_targetTracker.ContainsKey(target))
                 CreateTrackerItem(target);
 
-            MyAPIGateway.Parallel.Start(() =>
-            {
-                try
-                {
-                    Vector4 startColor = new Vector4(1f, 1f, 1f, 1f);
-                    Vector4 endColor = new Vector4(0.4f, 0.4f, 0.4f, 0.35f);
-                    var nearestFactory = m_constructionBlock;
+            try {
+                Vector4 startColor = new Vector4(1f, 1f, 1f, 1f);
+                Vector4 endColor = new Vector4(0.4f, 0.4f, 0.4f, 0.35f);
+                var nearestFactory = m_constructionBlock;
 
-                    if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles)
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                        {
-                            if (nearestFactory != null && target != null)
-                                nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
-                        });
+                if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles) {
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {
+                        if (nearestFactory != null && target != null) {
+                            nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
+                        }
+                    });
                 }
-                catch (Exception e)
-                    {Logging.Instance.WriteLine($"{e}");}
-            }); 
+            } catch (Exception e) {
+                Logging.Instance.WriteLine($"{e}");
+            }
         }
 
         private void CreateTrackerItem(IMyPlayer target)
@@ -445,6 +442,15 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_targetTracker.Add(target, lifeSupportTarget);
 
             m_constructionBlock.SendAddTarget(target);
+        }
+
+        public override void AddToIgnoreList(object obj){
+            if (PotentialIgnoredList.Contains(obj) == false) {
+                PotentialIgnoredList.Add(obj);
+                if (PotentialTargetList.Contains(obj)) {
+                    PotentialTargetList.Remove(obj);
+                }
+            }
         }
 
         public override void CancelTarget(object obj)

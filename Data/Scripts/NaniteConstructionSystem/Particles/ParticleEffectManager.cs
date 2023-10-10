@@ -47,20 +47,20 @@ namespace NaniteConstructionSystem.Particles
         {
             m_updateCount++;
 
-            MyAPIGateway.Parallel.Start(() =>
-            {
+            MyAPIGateway.Parallel.Start(() => {
                 if (m_updateCount % 120 == 0)
                 {
-                    MyAPIGateway.Parallel.ForEach(m_particles, particle => 
-                    {
-                        try
-                            {particle.UpdateMatrix();}
-                        catch (System.Exception e)
-                            {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Update: {e}");}
+                    MyAPIGateway.Parallel.ForEach(m_particles, particle => {
+                        try {
+                            particle.UpdateMatrix();
+                        } catch (System.Exception e) {
+                            VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Update: {e}");
+                        }
                     }); 
 
-                    if (Sync.IsClient)
+                    if (Sync.IsClient) {
                         Cleanup();
+                    }
                 }
             });
         } 
@@ -69,40 +69,35 @@ namespace NaniteConstructionSystem.Particles
         {
             // Old method caused a race condition when the background process was still removing entities but the in-game class was already unloaded.
             // Also a lot of other nasty bugs (leaks, crashes, hangs and SE not closing) appear to be caused by this.
-            MyAPIGateway.Parallel.ForEach(new HashSet<TargetEntity>(m_particles), item => 
-            { // Invocation 0
-                try
-                {
-                    if(item == null)
-                    {
+            MyAPIGateway.Parallel.ForEach(new HashSet<TargetEntity>(m_particles), item => { // Invocation 0
+                try {
+                    if(item == null) {
                         RemoveEntity(item);
                         return;
                     }
+
                     IMyEntity entity;
-                    if (!MyAPIGateway.Entities.TryGetEntityById(item.TargetGridId, out entity))
-                    {
+                    if (!MyAPIGateway.Entities.TryGetEntityById(item.TargetGridId, out entity)) {
                         RemoveEntity(item);
                         return;
                     }
 
                     IMyCubeGrid grid = entity as IMyCubeGrid;
                     IMySlimBlock slimBlock = grid.GetCubeBlock(item.TargetPosition);
-                    if (slimBlock == null)
-                    {
+                    if (slimBlock == null) {
                         RemoveEntity(item);
                         return;
                     }
 
-                    if (slimBlock.IsDestroyed || slimBlock.IsFullyDismounted || (slimBlock.FatBlock != null && slimBlock.FatBlock.Closed))
-                    {
+                    if (slimBlock.IsDestroyed || slimBlock.IsFullyDismounted || (slimBlock.FatBlock != null && slimBlock.FatBlock.Closed)) {
                         RemoveEntity(item);
                         return;
                     }
+                } catch (System.Exception e) when (e.ToString().Contains("IndexOutOfRangeException")) {
+                    Logging.Instance.WriteLine("IndexOutOfRangeException occurred in ParticleEffectManager.Cleanup. This is likely harmless and can be ignored.");
+                } catch (System.Exception e) {
+                    VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Cleanup (Invocation 0): \n{e}");
                 }
-                catch (System.Exception e) when (e.ToString().Contains("IndexOutOfRangeException"))
-                    { Logging.Instance.WriteLine("IndexOutOfRangeException occurred in ParticleEffectManager.Cleanup. This is likely harmless and can be ignored."); }
-                catch (System.Exception e)
-                    {VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Cleanup (Invocation 0): \n{e}");}
             });
         }
 

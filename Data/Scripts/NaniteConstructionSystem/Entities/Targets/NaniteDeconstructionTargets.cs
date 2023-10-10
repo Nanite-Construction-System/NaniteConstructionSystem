@@ -78,7 +78,6 @@ namespace NaniteConstructionSystem.Entities.Targets
         }
 
         private HashSet<NaniteDeconstructionGrid> m_validBeaconedGrids;
-        private Dictionary<IMyCubeGrid, NaniteAreaBeacon> m_areaTargetBlocks;
         private Dictionary<IMySlimBlock, int> m_targetBlocks;
         private float m_maxDistance = 300f;
 
@@ -87,7 +86,6 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_validBeaconedGrids = new HashSet<NaniteDeconstructionGrid>();
             m_targetBlocks = new Dictionary<IMySlimBlock, int>();
             m_tempPhysicless = new Dictionary<IMyCubeGrid, DateTime>();
-            m_areaTargetBlocks = new Dictionary<IMyCubeGrid, NaniteAreaBeacon>();
             m_maxDistance = NaniteConstructionManager.Settings.DeconstructionMaxDistance;
 
             MyAPIGateway.Entities.OnEntityRemove += OnEntityRemove;
@@ -174,8 +172,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                     deconstruct.RemoveList.Clear();
                 }
 
-                CheckAreaBeacons(NaniteGridGroup);
-
                 if (PotentialTargetList.Count > 0)
                 {
                     foreach (IMySlimBlock item in PotentialTargetList.ToList())
@@ -191,46 +187,6 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
             catch (Exception e)
                 { Logging.Instance.WriteLine($"Exception in NaniteDeconstructionTargets.ParallelUpdate:\n{e}"); }
-        }
-
-        private void CheckAreaBeacons(List<IMyCubeGrid> NaniteGridGroup)
-        {
-            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteAreaBeacon).ToList())
-            {
-                IMyCubeBlock cubeBlock = (IMyCubeBlock)beaconBlock.Value.BeaconBlock;
-
-			    if (!IsAreaBeaconValid(cubeBlock))
-                    continue;
-
-                var item = beaconBlock.Value as NaniteAreaBeacon;
-                if (!item.Settings.AllowDeconstruction)
-                    continue;
-
-                HashSet<IMyEntity> entities = new HashSet<IMyEntity>();
-                MyAPIGateway.Entities.GetEntities(entities);
-                foreach (var entity in entities)
-                {
-                    var grid = entity as IMyCubeGrid;
-                    if (grid != null && grid.Physics != null && grid.Physics.AngularVelocity.Length() == 0f
-                      && grid.Physics.LinearVelocity.Length() == 0f && m_validBeaconedGrids.FirstOrDefault(x => x.GridsProcessed.Contains(grid)) == null
-                      && !MyAPIGateway.GridGroups.GetGroup(grid, GridLinkTypeEnum.Physical).Contains(cubeBlock.CubeGrid)
-                      && (grid.GetPosition() - cubeBlock.GetPosition()).LengthSquared() < m_maxDistance * m_maxDistance && item.IsInsideBox(grid.WorldAABB, false))
-                    {
-                        NaniteDeconstructionGrid deconstruct = new NaniteDeconstructionGrid(grid);
-                        m_validBeaconedGrids.Add(deconstruct);
-                        CreateGridStack(NaniteGridGroup, deconstruct, (MyCubeGrid)grid, null);
-
-                        if (!m_areaTargetBlocks.ContainsKey(grid))
-                            m_areaTargetBlocks.Add(grid, item);
-                        else
-                            m_areaTargetBlocks[grid] = item;
-
-                        foreach (var block in deconstruct.RemoveList)
-                            if (!PotentialTargetList.Contains(block))
-                                PotentialTargetList.Add(block);
-                    }
-                }
-            }
         }
 
         public override void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList)
@@ -345,22 +301,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                     m_constructionBlock.SendAddTarget(target, TargetTypes.Deconstruction);
                 }
 
-                if (m_areaTargetBlocks.ContainsKey(target.CubeGrid))
-                {
-                    if (!m_areaTargetBlocks[target.CubeGrid].IsInsideBox(target.CubeGrid.WorldAABB, false))
-                    {
-                        CancelTarget(target);
-                        RemoveGridTarget(target.CubeGrid);
-                        return;
-                    }
-
-                    if (target.CubeGrid.Physics.LinearVelocity.LengthSquared() != 0f || target.CubeGrid.Physics.AngularVelocity.LengthSquared() != 0f)
-                    {
-                        CancelTarget(target);
-                        return;
-                    }
-                }
-
                 if (target.IsDestroyed || target.IsFullyDismounted || target.CubeGrid.GetCubeBlock(target.Position) == null || (target.FatBlock != null && target.FatBlock.Closed))
                 {
                     CompleteTarget(target);
@@ -399,8 +339,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                     break;
                 }
 
-            if (m_areaTargetBlocks.ContainsKey(grid))
-                m_areaTargetBlocks.Remove(grid);
         }
 
         private void CreateDeconstructionParticle(IMySlimBlock target)
@@ -410,35 +348,30 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             m_targetBlocks[target] = 0;
 
-            MyAPIGateway.Parallel.Start(() =>
-            {
-                try
-                {
-                    Vector3D targetPosition = default(Vector3D);
+            try {
+                Vector3D targetPosition = default(Vector3D);
 
-                    if (target.FatBlock != null)
-                        targetPosition = target.FatBlock.GetPosition();
-                    else
-                    {
-                        var size = target.CubeGrid.GridSizeEnum == MyCubeSize.Small ? 0.5f : 2.5f;
-                        var destinationPosition = new Vector3D(target.Position * size);
-                        targetPosition = Vector3D.Transform(destinationPosition, target.CubeGrid.WorldMatrix);
-                    }
-
-                    var nearestFactory = m_constructionBlock;
-
-                    Vector4 startColor = new Vector4(0.55f, 0.95f, 0.95f, 0.75f);
-                    Vector4 endColor = new Vector4(0.05f, 0.35f, 0.35f, 0.75f);
-
-                    if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles)
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                        {
-                            nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
-                        });
+                if (target.FatBlock != null) {
+                    targetPosition = target.FatBlock.GetPosition();
+                } else {
+                    var size = target.CubeGrid.GridSizeEnum == MyCubeSize.Small ? 0.5f : 2.5f;
+                    var destinationPosition = new Vector3D(target.Position * size);
+                    targetPosition = Vector3D.Transform(destinationPosition, target.CubeGrid.WorldMatrix);
                 }
-                catch (Exception e)
-                    {Logging.Instance.WriteLine($"{e}");}
-            });
+
+                var nearestFactory = m_constructionBlock;
+
+                Vector4 startColor = new Vector4(0.55f, 0.95f, 0.95f, 0.75f);
+                Vector4 endColor = new Vector4(0.05f, 0.35f, 0.35f, 0.75f);
+
+                if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles) {
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {
+                        nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
+                    });
+                }
+            } catch (Exception e) {
+                Logging.Instance.WriteLine($"{e}");
+            }
 
         }
 
@@ -454,6 +387,15 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_constructionBlock.ParticleManager.CompleteTarget(obj);
             m_constructionBlock.ToolManager.Remove(obj);
             Remove(obj);
+        }
+
+        public override void AddToIgnoreList(object obj){
+            if (PotentialIgnoredList.Contains(obj) == false) {
+                PotentialIgnoredList.Add(obj);
+                if (PotentialTargetList.Contains(obj)) {
+                    PotentialTargetList.Remove(obj);
+                }
+            }
         }
 
         public void CancelTarget(IMySlimBlock obj)
@@ -505,8 +447,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                     m_validBeaconedGrids.Remove(item);
             }
 
-            if (m_areaTargetBlocks.ContainsKey(grid))
-                m_areaTargetBlocks.Remove(grid);
         }
 
         private int GetGridGroupBlockCount(IMyCubeGrid grid)

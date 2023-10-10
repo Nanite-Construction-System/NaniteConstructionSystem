@@ -1,8 +1,18 @@
 <?xml version="1.0"?>
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <BlueprintClassEntries>
-    <Entry Class="LargeBlocks" BlueprintSubtypeId="ShipWelder/LargeNaniteControlFacility"/>
-    <Entry Class="LargeBlocks" BlueprintSubtypeId="UpgradeModule/LargeNaniteBeaconDeconstruct"/>
-    <Entry Class="LargeBlocks" BlueprintSubtypeId="OreDetector/LargeNaniteOreDetector"/>
-  </BlueprintClassEntries>
+    <BlueprintClassEntries>
+        <Entry Class="LargeBlocks" BlueprintSubtypeId="ShipWelder/LargeNaniteControlFacility"/>
+        <Entry Class="SmallBlocks" BlueprintSubtypeId="ShipWelder/SmallNaniteControlFacility"/>
+        <Entry Class="LargeBlocks" BlueprintSubtypeId="UpgradeModule/LargeNaniteBeaconDeconstruct"/>
+        <Entry Class="LargeBlocks" BlueprintSubtypeId="UpgradeModule/LargeNaniteBeaconConstruct"/>
+        <Entry Class="LargeBlocks" BlueprintSubtypeId="UpgradeModule/LargeNaniteBeaconProjection"/>
+        <Entry Class="LargeBlocks" BlueprintSubtypeId="BatteryBlock/NaniteBeaconMine"/>
+        <Entry Class="LargeBlocks" BlueprintSubtypeId="UpgradeModule/NaniteConstructUpgrade"/>
+        <Entry Class="LargeBlocks" BlueprintSubtypeId="UpgradeModule/NaniteDeconstructUpgrade"/>
+        <Entry Class="LargeBlocks" BlueprintSubtypeId="UpgradeModule/NaniteLifeSupportUpgrade"/>
+        <Entry Class="LargeBlocks" BlueprintSubtypeId="UpgradeModule/NaniteMiningUpgrade"/>
+        <Entry Class="LargeBlocks" BlueprintSubtypeId="UpgradeModule/NaniteSpeedUpgrade"/>
+        <Entry Class="LargeBlocks" BlueprintSubtypeId="UpgradeModule/NanitePowerUpgrade"/>
+        <Entry Class="LargeBlocks" BlueprintSubtypeId="UpgradeModule/NaniteCleanupUpgrade"/>
+    </BlueprintClassEntries>
 </Definitions>

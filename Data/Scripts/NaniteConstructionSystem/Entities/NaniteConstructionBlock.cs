@@ -21,7 +21,6 @@ using VRage.Utils;
 using Ingame = Sandbox.ModAPI.Ingame;
 using VRage.Game.ModAPI;
 using IMyProjector = Sandbox.ModAPI.IMyProjector;
-using IMyOreDetector = Sandbox.ModAPI.IMyOreDetector;
 using IMyTerminalBlock = Sandbox.ModAPI.IMyTerminalBlock;
 using NaniteConstructionSystem.Particles;
 using NaniteConstructionSystem.Entities.Targets;
@@ -29,7 +28,6 @@ using NaniteConstructionSystem.Entities.Effects;
 using NaniteConstructionSystem.Entities.Effects.LightningBolt;
 using NaniteConstructionSystem.Entities.Tools;
 using NaniteConstructionSystem.Entities.Beacons;
-using NaniteConstructionSystem.Entities.Detectors;
 using NaniteConstructionSystem.Extensions;
 using NaniteConstructionSystem;
 using NaniteConstructionSystem.Integration;
@@ -167,6 +165,8 @@ namespace NaniteConstructionSystem.Entities
 
         private bool m_scanningActive;
         private bool m_initInventory = true;
+        private int scanningNumber = 0;
+        private int clearInventoryTimer = 0;
         private bool m_isFunctional;
         public bool IsFunctional {get {return m_isFunctional;} }
         private bool firstPass = false;
@@ -266,41 +266,36 @@ namespace NaniteConstructionSystem.Entities
             if (!m_initialize)
                 Initialize();
 
-            if (m_updateCount % 1800 == 0 && ConstructionBlock.IsFunctional)
-            { // Log some status info. Should include some process time profiling in the future
-                MyAPIGateway.Parallel.Start(() =>
-                {
-                    try
-                    {
+            if (m_updateCount % 1800 == 0 && ConstructionBlock.IsFunctional) {
+                    try {
                         string upgrades = "";
-                        foreach (var item in ((MyCubeBlock)m_constructionBlock).UpgradeValues)
+                        foreach (var item in ((MyCubeBlock)m_constructionBlock).UpgradeValues) {
                             upgrades += string.Format("({0} - {1}) ", item.Key, item.Value);
 
-                        Logging.Instance.WriteLine(string.Format("[Factory] Nanite Factory Status: {0} - (t: {1}  pt: {2}  pw: {3} st: {4}) - {5}",
-                          m_entityId, m_targetsCount, m_potentialTargetsCount, _power, m_factoryState, upgrades), 1);
+                            Logging.Instance.WriteLine(string.Format("[Factory] Nanite Factory Status: {0} - (t: {1}  pt: {2}  pw: {3} st: {4}) - {5}",
+                            m_entityId, m_targetsCount, m_potentialTargetsCount, _power, m_factoryState, upgrades), 1);
+                        }
+                    } catch (Exception e) {
+                        Logging.Instance.WriteLine($"Exception while logging Nanite Factory status: {e}", 1);
                     }
-                    catch (Exception e)
-                        { Logging.Instance.WriteLine($"Exception while logging Nanite Factory status: {e}", 1); }
-                });
 
-                if (m_scanningActive && m_updateCount - m_lastScanStatusUpdate > 3600)
+                if (m_scanningActive && m_updateCount - m_lastScanStatusUpdate > 3600) {
                     m_scanningActive = false;
+                    scanningNumber++;
+                }
             }
 
             if (Sync.IsServer)
             {
                 if (m_updateCount % 300 == 0)
                 {
-                    if (FactoryIsRunning())
-                        MyAPIGateway.Parallel.Start(() =>
-                        {
-                            try
-                                { CheckSlaveMaster(); }
-                            catch (Exception e)
-                                { Logging.Instance.WriteLine($"Exception: CheckSlaveMaster:\n{e}"); }
-                        });
-                    else
-                    {
+                    if (FactoryIsRunning()) {
+                        try {
+                            CheckSlaveMaster();
+                        } catch (Exception e) {
+                            Logging.Instance.WriteLine($"Exception: CheckSlaveMaster:\n{e}");
+                        }
+                    } else {
                         Master = null;
                         Slaves.Clear();
                         m_scanBlocksCache.Clear();
@@ -342,14 +337,68 @@ namespace NaniteConstructionSystem.Entities
                         }
 
                         m_scanningActive = false;
+                        scanningNumber++;
                         m_lastScanStatusUpdate = m_updateCount;
                     }
-                }
-                else
+                } else {
                     m_scanningActive = false;
+                    scanningNumber++;
+                }
 
                 if (m_forceProcessState || !m_scanningActive || m_updateCount > m_assemblerUpdateTimer + 600)
                     ProcessState();                          // ^Prevent factorystate deadlocks
+
+                if (scanningNumber >= 5 && m_updateCount % 300 == 0) {
+                    clearInventoryTimer++;
+                    foreach (var item in m_targets.ToList()) {
+                        if (item == null)
+                            continue;
+
+                        if (item.PotentialIgnoredList.Count() > 0) {
+
+                            // MyVisualScriptLogicProvider.ShowNotificationToAll($"SCAN RESET {item.GetType()} : {item.PotentialIgnoredList.Count()};{item.PotentialTargetList.Count()}", 8000);
+
+                            item.PotentialIgnoredList.Clear();
+                            item.PotentialTargetList.Clear();
+                            item.IgnoredCheckedTimes.Clear();
+                        }
+                    }
+
+                    if (clearInventoryTimer >= 20) {
+                        try {
+                            // inventory reset
+                            // go through inventories connected with the nanite control facility
+                            InventoryManager.ComponentsRequired.Clear();
+                            foreach (IMyInventory inventory in InventoryManager.connectedInventory) {
+
+                                if (inventory == null || inventory.CurrentVolume == inventory.MaxVolume)
+                                    continue;
+
+                                var owner = inventory.Owner as IMyTerminalBlock;
+                                if (owner != null && owner is IMyCargoContainer) {
+                                    if (m_constructionBlockInventory != null) {
+                                        var localNaniteInventory = m_constructionBlockInventory as IMyInventory;
+
+                                        var naniteItems = localNaniteInventory.GetItems().ToList();
+
+                                        if (naniteItems.Count() > 0) {
+                                            var inventoryItem = naniteItems[0];
+                                            if (inventory.CanItemsBeAdded((inventoryItem.Amount * 2), inventoryItem.Content.GetId())) {
+                                                localNaniteInventory.TransferItemTo(inventory, 0, null, null, null, true);
+                                                // MyVisualScriptLogicProvider.ShowNotificationToAll($"přesouvám item zpátky", 3000);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } catch(Exception exc) {
+                            MyLog.Default.WriteLineAndConsole($"##MOD: nanites ERROR {exc}");
+                        }
+                        clearInventoryTimer = 0;
+                    }
+
+                    scanningNumber = 0;
+                }
             }
 
             UpdateSpoolPosition();
@@ -371,12 +420,9 @@ namespace NaniteConstructionSystem.Entities
             {
                 ParticleManager.CheckParticleLife(); // removes stubborn Nanite particles
 
-                MyAPIGateway.Parallel.Start(() =>
-                { // This is the only place that ever modifies m_userDefinedNaniteLimit, so this should be thread-safe without locks
-                    if (NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.EntityId)
-                      && NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].MaxNanites != m_userDefinedNaniteLimit)
-                        m_userDefinedNaniteLimit = NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].MaxNanites;
-                });
+                if (NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.EntityId) && NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].MaxNanites != m_userDefinedNaniteLimit) {
+                    m_userDefinedNaniteLimit = NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].MaxNanites;
+                }
             }
 
             if (m_updateCount % 180 == 0)
@@ -608,71 +654,65 @@ namespace NaniteConstructionSystem.Entities
         /// <summary> Updates .CustomInfo of the factory. Viewed in the control panel </summary>
         private void AppendingCustomInfo(IMyTerminalBlock block, StringBuilder details)
         {
-            if (m_factoryState == FactoryStates.Disabled || m_updateCount % 180 != 0)
+            if (m_factoryState == FactoryStates.Disabled)
                 return;
 
             details.Clear();
 
-            if (Sync.IsServer)
-            {
-                MyAPIGateway.Parallel.Start(() =>
-                {
-                    try
+            if (Sync.IsServer) {
+                try {
+                    StringBuilder targetDetailsParallel = new StringBuilder();
+                    StringBuilder invalidTargetDetailsParallel = new StringBuilder();
+                    StringBuilder missingComponentsDetailsParallel = new StringBuilder();
+                    bool invalidTitleAppended = false;
+                    bool missingCompTitleAppended = false;
+
+                    NaniteConstructionBlock factory = Master != null ? Master : this;
+
+                    foreach (var item in factory.Targets.ToList())
                     {
-                        StringBuilder targetDetailsParallel = new StringBuilder();
-                        StringBuilder invalidTargetDetailsParallel = new StringBuilder();
-                        StringBuilder missingComponentsDetailsParallel = new StringBuilder();
-                        bool invalidTitleAppended = false;
-                        bool missingCompTitleAppended = false;
+                        targetDetailsParallel.Append("-----\r\n"
+                          + $"{item.TargetName} Nanites\r\n"
+                          + "-----\r\n"
+                          + $"Possible Targets: {item.PotentialTargetListCount}\r\n"
+                          + $"Current Targets: {item.TargetList.Count}\r\n"
+                          + $"Max Streams: {item.GetMaximumTargets()}\r\n" // TO DO: Retrieve a cached value for these instead of invoking a method
+                          + $"MW/Stream: {item.GetPowerUsage()} MW\r\n"
+                          + $"Min. Travel Time: {item.GetMinTravelTime()} s\r\n"
+                          + $"Travel Speed: {item.GetSpeed()} m/s\r\n");
 
-                        NaniteConstructionBlock factory = Master != null ? Master : this;
-
-                        foreach (var item in factory.Targets.ToList())
+                        if (item.LastInvalidTargetReason != null && item.LastInvalidTargetReason != "")
                         {
-                            targetDetailsParallel.Append("-----\r\n"
-                              + $"{item.TargetName} Nanites\r\n"
-                              + "-----\r\n"
-                              + $"Possible Targets: {item.PotentialTargetListCount}\r\n"
-                              + $"Current Targets: {item.TargetList.Count}\r\n"
-                              + $"Max Streams: {item.GetMaximumTargets()}\r\n" // TO DO: Retrieve a cached value for these instead of invoking a method
-                              + $"MW/Stream: {item.GetPowerUsage()} MW\r\n"
-                              + $"Min. Travel Time: {item.GetMinTravelTime()} s\r\n"
-                              + $"Travel Speed: {item.GetSpeed()} m/s\r\n");
-
-                            if (item.LastInvalidTargetReason != null && item.LastInvalidTargetReason != "")
+                            if (!invalidTitleAppended)
                             {
-                                if (!invalidTitleAppended)
-                                {
-                                    invalidTargetDetailsParallel.Append("\nTarget info:\r\n");
-                                    invalidTitleAppended = true;
-                                }
-                                invalidTargetDetailsParallel.Append($"\n- ({item.TargetName}) " + item.LastInvalidTargetReason);
+                                invalidTargetDetailsParallel.Append("\nTarget info:\r\n");
+                                invalidTitleAppended = true;
                             }
+                            invalidTargetDetailsParallel.Append($"\n- ({item.TargetName}) " + item.LastInvalidTargetReason);
                         }
-
-                        if (factory.InventoryManager.ComponentsRequired.Count > 0)
-                            foreach (var component in factory.InventoryManager.ComponentsRequired.ToList())
-                                if (component.Value > 0)
-                                {
-                                    if (!missingCompTitleAppended)
-                                    {
-                                        missingComponentsDetailsParallel.Append("\r\nNeeded parts:\r\n");
-                                        missingCompTitleAppended = true;
-                                    }
-                                    missingComponentsDetailsParallel.Append($"{component.Key}: {component.Value}\r\n");
-                                }
-
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                        {
-                            m_targetDetails = targetDetailsParallel;
-                            m_invalidTargetDetails = invalidTargetDetailsParallel;
-                            m_missingComponentsDetails = missingComponentsDetailsParallel;
-                        });
                     }
-                    catch (Exception e)
-                        { Logging.Instance.WriteLine($"NaniteConstructionBlock.AppendingCustomInfo() exception: {e}"); }
 
-                });
+                    if (factory.InventoryManager.ComponentsRequired.Count > 0)
+                        foreach (var component in factory.InventoryManager.ComponentsRequired.ToList())
+                            if (component.Value > 0)
+                            {
+                                if (!missingCompTitleAppended)
+                                {
+                                    missingComponentsDetailsParallel.Append("\r\nNeeded parts:\r\n");
+                                    missingCompTitleAppended = true;
+                                }
+                                missingComponentsDetailsParallel.Append($"{component.Key}: {component.Value}\r\n");
+                            }
+
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                    {
+                        m_targetDetails = targetDetailsParallel;
+                        m_invalidTargetDetails = invalidTargetDetailsParallel;
+                        m_missingComponentsDetails = missingComponentsDetailsParallel;
+                    });
+                } catch (Exception e) {
+                    Logging.Instance.WriteLine($"NaniteConstructionBlock.AppendingCustomInfo() exception: {e}");
+                }
 
                 details.Append("-- Nanite Factory v2.0 --\n");
                 details.Append($"# {m_entityId}\n");
@@ -697,6 +737,9 @@ namespace NaniteConstructionSystem.Entities
                 else
                     details.Append($"\nWaiting ...\n\n");
 
+                details.Append(m_invalidTargetDetails);
+                details.Append(m_missingComponentsDetails);
+
                 details.Append(m_targetDetails
                   + "-----\r\n"
                   + $"Power Required: {_power} MW\r\n"
@@ -706,18 +749,15 @@ namespace NaniteConstructionSystem.Entities
                 if (m_userDefinedNaniteLimit > 0)
                     details.Append($"Max Nanites: {m_userDefinedNaniteLimit}\r\n");
 
-                details.Append(m_invalidTargetDetails);
-                details.Append(m_missingComponentsDetails);
-
                 if (m_syncDetails.Length != details.Length)
                 {
                     m_syncDetails.Clear();
                     m_syncDetails.Append(details);
                     SendDetails();
                 }
-            }
-            else
+            } else {
                 details.Append(m_syncDetails);
+            }
         }
         #endregion
 
@@ -848,44 +888,37 @@ namespace NaniteConstructionSystem.Entities
 
         private void CheckIfAGridBlockIsInventory()
         {
-            MyAPIGateway.Parallel.Start(() =>
-            {
-                while (!m_potentialInventoryBlocks.IsEmpty)
-                {
-                    IMySlimBlock block = null;
-                    m_potentialInventoryBlocks.TryTake(out block);
-                    if (block != null)
-                        TryAddToInventoryGroup(block);
+            while (!m_potentialInventoryBlocks.IsEmpty) {
+                IMySlimBlock block = null;
+                m_potentialInventoryBlocks.TryTake(out block);
+
+                if (block != null) {
+                    TryAddToInventoryGroup(block);
                 }
-            });
+            }
         }
 
         private void CheckIfAGridBlockIsGasTank()
         {
-            MyAPIGateway.Parallel.Start(() =>
-            {
-                while (!m_potentialGasTanks.IsEmpty)
-                {
-                    IMySlimBlock block = null;
-                    m_potentialGasTanks.TryTake(out block);
-                    if (block != null)
-                        TryAddToGasTankGroup(block);
+            while (!m_potentialGasTanks.IsEmpty) {
+                IMySlimBlock block = null;
+                m_potentialGasTanks.TryTake(out block);
+
+                if (block != null) {
+                    TryAddToGasTankGroup(block);
                 }
-            });
+            }
         }
 
         private void OnBlockAdded(IMySlimBlock block)
         {
-            MyAPIGateway.Parallel.Start(() =>
-            {
-                if (Master != null || m_factoryState == FactoryStates.Disabled)
-                    return;
+            if (Master != null || m_factoryState == FactoryStates.Disabled)
+                return;
 
-                Logging.Instance.WriteLine("[Grid] Block added to grid.", 2);
+            Logging.Instance.WriteLine("[Grid] Block added to grid.", 2);
 
-                TryAddPotentialInventoryBlock(block);
-                TryAddPotentialGasTank(block);
-            });
+            TryAddPotentialInventoryBlock(block);
+            TryAddPotentialGasTank(block);
         }
 
         private void TryAddPotentialInventoryBlock(IMySlimBlock block)
@@ -958,79 +991,71 @@ namespace NaniteConstructionSystem.Entities
         /// <summary> Checks if the grid group has changed and quickly scans/adds any inventory blocks. Manages grid event handlers </summary>
         private void CheckGridGroup()
         {
-            MyAPIGateway.Parallel.Start(() =>
-            {
-                try
+            try {
+                List<IMyCubeGrid> removalList = new List<IMyCubeGrid>();
+                List<IMyCubeGrid> newGroup = new List<IMyCubeGrid>(MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)m_constructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical));
+
+                foreach (var slave in Slaves)
                 {
-                    List<IMyCubeGrid> removalList = new List<IMyCubeGrid>();
-                    List<IMyCubeGrid> newGroup = new List<IMyCubeGrid>(MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)m_constructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical));
-
-                    foreach (var slave in Slaves)
-                    {
-                        List<IMyCubeGrid> slaveGroup = new List<IMyCubeGrid>(MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)slave.ConstructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical));
-                        foreach (var grid in slaveGroup)
-                            if (!newGroup.Contains(grid))
-                                newGroup.Add(grid);
-                    }
-
-                    foreach (IMyCubeGrid grid in GridGroup)
-                    {
+                    List<IMyCubeGrid> slaveGroup = new List<IMyCubeGrid>(MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)slave.ConstructionCubeBlock.CubeGrid, GridLinkTypeEnum.Physical));
+                    foreach (var grid in slaveGroup)
                         if (!newGroup.Contains(grid))
-                        {
-                            Logging.Instance.WriteLine("[Grids] Removing disconnected grid from grid group.", 1);
-                            removalList.Add(grid);
-                            grid.OnBlockAdded -= OnBlockAdded;
-                        }
-                    }
-
-                    foreach (IMyCubeGrid removalgrid in removalList)
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                            { GridGroup.Remove(removalgrid); });
-
-                    foreach (IMyCubeGrid grid in newGroup)
-                    {
-                        if (!GridGroup.Contains(grid))
-                        {
-                            Logging.Instance.WriteLine("[Grids] Adding new grid to grid group.", 1);
-
-                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                                { GridGroup.Add(grid); });
-
-                            BuildConnectedInventory(grid);
-                            grid.OnBlockAdded += OnBlockAdded;
-                        }
-                    }
-
+                            newGroup.Add(grid);
                 }
-                catch (Exception ex)
-                    { Logging.Instance.WriteLine($"CheckGridGroup() Error: {ex.ToString()}"); }
-            });
+
+                foreach (IMyCubeGrid grid in GridGroup)
+                {
+                    if (!newGroup.Contains(grid))
+                    {
+                        Logging.Instance.WriteLine("[Grids] Removing disconnected grid from grid group.", 1);
+                        removalList.Add(grid);
+                        grid.OnBlockAdded -= OnBlockAdded;
+                    }
+                }
+
+                foreach (IMyCubeGrid removalgrid in removalList)
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        { GridGroup.Remove(removalgrid); });
+
+                foreach (IMyCubeGrid grid in newGroup)
+                {
+                    if (!GridGroup.Contains(grid))
+                    {
+                        Logging.Instance.WriteLine("[Grids] Adding new grid to grid group.", 1);
+
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                            { GridGroup.Add(grid); });
+
+                        BuildConnectedInventory(grid);
+                        grid.OnBlockAdded += OnBlockAdded;
+                    }
+                }
+
+            } catch (Exception ex) {
+                Logging.Instance.WriteLine($"CheckGridGroup() Error: {ex.ToString()}");
+            }
         }
 
         /// <summary> Scans and adds inventory blocks to a grid in the gridgroup. Adds event handlers </summary>
         public void BuildConnectedInventory(IMyCubeGrid grid)
         {
-            MyAPIGateway.Parallel.Start(() =>
-            {
-                try
+            try {
+                ConcurrentBag<IMySlimBlock> slimBlocks = new ConcurrentBag<IMySlimBlock>(((MyCubeGrid)grid).GetBlocks());
+
+                while (!slimBlocks.IsEmpty)
                 {
-                    ConcurrentBag<IMySlimBlock> slimBlocks = new ConcurrentBag<IMySlimBlock>(((MyCubeGrid)grid).GetBlocks());
+                    IMySlimBlock slimBlock = null;
+                    slimBlocks.TryTake(out slimBlock);
 
-                    while (!slimBlocks.IsEmpty)
+                    if (slimBlock != null)
                     {
-                        IMySlimBlock slimBlock = null;
-                        slimBlocks.TryTake(out slimBlock);
-
-                        if (slimBlock != null)
-                        {
-                            TryAddPotentialInventoryBlock(slimBlock);
-                            TryAddPotentialGasTank(slimBlock);
-                        }
+                        TryAddPotentialInventoryBlock(slimBlock);
+                        TryAddPotentialGasTank(slimBlock);
                     }
                 }
-                catch (Exception e)
-                    { Logging.Instance.WriteLine($"BuildConnectedInventory() Error: {e.ToString()}"); }
-            });
+            } catch (Exception e) {
+                Logging.Instance.WriteLine($"BuildConnectedInventory() Error: {e.ToString()}");
+            }
         }
         #endregion
 
@@ -1046,8 +1071,7 @@ namespace NaniteConstructionSystem.Entities
 
         private void ProcessAssemblerQueue()
         {
-            MyAPIGateway.Parallel.Start(() =>
-            {
+            MyAPIGateway.Parallel.Start(() => {
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
                 if (!NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.EntityId)
@@ -1081,8 +1105,7 @@ namespace NaniteConstructionSystem.Entities
                     return;
                 }
 
-                MyAPIGateway.Parallel.ForEach(InventoryManager.ComponentsRequired, item =>
-                {
+                MyAPIGateway.Parallel.ForEach(InventoryManager.ComponentsRequired, item => {
                     var def = MyDefinitionManager.Static.TryGetBlueprintDefinitionByResultId(new MyDefinitionId(typeof(MyObjectBuilder_Component), item.Key));
                     if (def == null)
                         return;
@@ -1176,34 +1199,27 @@ namespace NaniteConstructionSystem.Entities
                 FactoryGroup = Slaves.ToList();
                 FactoryGroup.Add(this);
 
-                MyAPIGateway.Parallel.StartBackground(() =>
-                {
-                    try
-                    {
-                        Stopwatch stopwatch = Stopwatch.StartNew();
-                        SendFactoryGroup();
-                        ProcessTargetsParallel();
-                        ProcessTargets();
-                        stopwatch.Stop();
-                        Logging.Instance.WriteLine($"ScanForTargets {ConstructionBlock.EntityId}: {(stopwatch.ElapsedTicks * 1000000)/Stopwatch.Frequency} microseconds", 1);
-                    }
-                    catch (InvalidOperationException e)
-                    {
-                        Logging.Instance.WriteLine("ScanForTargets InvalidOperationException: " + Localization.Localize(1));
-                        Logging.Instance.WriteLine($"{e.ToString()}", 2);
-                    }
-                    catch (Exception e) when (e.ToString().Contains("IndexOutOfRangeException"))
-                    { // because Keen thinks we shouldn't have access to IndexOutOfRangeException ...
-                        Logging.Instance.WriteLine("ScanForTargets IndexOutOfRangeException: " + Localization.Localize(1));
-                        Logging.Instance.WriteLine($"{e.ToString()}", 2);
-                    }
-                    catch (Exception e)
-                        {Logging.Instance.WriteLine($"NaniteConstructionBlock.ScanForTargets exception: {e.ToString()}");}
-                },
-                () => { //callback
-                    m_takeComponentsTimer = m_updateCount + 100; //  These timers give the parallel threads time to finish
-                    m_assemblerUpdateTimer = m_updateCount + 200; // computing and then finding components/lists.
-                });
+                try {
+                    Stopwatch stopwatch = Stopwatch.StartNew();
+                    SendFactoryGroup();
+                    ProcessTargetsParallel();
+                    ProcessTargets();
+                    stopwatch.Stop();
+                    Logging.Instance.WriteLine($"ScanForTargets {ConstructionBlock.EntityId}: {(stopwatch.ElapsedTicks * 1000000)/Stopwatch.Frequency} microseconds", 1);
+                } catch (InvalidOperationException e) {
+                    Logging.Instance.WriteLine("ScanForTargets InvalidOperationException: " + Localization.Localize(1));
+                    Logging.Instance.WriteLine($"{e.ToString()}", 2);
+                } catch (Exception e) when (e.ToString().Contains("IndexOutOfRangeException")) {
+                    // because Keen thinks we shouldn't have access to IndexOutOfRangeException ...
+                    Logging.Instance.WriteLine("ScanForTargets IndexOutOfRangeException: " + Localization.Localize(1));
+                    Logging.Instance.WriteLine($"{e.ToString()}", 2);
+                } catch (Exception e) {
+                    Logging.Instance.WriteLine($"NaniteConstructionBlock.ScanForTargets exception: {e.ToString()}");
+                }
+
+                // TODO: tohle může bejt problém
+                m_takeComponentsTimer = m_updateCount + 100; //  These timers give the parallel threads time to finish
+                m_assemblerUpdateTimer = m_updateCount + 200; // computing and then finding components/lists.
             }
         }
 
@@ -1291,7 +1307,6 @@ namespace NaniteConstructionSystem.Entities
                         if (target is NaniteConstructionTargets || target is NaniteProjectionTargets)
                         {
                             target.CheckBeacons();
-                            target.CheckAreaBeacons();
                         }
                         else if (target is NaniteDeconstructionTargets)
                             target.ParallelUpdate(GridGroup, m_scanBlocksCache);
@@ -1531,97 +1546,93 @@ namespace NaniteConstructionSystem.Entities
             else if (m_updateCount % 120 != 0)
                 return;
 
-            MyAPIGateway.Parallel.Start(() =>
-            {
-                try
-                {
-                    ProcessInventory();
-                    UpdatePower();
-                    IMyFunctionalBlock blockEntity = (IMyFunctionalBlock)ConstructionBlock;
-                    m_targetsCount = m_targets.Sum(x => x.TargetList.Count);
-                    FactoryStates newState = m_factoryState;
+            try {
+                ProcessInventory();
+                UpdatePower();
+                IMyFunctionalBlock blockEntity = (IMyFunctionalBlock)ConstructionBlock;
+                m_targetsCount = m_targets.Sum(x => x.TargetList.Count);
+                FactoryStates newState = m_factoryState;
 
-                    if (!blockEntity.Enabled || !ConstructionBlock.IsFunctional)
+                if (!blockEntity.Enabled || !ConstructionBlock.IsFunctional)
+                {
+                    if (m_spoolPosition > 0f)
+                        newState = FactoryStates.SpoolingDown;
+                    else
+                        newState = FactoryStates.Disabled;
+                }
+                else if ( (Master != null && (Master.FactoryState == FactoryStates.Active || Master.FactoryState == FactoryStates.SpoolingUp))
+                  || ( (m_targetsCount > 0 && IsPowered()) || m_particleManager.Particles.Count > 0 ) )
+                {
+                    if (m_spoolPosition == m_spoolingTime)
                     {
-                        if (m_spoolPosition > 0f)
-                            newState = FactoryStates.SpoolingDown;
-                        else
-                            newState = FactoryStates.Disabled;
-                    }
-                    else if ( (Master != null && (Master.FactoryState == FactoryStates.Active || Master.FactoryState == FactoryStates.SpoolingUp))
-                      || ( (m_targetsCount > 0 && IsPowered()) || m_particleManager.Particles.Count > 0 ) )
-                    {
-                        if (m_spoolPosition == m_spoolingTime)
+                        newState = FactoryStates.Active;
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         {
-                            newState = FactoryStates.Active;
+                            if (m_lastState != newState)
+                                m_updateConnectedInventory = true;
+                        });
+                    }
+                    else
+                        newState = FactoryStates.SpoolingUp;
+                }
+                else if (Master != null && m_spoolPosition > 0)
+                    newState = FactoryStates.SpoolingDown;
+                else if (Master != null && Master.FactoryState != FactoryStates.Disabled && Master.FactoryState != FactoryStates.SpoolingDown)
+                    newState = Master.FactoryState;
+
+                else if (Master == null)
+                {
+                    if (m_targetsCount == 0 && m_potentialTargetsCount > 0 && !IsPowered())
+                        newState = FactoryStates.MissingPower;
+
+                    else if (m_targetsCount == 0 && m_potentialTargetsCount > 0)
+                    {
+                        newState = FactoryStates.InvalidTargets;
+                    }
+                    else if (blockEntity.Enabled)
+                    {
+                        if (m_spoolPosition <= 0)
+                        {
                             MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                             {
-                                if (m_lastState != newState)
-                                    m_updateConnectedInventory = true;
+                                m_spoolPosition = 0;
+                                m_factoryState = FactoryStates.Enabled;
                             });
                         }
                         else
-                            newState = FactoryStates.SpoolingUp;
-                    }
-                    else if (Master != null && m_spoolPosition > 0)
-                        newState = FactoryStates.SpoolingDown;
-                    else if (Master != null && Master.FactoryState != FactoryStates.Disabled && Master.FactoryState != FactoryStates.SpoolingDown)
-                        newState = Master.FactoryState;
-
-                    else if (Master == null)
-                    {
-                        if (m_targetsCount == 0 && m_potentialTargetsCount > 0 && !IsPowered())
-                            newState = FactoryStates.MissingPower;
-
-                        else if (m_targetsCount == 0 && m_potentialTargetsCount > 0)
-                        {
-                            newState = FactoryStates.InvalidTargets;
-                        }
-                        else if (blockEntity.Enabled)
-                        {
-                            if (m_spoolPosition <= 0)
-                            {
-                                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                                {
-                                    m_spoolPosition = 0;
-                                    m_factoryState = FactoryStates.Enabled;
-                                });
-                            }
-                            else
-                                newState = FactoryStates.SpoolingDown;
-                        }
-                        else
-                            newState = FactoryStates.Disabled;
-                    }
-
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                    {
-                        if (m_factoryState != FactoryStates.Active && m_factoryState != FactoryStates.SpoolingUp
-                          && m_factoryState != FactoryStates.SpoolingDown && m_spoolPosition > 0f)
-                        {
-                            m_factoryState = FactoryStates.SpoolingDown;
                             newState = FactoryStates.SpoolingDown;
-                        }
-
-                        if(m_factoryState == FactoryStates.Active || m_factoryState == FactoryStates.Enabled || m_factoryState == FactoryStates.InvalidTargets)
-                            newState = CheckForMissingComponents(newState);
-
-                        Logging.Instance.WriteLine($"[Factory] Current state: {m_factoryState}, New state: {newState}", 1);
-
-                        if (m_lastState != m_factoryState)
-                            m_lastState = m_factoryState;
-                        else if (m_lastState != newState)
-                        {
-                            m_factoryState = newState;
-                            m_lastState = m_factoryState;
-                        }
-
-                        SendStateUpdate(m_factoryState);
-                    });
+                    }
+                    else
+                        newState = FactoryStates.Disabled;
                 }
-                catch (Exception e)
-                    { Logging.Instance.WriteLine($"NaniteConstructionBlock.ProcessState exception: {e}"); }
-            });
+
+                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                {
+                    if (m_factoryState != FactoryStates.Active && m_factoryState != FactoryStates.SpoolingUp
+                      && m_factoryState != FactoryStates.SpoolingDown && m_spoolPosition > 0f)
+                    {
+                        m_factoryState = FactoryStates.SpoolingDown;
+                        newState = FactoryStates.SpoolingDown;
+                    }
+
+                    if(m_factoryState == FactoryStates.Active || m_factoryState == FactoryStates.Enabled || m_factoryState == FactoryStates.InvalidTargets)
+                        newState = CheckForMissingComponents(newState);
+
+                    Logging.Instance.WriteLine($"[Factory] Current state: {m_factoryState}, New state: {newState}", 1);
+
+                    if (m_lastState != m_factoryState)
+                        m_lastState = m_factoryState;
+                    else if (m_lastState != newState)
+                    {
+                        m_factoryState = newState;
+                        m_lastState = m_factoryState;
+                    }
+
+                    SendStateUpdate(m_factoryState);
+                });
+            } catch (Exception e) {
+                Logging.Instance.WriteLine($"NaniteConstructionBlock.ProcessState exception: {e}");
+            }
         }
 
         private FactoryStates CheckForMissingComponents(FactoryStates newState)
@@ -2103,43 +2114,38 @@ namespace NaniteConstructionSystem.Entities
 
         private void CleanupTargets()
         { // When splits happen, targets grid and position change, which isn't updating properly, this will just remove the target on the client.
-            try
-            {
-                MyAPIGateway.Parallel.Start(() =>
-                {
-                    foreach (var item in m_targets.ToList())
+            try {
+                foreach (var item in m_targets.ToList()) {
+                    if (item.TargetList == null || item.TargetList.Count < 1)
+                        continue;
+
+                    foreach (var targetItem in item.TargetList.ToList())
                     {
-                        if (item.TargetList == null || item.TargetList.Count < 1)
+                        if (!(targetItem is IMySlimBlock))
                             continue;
 
-                        foreach (var targetItem in item.TargetList.ToList())
-                        {
-                            if (!(targetItem is IMySlimBlock))
-                                continue;
+                        var target = targetItem as IMySlimBlock;
+                        if (target == null)
+                            continue;
 
-                            var target = targetItem as IMySlimBlock;
-                            if (target == null)
-                                continue;
+                        if (item is NaniteDeconstructionTargets && (target.IsDestroyed || target.IsFullyDismounted
+                          || (target.CubeGrid != null && target.CubeGrid.GetCubeBlock(target.Position) == null) || (target.FatBlock != null && target.FatBlock.Closed)))
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                                { item.CompleteTarget(target); });
 
-                            if (item is NaniteDeconstructionTargets && (target.IsDestroyed || target.IsFullyDismounted
-                              || (target.CubeGrid != null && target.CubeGrid.GetCubeBlock(target.Position) == null) || (target.FatBlock != null && target.FatBlock.Closed)))
-                                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                                    { item.CompleteTarget(target); });
+                        else if (target.IsDestroyed || target.IsFullyDismounted || (target.CubeGrid != null && target.CubeGrid.GetCubeBlock(target.Position) == null)
+                          || (target.FatBlock != null && target.FatBlock.Closed))
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                                { item.CancelTarget(target); });
 
-                            else if (target.IsDestroyed || target.IsFullyDismounted || (target.CubeGrid != null && target.CubeGrid.GetCubeBlock(target.Position) == null)
-                              || (target.FatBlock != null && target.FatBlock.Closed))
-                                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                                    { item.CancelTarget(target); });
-
-                            else if(item is NaniteConstructionTargets && target.IsFullIntegrity && !target.HasDeformation)
-                                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                                    { item.CompleteTarget(target); });
-                        }
+                        else if(item is NaniteConstructionTargets && target.IsFullIntegrity && !target.HasDeformation)
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                                { item.CompleteTarget(target); });
                     }
-                });
+                }
+            } catch(Exception e) {
+                Logging.Instance.WriteLine($"NaniteConstructionBlock.CleanupTargets Exception: {e.ToString()}");
             }
-            catch(Exception e)
-                { Logging.Instance.WriteLine($"NaniteConstructionBlock.CleanupTargets Exception: {e.ToString()}"); }
         }
 
         public T GetTarget<T>() where T : NaniteTargetBlocksBase
@@ -2161,20 +2167,19 @@ namespace NaniteConstructionSystem.Entities
 
         private void SendToPlayerInSyncRange(ushort id, byte[] bytes)
         {
-            MyAPIGateway.Parallel.Start(() =>
-            {
-                var distSq = MyAPIGateway.Session.SessionSettings.SyncDistance;
-                distSq += 1000; // some safety padding, avoid desync
-                distSq *= distSq;
+            var distSq = MyAPIGateway.Session.SessionSettings.SyncDistance;
+            distSq += 1000; // some safety padding, avoid desync
+            distSq *= distSq;
 
-                var syncPosition = ConstructionBlock.GetPosition();
-                var players = new List<IMyPlayer>();
-                MyAPIGateway.Players.GetPlayers(players);
+            var syncPosition = ConstructionBlock.GetPosition();
+            var players = new List<IMyPlayer>();
+            MyAPIGateway.Players.GetPlayers(players);
 
-                foreach (var p in players.ToList())
-                    if (p != null && p.SteamUserId != MyAPIGateway.Multiplayer.MyId && Vector3D.DistanceSquared(p.GetPosition(), syncPosition) <= distSq)
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() => {MyAPIGateway.Multiplayer.SendMessageTo(id, bytes, p.SteamUserId);});
-            });
+            foreach (var p in players.ToList()) {
+                if (p != null && p.SteamUserId != MyAPIGateway.Multiplayer.MyId && Vector3D.DistanceSquared(p.GetPosition(), syncPosition) <= distSq) {
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {MyAPIGateway.Multiplayer.SendMessageTo(id, bytes, p.SteamUserId);});
+                }
+            }
         }
         #endregion
     }

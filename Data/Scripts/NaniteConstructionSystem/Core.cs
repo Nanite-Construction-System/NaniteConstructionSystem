@@ -23,7 +23,6 @@ using Sandbox.ModAPI.Interfaces.Terminal;
 using SpaceEngineers.Game.ModAPI.Ingame;
 using VRage.Game.ObjectBuilders.Definitions;
 using IMyProjector = Sandbox.ModAPI.IMyProjector;
-using IMyOreDetector = Sandbox.ModAPI.IMyOreDetector;
 using IMyTerminalBlock = Sandbox.ModAPI.IMyTerminalBlock;
 
 using NaniteConstructionSystem.Entities;
@@ -31,7 +30,6 @@ using NaniteConstructionSystem.Extensions;
 using NaniteConstructionSystem.Entities.Beacons;
 using NaniteConstructionSystem.Particles;
 using NaniteConstructionSystem.Settings;
-using NaniteConstructionSystem.Entities.Detectors;
 using NaniteConstructionSystem;
 using NaniteConstructionSystem.Integration;
 
@@ -41,13 +39,11 @@ namespace NaniteConstructionSystem
     {
         public List<long> Factories = new List<long>();
         public MyCubeBlock BeaconBlock;
-        public bool IsAreaBeacon;
 
-        public GridTargetInfo(long factoryId, MyCubeBlock beaconBlock = null, bool isAreaBeacon = false)
+        public GridTargetInfo(long factoryId, MyCubeBlock beaconBlock = null)
         {
             Factories.Add(factoryId);
             BeaconBlock = beaconBlock;
-            IsAreaBeacon = isAreaBeacon;
         }
     }
 
@@ -55,13 +51,11 @@ namespace NaniteConstructionSystem
     {
         public IMySlimBlock Block;
         public bool IsRemote;
-        public NaniteAreaBeacon AreaBeacon;
 
-        public BlockTarget(IMySlimBlock block, bool isRemote = false, NaniteAreaBeacon areaBeacon = null)
+        public BlockTarget(IMySlimBlock block, bool isRemote = false)
         {
             Block = block;
             IsRemote = isRemote;
-            AreaBeacon = areaBeacon;
         }
     }
 
@@ -78,9 +72,6 @@ namespace NaniteConstructionSystem
     public class NaniteConstructionManager : MySessionComponentBase
     {
         public static NaniteConstructionManager Instance;
-
-        // Unique storage identifer
-        public readonly Guid OreDetectorSettingsGuid = new Guid("7D46082D-747A-45AF-8CD1-99A03E68CF97");
 
         public NaniteVersionClass NaniteVersion = new NaniteVersionClass();
 
@@ -163,19 +154,6 @@ namespace NaniteConstructionSystem
             }
         }
 
-        private static Dictionary<long, NaniteBeaconTerminalSettings> m_beaconTerminalSettings;
-        public static Dictionary<long, NaniteBeaconTerminalSettings> BeaconTerminalSettings
-        {
-            get
-            {
-                if (m_beaconTerminalSettings == null)
-                    m_beaconTerminalSettings = new Dictionary<long, NaniteBeaconTerminalSettings>();
-
-                return m_beaconTerminalSettings;
-            }
-        }
-
-
         private static Dictionary<long, IMyCubeBlock> m_assemblerBlocks;
         public static Dictionary<long, IMyCubeBlock> AssemblerBlocks
         {
@@ -194,27 +172,13 @@ namespace NaniteConstructionSystem
             get { return m_sync; }
         }
 
-        private static Dictionary<long, NaniteOreDetector> m_oreDetectors;
-        public static Dictionary<long, NaniteOreDetector> OreDetectors
-        {
-            get
-            {
-                if (m_oreDetectors == null)
-                    m_oreDetectors = new Dictionary<long, NaniteOreDetector>();
-
-                return m_oreDetectors;
-            }
-        }
-
         private int m_updateTimer;
 
         private TerminalSettings m_terminalSettingsManager = new TerminalSettings();
         private List<IMyTerminalControl> m_customControls = new List<IMyTerminalControl>();
         private IMyTerminalControl m_customAssemblerControl;
-        private List<IMyTerminalControl> m_customHammerControls = new List<IMyTerminalControl>();
-        private List<IMyTerminalControl> m_customBeaconControls = new List<IMyTerminalControl>();
-        private List<IMyTerminalAction> m_customBeaconActions = new List<IMyTerminalAction>();
-        private List<IMyTerminalControl> m_customOreDetectorControls = new List<IMyTerminalControl>();
+        private IMyTerminalControl m_customOreSelect;
+        public static List<string> OreList = new List<string>(); //NaniteConstructionManager.OreList
 
         public NaniteConstructionManager()
         {
@@ -248,7 +212,6 @@ namespace NaniteConstructionSystem
                 }
 
                 MyAPIGateway.TerminalControls.CustomControlGetter += CustomControlGetter;
-                MyAPIGateway.TerminalControls.CustomActionGetter += CustomActionGetter;
 
                 m_terminalSettingsManager.Load();
 
@@ -301,8 +264,6 @@ namespace NaniteConstructionSystem
                     if (item.Value != null)
                         m_sync.SendNeedAssemblerSettings(item.Value.EntityId);
 
-                foreach (var item in BeaconTerminalSettings)
-                    m_sync.SendNeedBeaconTerminalSettings(item.Key);
             }
         }
         #endregion
@@ -314,8 +275,8 @@ namespace NaniteConstructionSystem
 
             try
             {
-                if (m_updateTimer++ % 60 == 0)
-                    Logging.Instance.WriteToFile();
+                //if (m_updateTimer++ % 60 == 0)
+                //    Logging.Instance.WriteToFile();
 
                 ParticleManager.Update();
             }
@@ -326,6 +287,40 @@ namespace NaniteConstructionSystem
         private void ScanGrid()
         {
 
+        }
+
+        private void CreateOreList()
+        {
+            var allVoxelMaterials = MyDefinitionManager.Static.GetVoxelMaterialDefinitions();
+
+            foreach (var voxelMaterial in allVoxelMaterials)
+            {
+                if (!string.IsNullOrEmpty(voxelMaterial.MinedOre)) {
+                    if (OreList.Contains(voxelMaterial.MinedOre) == false) {
+                        OreList.Add(voxelMaterial.MinedOre);
+                    }
+                }
+            }
+        }
+
+        private void AddComboBoxItem(List<MyTerminalControlComboBoxItem> subSystemList)
+        {
+
+            var generatedItem = new MyTerminalControlComboBoxItem {
+                Key = 0,
+                Value = MyStringId.GetOrCompute("")
+            };
+            subSystemList.Add(generatedItem);
+
+            var keyIndex = 0;
+            foreach (string ore in OreList) {
+                keyIndex++;
+                var generatedItemForeach = new MyTerminalControlComboBoxItem {
+                    Key = keyIndex,
+                    Value = MyStringId.GetOrCompute(ore)
+                };
+                subSystemList.Add(generatedItemForeach);
+            }
         }
 
         public void InitializeControls()
@@ -550,525 +545,45 @@ namespace NaniteConstructionSystem
             };
             m_customAssemblerControl = allowFactoryCheck;
 
-            // --- Area Beacons
-            // -- Separator
-            var separateArea = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSeparator, IMyProjector>("SeparateArea");
-            m_customBeaconControls.Add(separateArea);
+            CreateOreList();
 
-            // -- Highlight Area
-            var highlightCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, IMyProjector>("HighlightArea");
-            highlightCheck.Title = MyStringId.GetOrCompute("Hightlight Area");
-            highlightCheck.Tooltip = MyStringId.GetOrCompute("When checked, it will show you the area this beacon covers");
-            highlightCheck.Getter = (x) =>
+            // mining beacon ore select
+            IMyTerminalControlCombobox Control = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCombobox, Ingame.IMyBatteryBlock>($"MiningBeacon_OrePicker");
+            Control.Title = MyStringId.GetOrCompute("Ore Selector");
+            Control.Tooltip = MyStringId.GetOrCompute("Select ore to mine");
+            Control.Getter = (block) =>
             {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                return BeaconTerminalSettings[x.EntityId].HighlightArea;
-            };
-
-            highlightCheck.Setter = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                BeaconTerminalSettings[x.EntityId].HighlightArea = y;
-                m_sync.SendBeaconTerminalSettings(x.EntityId);
-            };
-
-            m_customBeaconControls.Add(highlightCheck);
-
-            // -- Allow Repair
-            if (Settings.ConstructionEnabled)
-            {
-                var areaAllowRepairCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, IMyProjector>("AreaAllowRepair");
-                areaAllowRepairCheck.Title = MyStringId.GetOrCompute("Allow Repair");
-                areaAllowRepairCheck.Tooltip = MyStringId.GetOrCompute("When checked, factories will repair blocks inside the beacon area");
-                areaAllowRepairCheck.Getter = (x) =>
-                {
-                    if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                        BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                    return BeaconTerminalSettings[x.EntityId].AllowRepair;
-                };
-
-                areaAllowRepairCheck.Setter = (x, y) =>
-                {
-                    if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                        BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                    BeaconTerminalSettings[x.EntityId].AllowRepair = y;
-                    m_sync.SendBeaconTerminalSettings(x.EntityId);
-                };
-
-                m_customBeaconControls.Add(areaAllowRepairCheck);
-            }
-
-            // -- Allow Deconstruct
-            if (Settings.DeconstructionEnabled)
-            {
-                var areaAllowDeconstructCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, IMyProjector>("AreaAllowDeconstruct");
-                areaAllowDeconstructCheck.Title = MyStringId.GetOrCompute("Allow Deconstruct");
-                areaAllowDeconstructCheck.Tooltip = MyStringId.GetOrCompute("When checked, factories will deconstruct blocks inside the beacon area");
-                areaAllowDeconstructCheck.Getter = (x) =>
-                {
-                    if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                        BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                    return BeaconTerminalSettings[x.EntityId].AllowDeconstruction;
-                };
-
-                areaAllowDeconstructCheck.Setter = (x, y) =>
-                {
-                    if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                        BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                    BeaconTerminalSettings[x.EntityId].AllowDeconstruction = y;
-                    m_sync.SendBeaconTerminalSettings(x.EntityId);
-                };
-
-                m_customBeaconControls.Add(areaAllowDeconstructCheck);
-            }
-
-            // -- Allow Projection
-            if (Settings.ProjectionEnabled)
-            {
-                var areaAllowProjectionCheck = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, IMyProjector>("AreaAllowProjection");
-                areaAllowProjectionCheck.Title = MyStringId.GetOrCompute("Allow Projection");
-                areaAllowProjectionCheck.Tooltip = MyStringId.GetOrCompute("When checked, factories will build projected blocks inside the beacon area");
-                areaAllowProjectionCheck.Getter = (x) =>
-                {
-                    if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                        BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                    return BeaconTerminalSettings[x.EntityId].AllowProjection;
-                };
-
-                areaAllowProjectionCheck.Setter = (x, y) =>
-                {
-                    if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                        BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                    BeaconTerminalSettings[x.EntityId].AllowProjection = y;
-                    m_sync.SendBeaconTerminalSettings(x.EntityId);
-                };
-
-                m_customBeaconControls.Add(areaAllowProjectionCheck);
-            }
-
-            // -- Separator
-            var separateSliderArea = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSeparator, IMyProjector>("SeparateSliderArea");
-            m_customBeaconControls.Add(separateSliderArea);
-
-            // -- Height
-            var heightSlider = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyProjector>("HeightSlider");
-            heightSlider.Title = MyStringId.GetOrCompute("Area Height");
-            heightSlider.Tooltip = MyStringId.GetOrCompute("Height of area this beacon scans");
-            heightSlider.SetLimits(Settings.AreaBeaconMinSize, Settings.AreaBeaconMaxSize);
-            heightSlider.Getter = (x) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                return BeaconTerminalSettings[x.EntityId].Height;
-            };
-
-            heightSlider.Setter = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                BeaconTerminalSettings[x.EntityId].Height = (int)y;
-                m_sync.SendBeaconTerminalSettings(x.EntityId);
-            };
-
-            heightSlider.Writer = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                y.Append(BeaconTerminalSettings[x.EntityId].Height.ToString() + "m");
-            };
-
-            m_customBeaconControls.Add(heightSlider);
-
-            CreateSliderActions("Height", heightSlider, (int)Settings.AreaBeaconMinSize, (int)Settings.AreaBeaconMaxSize);
-
-            // -- Width
-            var widthSlider = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyProjector>("WidthSlider");
-            widthSlider.Title = MyStringId.GetOrCompute("Area Width");
-            widthSlider.Tooltip = MyStringId.GetOrCompute("Width of area this beacon scans");
-            widthSlider.SetLimits(Settings.AreaBeaconMinSize, Settings.AreaBeaconMaxSize);
-            widthSlider.Getter = (x) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                return BeaconTerminalSettings[x.EntityId].Width;
-            };
-
-            widthSlider.Setter = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                BeaconTerminalSettings[x.EntityId].Width = (int)y;
-                m_sync.SendBeaconTerminalSettings(x.EntityId);
-            };
-
-            widthSlider.Writer = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                y.Append(BeaconTerminalSettings[x.EntityId].Width.ToString() + "m");
-            };
-
-            m_customBeaconControls.Add(widthSlider);
-
-            CreateSliderActions("Width", widthSlider, (int)Settings.AreaBeaconMinSize, (int)Settings.AreaBeaconMaxSize);
-
-            // -- Depth
-            var depthSlider = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyProjector>("DepthSlider");
-            depthSlider.Title = MyStringId.GetOrCompute("Area Depth");
-            depthSlider.Tooltip = MyStringId.GetOrCompute("Depth of area this beacon scans");
-            depthSlider.SetLimits(Settings.AreaBeaconMinSize, Settings.AreaBeaconMaxSize);
-            depthSlider.Getter = (x) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                return BeaconTerminalSettings[x.EntityId].Depth;
-            };
-
-            depthSlider.Setter = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                BeaconTerminalSettings[x.EntityId].Depth = (int)y;
-                m_sync.SendBeaconTerminalSettings(x.EntityId);
-            };
-
-            depthSlider.Writer = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                y.Append(BeaconTerminalSettings[x.EntityId].Depth.ToString() + "m");
-            };
-
-            m_customBeaconControls.Add(depthSlider);
-
-            CreateSliderActions("Depth", depthSlider, (int)Settings.AreaBeaconMinSize, (int)Settings.AreaBeaconMaxSize);
-
-            // -- OffsetX
-            var offsetXSlider = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyProjector>("OffsetXSlider");
-            offsetXSlider.Title = MyStringId.GetOrCompute("Area Offset X");
-            offsetXSlider.Tooltip = MyStringId.GetOrCompute("X Offset of area this beacon scans");
-            offsetXSlider.SetLimits(-((int)(Settings.AreaBeaconMaxSize)), ((int)(Settings.AreaBeaconMaxSize)));
-            offsetXSlider.Getter = (x) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                return BeaconTerminalSettings[x.EntityId].OffsetX;
-            };
-
-            offsetXSlider.Setter = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                BeaconTerminalSettings[x.EntityId].OffsetX = (int)y;
-                m_sync.SendBeaconTerminalSettings(x.EntityId);
-            };
-
-            offsetXSlider.Writer = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                y.Append(BeaconTerminalSettings[x.EntityId].OffsetX.ToString() + "m");
-            };
-
-            m_customBeaconControls.Add(offsetXSlider);
-
-            CreateSliderActions("OffsetX", offsetXSlider, -((int)(Settings.AreaBeaconMaxSize)), ((int)(Settings.AreaBeaconMaxSize)));
-
-            // -- OffsetY
-            var offsetYSlider = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyProjector>("OffsetYSlider");
-            offsetYSlider.Title = MyStringId.GetOrCompute("Area Offset Y");
-            offsetYSlider.Tooltip = MyStringId.GetOrCompute("Y Offset of area this beacon scans");
-            offsetYSlider.SetLimits(-((int)(Settings.AreaBeaconMaxSize)), ((int)(Settings.AreaBeaconMaxSize)));
-            offsetYSlider.Getter = (x) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                return BeaconTerminalSettings[x.EntityId].OffsetY;
-            };
-
-            offsetYSlider.Setter = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                BeaconTerminalSettings[x.EntityId].OffsetY = (int)y;
-                m_sync.SendBeaconTerminalSettings(x.EntityId);
-            };
-
-            offsetYSlider.Writer = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                y.Append(BeaconTerminalSettings[x.EntityId].OffsetY.ToString() + "m");
-            };
-
-            m_customBeaconControls.Add(offsetYSlider);
-
-            CreateSliderActions("OffsetY", offsetYSlider, -((int)(Settings.AreaBeaconMaxSize)), ((int)(Settings.AreaBeaconMaxSize)));
-
-            // -- OffsetZ
-            var offsetZSlider = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyProjector>("OffsetZSlider");
-            offsetZSlider.Title = MyStringId.GetOrCompute("Area Offset Z");
-            offsetZSlider.Tooltip = MyStringId.GetOrCompute("Z Offset of area this beacon scans");
-            offsetZSlider.SetLimits(-((int)(Settings.AreaBeaconMaxSize)), ((int)(Settings.AreaBeaconMaxSize)));
-            offsetZSlider.Getter = (x) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                return BeaconTerminalSettings[x.EntityId].OffsetZ;
-            };
-
-            offsetZSlider.Setter = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                BeaconTerminalSettings[x.EntityId].OffsetZ = (int)y;
-                m_sync.SendBeaconTerminalSettings(x.EntityId);
-            };
-
-            offsetZSlider.Writer = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                y.Append(BeaconTerminalSettings[x.EntityId].OffsetZ.ToString() + "m");
-            };
-
-            m_customBeaconControls.Add(offsetZSlider);
-
-            CreateSliderActions("OffsetZ", offsetZSlider, -((int)(Settings.AreaBeaconMaxSize)), ((int)(Settings.AreaBeaconMaxSize)));
-
-            // -- RotationX
-            var rotationXSlider = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyProjector>("RotationXSlider");
-            rotationXSlider.Title = MyStringId.GetOrCompute("Area Rotation X");
-            rotationXSlider.Tooltip = MyStringId.GetOrCompute("X Rotation of area this beacon scans");
-            rotationXSlider.SetLimits(0, 359);
-            rotationXSlider.Getter = (x) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                return BeaconTerminalSettings[x.EntityId].RotationX;
-            };
-
-            rotationXSlider.Setter = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                BeaconTerminalSettings[x.EntityId].RotationX = (int)y;
-                m_sync.SendBeaconTerminalSettings(x.EntityId);
-            };
-
-            rotationXSlider.Writer = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                y.Append(BeaconTerminalSettings[x.EntityId].RotationX.ToString() + "°");
-            };
-
-            m_customBeaconControls.Add(rotationXSlider);
-
-            CreateSliderActions("RotationX", rotationXSlider, 0, 359, true);
-
-            // -- RotationY
-            var rotationYSlider = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyProjector>("RotationYSlider");
-            rotationYSlider.Title = MyStringId.GetOrCompute("Area Rotation Y");
-            rotationYSlider.Tooltip = MyStringId.GetOrCompute("Y Rotation of area this beacon scans");
-            rotationYSlider.SetLimits(0, 359);
-            rotationYSlider.Getter = (x) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                return BeaconTerminalSettings[x.EntityId].RotationY;
-            };
-
-            rotationYSlider.Setter = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                BeaconTerminalSettings[x.EntityId].RotationY = (int)y;
-                m_sync.SendBeaconTerminalSettings(x.EntityId);
-            };
-
-            rotationYSlider.Writer = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                y.Append(BeaconTerminalSettings[x.EntityId].RotationY.ToString() + "°");
-            };
-
-            m_customBeaconControls.Add(rotationYSlider);
-
-            CreateSliderActions("RotationY", rotationYSlider, 0, 359, true);
-
-            // -- RotationZ
-            var rotationZSlider = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyProjector>("RotationZSlider");
-            rotationZSlider.Title = MyStringId.GetOrCompute("Area Rotation Z");
-            rotationZSlider.Tooltip = MyStringId.GetOrCompute("Z Rotation of area this beacon scans");
-            rotationZSlider.SetLimits(0, 359);
-            rotationZSlider.Getter = (x) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                return BeaconTerminalSettings[x.EntityId].RotationZ;
-            };
-
-            rotationZSlider.Setter = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                BeaconTerminalSettings[x.EntityId].RotationZ = (int)y;
-                m_sync.SendBeaconTerminalSettings(x.EntityId);
-            };
-
-            rotationZSlider.Writer = (x, y) =>
-            {
-                if (!BeaconTerminalSettings.ContainsKey(x.EntityId))
-                    BeaconTerminalSettings.Add(x.EntityId, new NaniteBeaconTerminalSettings());
-
-                y.Append(BeaconTerminalSettings[x.EntityId].RotationZ.ToString() + "°");
-            };
-
-            m_customBeaconControls.Add(rotationZSlider);
-            CreateSliderActions("RotationZ", rotationZSlider, 0, 359, true);
-
-            // Range slider
-            var detectRangeSlider = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSlider, IMyOreDetector>("Ore Detection Range");
-            detectRangeSlider.Title = MyStringId.GetOrCompute("Ore Detection Range");
-            detectRangeSlider.Tooltip = MyStringId.GetOrCompute("Maximum detection range");
-            detectRangeSlider.SetLimits(0, 350);
-            detectRangeSlider.Getter = (x) =>
-            {
-                return (x.GameLogic.GetAs<LargeNaniteOreDetectorLogic>()).Detector.Range; //x.GameLogic.GetAs<LargeNaniteOreDetectorLogic>() OLD -> x.GameLogic as LargeNaniteOreDetectorLogic
-            };
-
-            detectRangeSlider.Setter = (x, y) =>
-            {
-                (x.GameLogic.GetAs<LargeNaniteOreDetectorLogic>()).Detector.Range = y;
-            };
-
-            detectRangeSlider.Writer = (x, y) =>
-            {
-                y.Append($"{Math.Round((x.GameLogic.GetAs<LargeNaniteOreDetectorLogic>()).Detector.Range)} m"); 
-            };
-            m_customOreDetectorControls.Add(detectRangeSlider);
-
-
-            var showScanRadius = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlCheckbox, Ingame.IMyOreDetector>("ShowScanRange");
-            showScanRadius.Title = MyStringId.GetOrCompute("Display Scan range");
-            showScanRadius.Tooltip = MyStringId.GetOrCompute("When checked, it will show you the scan range this detector covers");
-            showScanRadius.Getter = (x) =>
-            {
-                return (x.GameLogic.GetAs<LargeNaniteOreDetectorLogic>()).Detector.ShowScanRadius;
-            };
-            showScanRadius.Setter = (x, y) =>
-            {
-                (x.GameLogic.GetAs<LargeNaniteOreDetectorLogic>()).Detector.ShowScanRadius = y;
-            };
-            m_customOreDetectorControls.Add(showScanRadius);
-
-            var separate = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlSeparator, Ingame.IMyOreDetector>("Separate");
-            m_customOreDetectorControls.Add(separate);
-
-            var oreList = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlListbox, Ingame.IMyOreDetector>("OreList");
-            oreList.Title = MyStringId.GetOrCompute("Select Desired Ores: ");
-            oreList.Multiselect = true;
-            oreList.VisibleRowsCount = 8;
-            oreList.ListContent = (block, list, selected) =>
-            {
-                var possibleOreList = (block.GameLogic as LargeNaniteOreDetectorLogic).Detector.GetTerminalOreList();
-                list.AddList(possibleOreList);
-                foreach (var item in (block.GameLogic as LargeNaniteOreDetectorLogic).Detector.OreListSelected)
-                {
-                    var listItem = possibleOreList.FirstOrDefault(ore => ore.Text.ToString() == item);
-                    if (listItem != null)
-                        selected.Add(listItem);
+                if (block == null || block.CustomData == null || block.CustomData == "") {
+                    return 0;
+                } else {
+                    var stringCustom = block.CustomData;
+                    return long.Parse(stringCustom);
                 }
             };
-            oreList.ItemSelected = (block, selected) =>
-            {
-                List<string> config = new List<string>();
-                foreach (var item in selected)
-                    config.Add(item.Text.ToString());
-                (block.GameLogic as LargeNaniteOreDetectorLogic).Detector.OreListSelected = config;
+            Control.ComboBoxContent = AddComboBoxItem;
+            Control.Setter = (block, v) => {
+                block.CustomData = v.ToString();
+                Control.UpdateVisual();
             };
-            oreList.Visible = (x) =>
-            {
-                return (x.GameLogic.GetAs<LargeNaniteOreDetectorLogic>()).Detector.HasFilterUpgrade;
-            };
-            m_customOreDetectorControls.Add(oreList);
-        }
 
-        private void CreateSliderActions(string sliderName, IMyTerminalControlSlider slider, int minValue, int maxValue, bool wrap = false)
-        {
-            var heightSliderActionInc = MyAPIGateway.TerminalControls.CreateAction<IMyProjector>(string.Format("{0}SliderAction_Increase", sliderName));
-            heightSliderActionInc.Name = new StringBuilder(string.Format("{0} Increase", sliderName));
-            heightSliderActionInc.Icon = @"Textures\GUI\Icons\Actions\Increase.dds";
-            heightSliderActionInc.Enabled = (x) => true;
-            heightSliderActionInc.Action = (x) =>
-            {
-                if (slider.Getter(x) < maxValue)
-                    slider.Setter(x, slider.Getter(x) + 1);
-                else if (wrap)
-                    slider.Setter(x, minValue);
+            Control.Enabled = (block) => {
+                return true;
             };
-            m_customBeaconActions.Add(heightSliderActionInc);
-
-            var heightSliderActionDec = MyAPIGateway.TerminalControls.CreateAction<IMyProjector>(string.Format("{0}SliderAction_Decrease", sliderName));
-            heightSliderActionDec.Name = new StringBuilder(string.Format("{0} Decrease", sliderName));
-            heightSliderActionDec.Icon = @"Textures\GUI\Icons\Actions\Decrease.dds";
-            heightSliderActionDec.Enabled = (x) => true;
-            heightSliderActionDec.Action = (x) =>
+            Control.Visible = (block) =>
             {
-                if (slider.Getter(x) > minValue)
-                    slider.Setter(x, slider.Getter(x) - 1);
-                else if (wrap)
-                    slider.Setter(x, maxValue);
+                var targetBlock = block.SlimBlock;
+
+                if (targetBlock == null)
+                    return false;
+
+                var subtypeId = block.BlockDefinition.SubtypeName;
+                if (subtypeId == null)
+                    return false;
+
+                return (subtypeId == "NaniteBeaconMine");
             };
-            m_customBeaconActions.Add(heightSliderActionDec);
-        }
 
-        private void CustomActionGetter(IMyTerminalBlock block, List<IMyTerminalAction> actions)
-        {
-            if (block.BlockDefinition.SubtypeName == "LargeNaniteAreaBeacon")
-            {
-                actions.Clear();
-                actions.AddRange(m_customBeaconActions);
-                return;
-            }
+            m_customOreSelect = Control;
         }
 
         private void CustomControlGetter(IMyTerminalBlock block, List<IMyTerminalControl> controls)
@@ -1079,24 +594,14 @@ namespace NaniteConstructionSystem
                     return;
 
                 Logging.Instance.WriteLine($"CustomControlGetter : {block.BlockDefinition.SubtypeName}");
-                if (block.BlockDefinition.SubtypeName == "LargeNaniteAreaBeacon")
-                {
-                    controls.RemoveRange(controls.Count - 17, 16);
-                    controls.AddRange(m_customBeaconControls);
-                    return;
-                }
-                else if (block.BlockDefinition.TypeId == typeof(MyObjectBuilder_Assembler))
+                if (block.BlockDefinition.TypeId == typeof(MyObjectBuilder_Assembler))
                 {
                     controls.Add(m_customAssemblerControl);
                     return;
                 }
-                else if (block.BlockDefinition.SubtypeName == "NaniteUltrasonicHammer")
+                if (block.BlockDefinition.TypeId == typeof(MyObjectBuilder_BatteryBlock))
                 {
-                    controls.RemoveAt(controls.Count - 1);
-                    controls.RemoveAt(controls.Count - 1);
-                    foreach (var item in m_customHammerControls)
-                        controls.Add(item);
-
+                    controls.Add(m_customOreSelect);
                     return;
                 }
                 else if (block.BlockDefinition.SubtypeName == "LargeNaniteControlFacility")
@@ -1114,13 +619,6 @@ namespace NaniteConstructionSystem
 
                     foreach (var item in m_customControls)
                         controls.Add(item);
-                }
-                else if (block.BlockDefinition.SubtypeName == "LargeNaniteOreDetector")
-                {
-                    controls.RemoveRange(controls.Count - 2, 2);
-                    (m_customOreDetectorControls[0] as IMyTerminalControlSlider).SetLimits((block.GameLogic as LargeNaniteOreDetectorLogic).Detector.MaxRange, (block.GameLogic as LargeNaniteOreDetectorLogic).Detector.MaxRange);
-                    controls.AddRange(m_customOreDetectorControls);
-                    return;
                 }
             }
             catch (Exception e)

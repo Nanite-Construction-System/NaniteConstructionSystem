@@ -58,6 +58,8 @@ namespace NaniteConstructionSystem
 
         public void WriteLine(string text, int logging = 0)
         {
+            return;
+
             if (NaniteConstructionManager.Settings == null)
             { // Settings haven't been loaded yet, so put it in a waiting list
                 m_waitingList.Add(new WaitingToLog(text, logging));
@@ -67,21 +69,19 @@ namespace NaniteConstructionSystem
             if (NaniteConstructionManager.Settings.DebugLogging != null && NaniteConstructionManager.Settings.DebugLogging < logging)
                 return;
 
-            MyAPIGateway.Parallel.Start(() =>
-            {
-                try
-                    { m_writeCache.Add(DateTime.Now.ToString("[HH:mm:ss] ") + text + "\r\n"); }
-                catch (Exception e)
-                    { MyLog.Default.WriteLineAndConsole($"Nanite.Logging.WriteLine Error: {e.ToString()}"); }
+            MyAPIGateway.Parallel.Start(() => {
+                try {
+                    m_writeCache.Add(DateTime.Now.ToString("[HH:mm:ss] ") + text + "\r\n");
+                } catch (Exception e) {
+                    MyLog.Default.WriteLineAndConsole($"Nanite.Logging.WriteLine Error: {e.ToString()}");
+                }
             });
         }
 
         public void WriteToFile()
         { // Called once every second from the main logic in Core.cs
-            MyAPIGateway.Parallel.StartBackground(() =>
-            {
-                try
-                {
+            MyAPIGateway.Parallel.StartBackground(() => {
+                try {
                     if (m_busy)
                         return;
 
@@ -133,11 +133,11 @@ namespace NaniteConstructionSystem
                             m_writer.Flush();
                         }
                     }
+                } catch (Exception e) {
+                    MyLog.Default.WriteLineAndConsole($"Nanite.Logging.WriteToFile Error: {e.ToString()}");
+                } finally {
+                    m_busy = false;
                 }
-                catch (Exception e)
-                    { MyLog.Default.WriteLineAndConsole($"Nanite.Logging.WriteToFile Error: {e.ToString()}"); }
-                finally
-                    { m_busy = false; }
 
             });
         }

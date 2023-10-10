@@ -1,5 +1,7 @@
 ﻿using VRageMath;
 using System;
+using System.Collections.Generic;
+using VRage.Collections;
 
 namespace NaniteConstructionSystem.Extensions
 {
@@ -55,5 +57,36 @@ namespace NaniteConstructionSystem.Extensions
             var sizeMinusOne = self.Size - distance;
             Vector3I.Clamp(ref voxelCoord, ref Vector3I.Zero, ref sizeMinusOne, out voxelCoord);
         }
+    }
+
+    public static class Extensions
+    {
+        private static readonly Random rng = new Random();
+
+        public static void Shuffle<T>(this IList<T> list)
+        {
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rng.Next(n + 1);
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
+        }
+
+        public static void MoveItems<T>(this List<T> target, List<T> source, int itemCount)
+        {
+            int itemsToMove = Math.Min(source.Count, itemCount);
+
+            for (int i = 0; i < itemsToMove; i++)
+            {
+                T item = source[0];
+                target.Add(item);
+                source.RemoveAt(0);
+            }
+        }
+
     }
 }

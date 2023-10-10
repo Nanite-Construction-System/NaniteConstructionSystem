@@ -75,67 +75,6 @@ namespace NaniteConstructionSystem
                             return "Hello!";
                     }
                     break;
-                case (1):
-                    switch (language)
-                    {
-                        default:
-                            return "This is likely due to a list being modified during enumeration in a parallel thread, which is probably harmless and can be ignored.";
-                    }
-                    break;
-                case (2):
-                    switch (language)
-                    {
-                        default:
-                            return "This section includes some debugging variables that can help the devs solve problems. Please use this command when reporting errors and include the output in your bug report.";
-                    }
-                case (3):
-                    switch (language)
-                    {
-                        default:
-                            return "All target processing moved to parallel for better performance";
-                    }
-                case (4):
-                    switch (language)
-                    {
-                        default:
-                            return "Code optimized and made more stable for dedicated servers";
-                    }
-                case (5):
-                    switch (language)
-                    {
-                        default:
-                            return "New models! Old models have a rusty look. They can be torn down to retrieve parts";
-                    }
-                case (6):
-                    switch (language)
-                    {
-                        default:
-                            return "New mining logic and ore detector block. Install a Nanite Ore Detector near a Nanite Control Facility that is near some voxels";
-                    }
-                case (7):
-                    switch (language)
-                    {
-                        default:
-                            return "Version 2.0! Jan. 6, 2019";
-                    }
-                case (8):
-                    switch (language)
-                    {
-                        default:
-                            return "Nearby, friendly facilities now automatically share upgrades and grid inventories";
-                    }
-                case (9):
-                    switch (language)
-                    {
-                        default:
-                            return "New help documentation. Type in chat:";
-                    }
-                case (10):
-                    switch (language)
-                    {
-                        default:
-                            return "Projector upgrade removed. Construction upgrades now also affect projection nanites";
-                    }
                 case (11):
                     switch (language)
                     {
@@ -188,7 +127,7 @@ namespace NaniteConstructionSystem
                     switch (language)
                     {
                         default:
-                            return "Your Nanite log and config file (if Singpleplayer or hosting) at %appdata%/roaming/SpaceEngineers/Saves/[steamid]/[savename]/storage/[mod name and number]/";
+                            return "Your local world/save (or steam link to it) where you can reproduce the problem.";
                     }
                 case (20): // This is a bulleted list item
                     switch (language)
@@ -232,23 +171,11 @@ namespace NaniteConstructionSystem
                         default:
                             return "Nanite Control Facility Upgrades";
                     }
-                case (27): // This is a help section header
-                    switch (language)
-                    {
-                        default:
-                            return "Nanite Ore Detector Upgrades";
-                    }
                 case (28): // This is a help section header
                     switch (language)
                     {
                         default:
                             return "Meet the Developers";
-                    }
-                case (29): // This is a help section header
-                    switch (language)
-                    {
-                        default:
-                            return "Localization contributors";
                     }
                 case (30): // This is a help section header
                     switch (language)
@@ -315,26 +242,6 @@ MyAPIGateway.Session.Player.Client: {MyAPIGateway.Session.Player.Client}
 MyAPIGateway.Multiplayer.IsServerPlayer(Client): {MyAPIGateway.Multiplayer.IsServerPlayer(MyAPIGateway.Session.Player.Client)}
 ";
                     break;
-                case "/nanite changelog":
-                    title = "Changelog";
-                    message = $@"
-<--- {Localize(7)} --->
-
-- {Localize(3)}
-
-- {Localize(4)}
-
-- {Localize(5)}
-
-- {Localize(6)}
-
-- {Localize(8)}
-
-- {Localize(9)}
-
-- {Localize(10)}
-";
-                    break;
 
                 case "/nanite help":
                     title = "Help";
@@ -354,7 +261,6 @@ MyAPIGateway.Multiplayer.IsServerPlayer(Client): {MyAPIGateway.Multiplayer.IsSer
 {(NaniteConstructionManager.Settings.MiningEnabled ? "/nanite help mining" : "")}
 /nanite help upgrades
 /nanite help cooperation
-/nanite changelog
 /nanite credits
 
 <--- {Localize(22)} --->
@@ -389,9 +295,8 @@ MyAPIGateway.Multiplayer.IsServerPlayer(Client): {MyAPIGateway.Multiplayer.IsSer
                     message = $@"
 <--- {Localize(25)} --->
 
-Upgrades allow the player to fine tune the capabilities of both
-the Nanite Control Facility and the Nanite Ore Detector.
-Here's what they do.
+Upgrades allow the player to fine tune the capabilities of the
+Nanite Control Facility. Here's what they do.
 
 <--- {Localize(26)} --->
 
@@ -409,17 +314,6 @@ Mining: Increases mining nanites by {NaniteConstructionManager.Settings.MiningNa
 Speed: Reduces nanite travel time by {NaniteConstructionManager.Settings.SpeedIncreasePerUpgrade} seconds.
 
 Power: Reduces nanite power consumption by {NaniteConstructionManager.Settings.PowerDecreasePerUpgrade}MW.
-
-
-<--- {Localize(27)} --->
-
-Range: Increases range by {NaniteConstructionManager.Settings.OreDetectorRangePerUpgrade}m.
-
-Power: Decreases power usage by {NaniteConstructionManager.Settings.OreDetectorPowerPercentReducedPerEfficiencyUpgrade * 100} percent.
-
-Scanning: Allows rare ores to be detected (max 2 upgrades).
-
-Filter: Allows selection of ore data to be stored (max 1 upgrade).
 
 ";
                     break;
@@ -443,7 +337,9 @@ Programming, concept/implementation focus
 Programming, optimization/performance focus
 Documentation/help/tutorials
 
-<--- {Localize(29)} --->
+- BookBurner -
+Programming, optimization/dedicated server focus
+help update
 
 <--- GitHub --->
 
@@ -454,11 +350,8 @@ reports. No exceptions.
 
 <--- {Localize(30)} --->
 
-Splen's Server, STC Trading Co., will always be using the
-latest development version of Nanite Control Facility.
-If you want to test new features before they appear in the
-live version, join us! Get the server address, rules and
-more information at https://discord.gg/neAUzaq
+Current version can always be found on workshop published by
+nukeguard.
 
 <--- {Localize(31)} --->
 
@@ -505,7 +398,7 @@ jobs and mining will sometimes appear in friendly facilities'
 inventories. This is normal.
 
 In the future, it may be possible for the developers to add
-better support for inventory operations.
+better support for inventory operations (maybe).
 ";
                     break;
 
@@ -519,67 +412,13 @@ better support for inventory operations.
 <--- {Localize(34)} --->
 
 When this box is checked in a Nanite Control Facility, it will scan
-for nearby Nanite Ore Detectors within {NaniteConstructionManager.Settings.OreDetectorToNaniteFactoryCommunicationDistance}m.
-If an ore detector is found, the facility will attempt to download
-any ore target information from the ore detector. This usually takes
-a few seconds.
-
-A Nanite Ore Detector is very different from the built-in ore
-detectors that you are probably familiar with. Unlike the vanilla
-ore detectors, a Nanite Ore Detector does NOT provide the player
-with on-screen locations of ore. Instead, the Nanite Ore Detector
-carefully scans nearby voxels (asteroids or planets) for their
-material content, then saves the information in its onboard
-data storage.
-
-These blocks are fairly large (3x5x3) and also have eight upgrade
-slots which can take up an additional two spaces on each side.
-Plan accordingly.
-
-There's no need to connect the ore detector to any conveyor system.
-The only thing it needs is a fair amount of power. All data is
-transferred wirelessly: It doesn't even have to be on the same
-grid as any Nanite Control Facility.
-
-Once your Nanite Ore Detector is built, consider installing some
-upgrades. Nanite Ore Detector Scanning Upgrades allow the ore
-detector to find more valuable materials, such as gold and
-platinum. Only two are needed to maximize the scanning frequency.
-
-Also consider installing a single Nanite Ore Detector Filter
-Upgrade, which allows the user to select which ore location data
-will be stored. This is good for filtering out more common materials
-like stone or ice. Simple highlight the ores in the list that should
-be stored (CTRL + click by default).
-
-Install as many Nanite Ore Detector Range Upgrades as
-desired. Each one will increase the detector's maximum range by {NaniteConstructionManager.Settings.OreDetectorRangePerUpgrade}m.
-
-Actual range scanned is controlled by a slider in the control panel.
-Larger ranges will take longer to scan the area, so be sure to only
-scan what is needed to save time. To visualize the scanning area,
-a convenient checkbox in the ore detector will project a spherical
-measurement of the scanning range.
-
-Finally, consider installing Nanite Ore Detector Power Efficiency
-Upgrades if power consumption is a concern. Each upgrade will reduce
-the total power consumed by {NaniteConstructionManager.Settings.OreDetectorPowerPercentReducedPerEfficiencyUpgrade * 100} percent.
-
-ALL of the above mentioned upgrades are installed on the Nanite
-Ore Detector itself, NOT on the Nanite Control Facility.
-
-WARNING: Multiple Nanite Ore Detectors within {NaniteConstructionManager.Settings.OreDetectorToNaniteFactoryCommunicationDistance}m
-of each other will shut down automatically, as their radio waves
-will block out each others' signals. Only one Ore Detector is
-needed, even for many facilities within range. Once any problems
-are rectified, restart the Ore Detector by switching it back on
-in the control panel.
-
-Once the Ore Detector has the desired upgrades installed and has
-been configured properly in the control panel, turn it on. The
-scanning radar in the middle of the detector will begin to quickly
-spin. Monitor the progress of the scanning by viewing the info
-terminal in the right side of the control panel.
+for nearby Nanite Mining Beacons within {NaniteConstructionManager.Settings.MiningMaxDistance}m.
+If Nanite Mining Beacon is found, it is used as a center of a small
+sphere in which the mining targets are searched for. You can limit
+the ores that are supposed to be mined at that position by using
+the select in the Nanite Mining Beacon. Mining beacon is typed as a
+small battery, so it doesn't despawn by itself and it renames it's
+own grid, so most common server cleanups should not trash it as well.
 
 If properly configured, nearby, online Nanite Control Facilities
 will produce RED nanites, which will then travel to the desired
@@ -602,7 +441,7 @@ box to see the status of the factory and the mining targets.
 
 Ensure the proper checkbox is enabled on the facility itself
 and that the facility is within {NaniteConstructionManager.Settings.MiningMaxDistance}m of the
-desired ore.
+desired ore and Mining Beacon.
 
 The facility will attempt to automatically clear its inventory
 space if needed to make room for mined ore. Please ensure that
@@ -884,19 +723,13 @@ within {NaniteConstructionManager.Settings.ProjectionMaxBeaconDistance}m will bu
 DECONSTRUCTION: When this beacon is built on a grid, Facilities within
 {NaniteConstructionManager.Settings.DeconstructionMaxDistance}m will grind down every block on that grid.
 
+MINING: When this beacon is built onto terrain (planet or asteroid) within
+{NaniteConstructionManager.Settings.MiningMaxDistance}m of the nanite facility, it will mark the voxel for
+mining.
+
 Please note that control panel checkboxes on the Nanite Control
 Facility must still be properly configured for the beacons to be
 detected.
-
-<--- Area Beacons --->
-
-An Area Beacon is a special beacon that defines an entire area,
-rather than a specific grid, for operations. Build this block on
-any grid within {NaniteConstructionManager.Settings.AreaBeaconMaxDistanceFromNaniteFacility}m from a Nanite Facility.
-Then, configure the size and shape of the area in the control panel.
-Finally, use the checkboxes to determine what operations should take
-place within that area (if you're making a chop shop, ONLY check
-Deconstruction or you may get undesired results).
 ";
                     break;
 
@@ -1002,7 +835,8 @@ required raw materials, such as ingots.
 
 If properly configured, your Nanite Control Facility will now
 automatically attempt to queue up parts to be manufactured when in
-the 'Missing Parts' state (blinking yellow). To see more information
+the 'Missing Parts' state (blinking yellow). Just a small warning,
+Nanite Facility tend's to overproduce. To see more information
 about the colors used in this mod, type in chat:
 /nanite help colors
 ";

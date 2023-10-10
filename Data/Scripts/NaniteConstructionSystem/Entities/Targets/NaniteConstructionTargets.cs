@@ -22,7 +22,6 @@ namespace NaniteConstructionSystem.Entities.Targets
     public class NaniteConstructionTarget
     {
         public int ParticleCount { get; set; }
-        public NaniteAreaBeacon AreaBeacon { get; set; }
     }
 
     public class NaniteConstructionTargets : NaniteTargetBlocksBase
@@ -31,7 +30,6 @@ namespace NaniteConstructionSystem.Entities.Targets
             {get {return "Construction";}}
 
         private Dictionary<IMySlimBlock, int> m_targetBlocks;
-        private Dictionary<IMySlimBlock, NaniteAreaBeacon> m_areaTargetBlocks;
         private float m_maxDistance = 300f;
         private HashSet<IMySlimBlock> m_remoteTargets;
         private FastResourceLock m_remoteLock;
@@ -44,7 +42,6 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_maxDistance = NaniteConstructionManager.Settings.ConstructionMaxBeaconDistance;
             m_remoteTargets = new HashSet<IMySlimBlock>();
             m_remoteLock = new FastResourceLock();
-            m_areaTargetBlocks = new Dictionary<IMySlimBlock, NaniteAreaBeacon>();
         }
 
         public override int GetMaximumTargets()
@@ -96,6 +93,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 if (PotentialTargetList.Count > 0)
                     InvalidTargetReason("Maximum targets reached. Add more upgrades!");
+
                 return;
             }
 
@@ -103,21 +101,26 @@ namespace NaniteConstructionSystem.Entities.Targets
             string LastInvalidTargetReason = "";
 
             int targetListCount = m_targetList.Count;
+            List<object> localTargetList = m_potentialTargetList.ToList();
+            localTargetList.Shuffle();
 
-            foreach (IMySlimBlock item in m_potentialTargetList.ToList())
+            foreach (IMySlimBlock item in localTargetList.ToList())
             {
-                if (item == null || TargetList.Contains(item))
+                if (item == null || TargetList.Contains(item) || PotentialIgnoredList.Contains(item))
                     continue;
 
                 missing.Clear();
                 item.GetMissingComponents(missing);
-                if (missing == null && !MyAPIGateway.Session.CreativeMode)
+                if (missing == null && !MyAPIGateway.Session.CreativeMode) {
+                    AddToIgnoreList(item);
                     continue;
+                }
 
                 bool foundMissingComponents = true;
 
-                if (missing.Count > 0)
+                if (missing.Count > 0) {
                     foundMissingComponents = m_constructionBlock.InventoryManager.CheckComponentsAvailable(ref missing, ref available);
+                }
 
                 if (foundMissingComponents && m_constructionBlock.HasRequiredPowerForNewTarget(this))
                 {
@@ -145,8 +148,17 @@ namespace NaniteConstructionSystem.Entities.Targets
                     if (++targetListCount >= maxTargets)
                         break;
                 }
-                else if (!foundMissingComponents)
+                else if (!foundMissingComponents) {
                     LastInvalidTargetReason = "Missing components";
+                    if (IgnoredCheckedTimes.ContainsKey(item)) {
+                        IgnoredCheckedTimes[item]++;
+                        if (IgnoredCheckedTimes[item] > 4) {
+                            AddToIgnoreList(item);
+                        }
+                    } else {
+                        IgnoredCheckedTimes.Add(item, 1);
+                    }
+                }
 
                 else if (!m_constructionBlock.HasRequiredPowerForNewTarget(this))
                 {
@@ -161,20 +173,19 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void Update()
         {
-            MyAPIGateway.Parallel.Start(() =>
+            try
             {
-                try
-                {
-                    foreach (var item in m_targetList.ToList())
-                    {
-                        var block = item as IMySlimBlock;
-                        if (block != null)
-                            ProcessConstructionItem(block);
+                foreach (var item in m_targetList.ToList()) {
+                    var block = item as IMySlimBlock;
+                    if (block != null) {
+                        ProcessConstructionItem(block);
                     }
                 }
-                catch (Exception e)
-                    {Logging.Instance.WriteLine($"{e}");}
-            });
+            }
+            catch (Exception e)
+            {
+                Logging.Instance.WriteLine($"{e}");
+            }
         }
 
         private void ProcessConstructionItem(IMySlimBlock target)
@@ -214,28 +225,15 @@ namespace NaniteConstructionSystem.Entities.Targets
                         return;
                     }
 
-                    if (m_areaTargetBlocks.ContainsKey(target))
-                    {
-                        BoundingBoxD bb;
-                        target.GetWorldBoundingBox(out bb, true);
-                        if (!m_areaTargetBlocks[target].IsInsideBox(bb))
-                        {
-                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                            {
-                                if (target != null)
-                                    CancelTarget(target);
-                            });
-                            return;
-                        }
-                    }
-
                     if (target.IsDestroyed || target.IsFullyDismounted || (target.FatBlock != null && target.FatBlock.Closed))
                     {
                         Logging.Instance.WriteLine("[Construction] Cancelling Construction/Repair Target due to target being destroyed", 1);
                         MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         {
-                            if (target != null)
+                            if (target != null) {
+                                AddToIgnoreList(target);
                                 CancelTarget(target);
+                            }
                         });
                         return;
                     }
@@ -274,6 +272,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                             }
 
                             if (m_constructionBlock.UpdateOverLimit) {
+                                AddToIgnoreList(target);
                                 CancelTarget(target);
                                 return;
                             }
@@ -284,6 +283,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                             {
                                 Logging.Instance.WriteLine("[Construction] Cancelling Construction/Repair Target due to missing components", 1);
 
+                                AddToIgnoreList(target);
                                 CancelTarget(target);
                             }
                         });
@@ -296,7 +296,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                     {
                         Logging.Instance.WriteLine("[Construction] Cancelling Repair Target due to being out of range", 1);
                         MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                            { CancelTarget(target); });
+                            {
+                                AddToIgnoreList(target);
+                                CancelTarget(target);
+                            });
                         return;
                     }
                 }
@@ -309,67 +312,97 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void CreateConstructionParticle(IMySlimBlock target)
         {
-            if (!m_targetBlocks.ContainsKey(target))
-                m_targetBlocks.Add(target, 0);
+            try {
+                if (!m_targetBlocks.ContainsKey(target))
+                    m_targetBlocks.Add(target, 0);
 
-            Vector4 startColor = new Vector4(0.55f, 0.55f, 0.95f, 0.75f);
-            Vector4 endColor = new Vector4(0.05f, 0.05f, 0.35f, 0.75f);
+                Vector4 startColor = new Vector4(0.55f, 0.55f, 0.95f, 0.75f);
+                Vector4 endColor = new Vector4(0.05f, 0.05f, 0.35f, 0.75f);
 
-            Vector3D targetPosition = default(Vector3D);
+                Vector3D targetPosition = default(Vector3D);
 
-            if (target.FatBlock != null)
-                targetPosition = target.FatBlock.GetPosition();
-            else
-            {
-                var size = target.CubeGrid.GridSizeEnum == MyCubeSize.Small ? 0.5f : 2.5f;
-                var destinationPosition = new Vector3D(target.Position * size);
-                targetPosition = Vector3D.Transform(destinationPosition, target.CubeGrid.WorldMatrix);
-            }
-
-            var nearestFactory = m_constructionBlock;
-
-            if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles)
-                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                if (target.FatBlock != null)
+                    targetPosition = target.FatBlock.GetPosition();
+                else
                 {
-                    nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
-                });
+                    var size = target.CubeGrid.GridSizeEnum == MyCubeSize.Small ? 0.5f : 2.5f;
+                    var destinationPosition = new Vector3D(target.Position * size);
+                    targetPosition = Vector3D.Transform(destinationPosition, target.CubeGrid.WorldMatrix);
+                }
+
+                var nearestFactory = m_constructionBlock;
+
+                if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles)
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                    {
+                        nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
+                    });
+
+            } catch (Exception e) {
+                Logging.Instance.WriteLine($"{e}");
+            }
         }
 
         public void CompleteTarget(IMySlimBlock obj)
         {
-            Logging.Instance.WriteLine(string.Format("[Construction] Completing Construction/Repair Target: {0} - {1} (EntityID={2},Position={3})",
-              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position), 1);
+            try {
+                Logging.Instance.WriteLine(string.Format("[Construction] Completing Construction/Repair Target: {0} - {1} (EntityID={2},Position={3})",
+                  m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position), 1);
 
-            var localBlockBuiltBy = (MyCubeBlock) m_constructionBlock.ConstructionBlock;
-            var ownerId = m_constructionBlock.ConstructionBlock.OwnerId;
+                var localBlockBuiltBy = (MyCubeBlock) m_constructionBlock.ConstructionBlock;
+                var ownerId = m_constructionBlock.ConstructionBlock.OwnerId;
 
-            // no defined owner
-            if (ownerId == 0) {
-                if (obj != null && obj.CubeGrid != null && obj.CubeGrid.BigOwners[0] != null) {
-                    ownerId = obj.CubeGrid.BigOwners[0];
+                // no defined owner
+                if (ownerId == 0) {
+                    if (obj != null && obj.CubeGrid != null && obj.CubeGrid.BigOwners[0] != null) {
+                        ownerId = obj.CubeGrid.BigOwners[0];
+                    }
+
+                    if (ownerId == 0 && localBlockBuiltBy != null && localBlockBuiltBy.BuiltBy != null) {
+                        ownerId = localBlockBuiltBy.BuiltBy;
+                    }
                 }
 
-                if (ownerId == 0 && localBlockBuiltBy != null && localBlockBuiltBy.BuiltBy != null) {
-                    ownerId = localBlockBuiltBy.BuiltBy;
+                if (obj != null && ownerId > 0) {
+                    var cubeBlock = (MyCubeBlock) obj.FatBlock;
+                    if (cubeBlock != null) {
+                        cubeBlock.ChangeOwner(ownerId, MyOwnershipShareModeEnum.Faction);
+                    }
+                }
+
+                if (Sync.IsServer) {
+                    m_constructionBlock.SendCompleteTarget(obj, TargetTypes.Construction);
+                }
+
+                m_constructionBlock.ParticleManager.CompleteTarget(obj);
+                m_constructionBlock.ToolManager.Remove(obj);
+                Remove(obj);
+                m_remoteTargets.Remove(obj);
+
+            } catch (Exception e) {
+                Logging.Instance.WriteLine($"{e}");
+            }
+        }
+
+        public void AddToIgnoreList(IMySlimBlock target){
+
+            object obj = target as object;
+
+            if (PotentialIgnoredList.Contains(obj) == false) {
+                PotentialIgnoredList.Add(obj);
+                if (PotentialTargetList.Contains(obj)) {
+                    PotentialTargetList.Remove(obj);
                 }
             }
+        }
 
-            if (obj != null && ownerId > 0) {
-                var cubeBlock = (MyCubeBlock) obj.FatBlock;
-                if (cubeBlock != null) {
-                    cubeBlock.ChangeOwner(ownerId, MyOwnershipShareModeEnum.Faction);
+        public override void AddToIgnoreList(object obj){
+            if (PotentialIgnoredList.Contains(obj) == false) {
+                PotentialIgnoredList.Add(obj);
+                if (PotentialTargetList.Contains(obj)) {
+                    PotentialTargetList.Remove(obj);
                 }
             }
-
-            if (Sync.IsServer) {
-                m_constructionBlock.SendCompleteTarget(obj, TargetTypes.Construction);
-            }
-
-            m_constructionBlock.ParticleManager.CompleteTarget(obj);
-            m_constructionBlock.ToolManager.Remove(obj);
-            Remove(obj);
-            m_remoteTargets.Remove(obj);
-            m_areaTargetBlocks.Remove(obj);
         }
 
         public void CancelTarget(IMySlimBlock obj)
@@ -384,7 +417,6 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_constructionBlock.ToolManager.Remove(obj);
             Remove(obj);
             m_remoteTargets.Remove(obj);
-            m_areaTargetBlocks.Remove(obj);
         }
 
         public override void CancelTarget(object obj)
@@ -415,7 +447,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (block.IsRemote && AddPotentialBlock(block.Block, true))
                     m_remoteTargets.Add(block.Block);
                 else
-                    AddPotentialBlock(block.Block, block.IsRemote, block.AreaBeacon);
+                    AddPotentialBlock(block.Block, block.IsRemote);
             }
         }
 
@@ -463,12 +495,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 { Logging.Instance.WriteLine($"NaniteConstructionTargets.GetBeaconBlocks:\n{ex.ToString()}"); }
         }
 
-        public override void CheckAreaBeacons()
-        {
-            CheckConstructionOrProjectionAreaBeacons();
-        }
-
-        private bool AddPotentialBlock(IMySlimBlock block, bool remote = false, NaniteAreaBeacon beacon = null)
+        private bool AddPotentialBlock(IMySlimBlock block, bool remote = false)
         {
             if (PotentialTargetList.Contains(block))
                 return false;
@@ -477,16 +504,11 @@ namespace NaniteConstructionSystem.Entities.Targets
               && !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(block.FatBlock.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
                 return false;
 
+            if (PotentialIgnoredList.Contains(block))
+                return false;
+
             if (!block.IsFullIntegrity || block.HasDeformation)
             {
-                if (beacon != null)
-                {
-                    if (!m_areaTargetBlocks.ContainsKey(block))
-                        m_areaTargetBlocks.Add(block, beacon);
-                    else
-                        m_areaTargetBlocks[block] = beacon;
-                }
-
                 PotentialTargetList.Add(block);
                 return true;
             }

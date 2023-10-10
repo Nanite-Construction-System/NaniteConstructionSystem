@@ -97,10 +97,6 @@ namespace NaniteConstructionSystem.Settings
         public int MiningNanitesPerUpgrade { get; set; }
         [ProtoMember(44)]
         public int MiningNanitesNoUpgrade { get; set; }
-        [ProtoMember(45)]
-        public float MiningRadius { get; set; }
-        [ProtoMember(46)]
-        public int MiningDepth { get; set; }
         [ProtoMember(47)]
         public bool LifeSupportEnabled { get; set; }
         [ProtoMember(48)]
@@ -121,10 +117,6 @@ namespace NaniteConstructionSystem.Settings
         public int LifeSupportSecondsPerTick { get; set; }
         [ProtoMember(56)]
         public float LifeSupportHealthPerTick { get; set; }
-        [ProtoMember(57)]
-        public float AreaBeaconMaxSize { get; set; }
-        [ProtoMember(58)]
-        public float AreaBeaconMinSize { get; set; }
         [ProtoMember(59)]
         public float SpeedIncreasePerUpgrade { get; set; }
         [ProtoMember(60)]
@@ -135,32 +127,12 @@ namespace NaniteConstructionSystem.Settings
         public float FactoryComponentMultiplier { get; set; }
         [ProtoMember(63)]
         public float UpgradeComponentMultiplier { get; set; }
-        [ProtoMember(64)]
-        public float OreDetectorPowerMultiplicator { get; set; }
         [ProtoMember(65)]
         public int DebugLogging { get; set; }
         [ProtoMember(66)]
         public float MasterSlaveDistance { get; set; }
-        [ProtoMember(67)]
-        public float OreDetectorToNaniteFactoryCommunicationDistance { get; set; }
-        [ProtoMember(68)]
-        public float OreDetectorRangePerUpgrade { get; set; }
-        [ProtoMember(69)]
-        public float OreDetectorPowerIncreasePerRangeUpgrade { get; set; }
-        [ProtoMember(70)]
-        public float OreDetectorPowerIncreasePerFilterUpgrade { get; set; }
-        [ProtoMember(71)]
-        public float OreDetectorPowerPercentIncreasedPerScanningUpgrade { get; set; }
-        [ProtoMember(72)]
-        public float OreDetectorPowerPercentReducedPerEfficiencyUpgrade { get; set; }
-        [ProtoMember(73)]
-        public float AreaBeaconMaxDistanceFromNaniteFacility { get; set; }
         [ProtoMember(74)]
         public int BlocksScannedPerSecond { get; set; }
-        [ProtoMember(75)]
-        public int MiningTargetsScannedPerSecond { get; set; }
-        [ProtoMember(76)]
-        public int OreDetectorScanningSpeed { get; set; }
         [ProtoMember(77)]
         public float LifeSupportOxygenPerTick { get; set; }
         [ProtoMember(78)]
@@ -199,7 +171,7 @@ namespace NaniteConstructionSystem.Settings
             CleanupMaxStreams = 15;
             CleanupCarryVolume = 2.5f;
             CleanupMaxDistance = 800f;
-            CleanupPowerPerStream = 26f;
+            CleanupPowerPerStream = 13f;
             CleanupMinTravelTime = 14f;
             CleanupDistanceDivisor = 15f;
             CleanupNanitesPerUpgrade = 3;
@@ -217,48 +189,36 @@ namespace NaniteConstructionSystem.Settings
             MiningEnabled = true;
             MiningMaxStreams = 15;
             MiningMaxDistance = 1000f;
-            MiningPowerPerStream = 26f;
-            MiningMinTravelTime = 25f;
+            MiningPowerPerStream = 13f;
+            MiningMinTravelTime = 10f;
             MiningDistanceDivisor = 15f;
             MiningNanitesPerUpgrade = 3;
             MiningNanitesNoUpgrade = 1;
             LifeSupportEnabled = true;
             LifeSupportMaxStreams = 15;
             LifeSupportMaxDistance = 800f;
-            LifeSupportPowerPerStream = 26f;
+            LifeSupportPowerPerStream = 13f;
             LifeSupportMinTravelTime = 16f;
             LifeSupportDistanceDivisor = 5f;
             LifeSupportNanitesPerUpgrade = 3;
             LifeSupportNanitesNoUpgrade = 1;
             LifeSupportSecondsPerTick = 1;
             LifeSupportHealthPerTick = 5f;
-            AreaBeaconMaxSize = 200f;
-            AreaBeaconMinSize = 10f;
             SpeedIncreasePerUpgrade = 5f;
             MinTravelTimeReductionPerUpgrade = 1f;
             PowerDecreasePerUpgrade = 2f;
             FactoryComponentMultiplier = 1f;
             UpgradeComponentMultiplier = 1f;
-            OreDetectorPowerMultiplicator = 1f;
             DebugLogging = 0;
             MasterSlaveDistance = 300f;
-            OreDetectorToNaniteFactoryCommunicationDistance = 500f;
-            OreDetectorRangePerUpgrade = 50f;
-            OreDetectorPowerIncreasePerRangeUpgrade = 0.125f;
-            OreDetectorPowerIncreasePerFilterUpgrade = 0.1f;
-            OreDetectorPowerPercentIncreasedPerScanningUpgrade = 1f;
-            OreDetectorPowerPercentReducedPerEfficiencyUpgrade = 0.1f;
-            AreaBeaconMaxDistanceFromNaniteFacility = 800f;
             BlocksScannedPerSecond = 500;
-            MiningTargetsScannedPerSecond = 100;
-            OreDetectorScanningSpeed = 10;
             LifeSupportOxygenPerTick = 0.05f;
             LifeSupportHydrogenPerTick = 0.05f;
             LifeSupportOxygenRefillLevel = 0.5f;
             LifeSupportHydrogenRefillLevel = 0.5f;
             LifeSupportEnergyRefillLevel = 0.5f;
             LifeSupportEnergyPerTick = 0.05f;
-            Version = "2.0";
+            Version = "2.1";
         }
 
         public static NaniteSettings Load()

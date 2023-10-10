@@ -28,7 +28,6 @@ namespace NaniteConstructionSystem.Entities
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8954, HandleDetails);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8960, HandleTerminalSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8962, HandleAssemblerSettings);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8971, HandleBeaconTerminalSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8974, HandleFactoryGroup);
             }
             else if (Sync.IsServer)
@@ -37,8 +36,6 @@ namespace NaniteConstructionSystem.Entities
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8963, HandleNeedAssemblerSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8964, HandleTerminalSettings);
                 MyAPIGateway.Multiplayer.RegisterMessageHandler(8965, HandleAssemblerSettings);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8972, HandleBeaconTerminalSettings);
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(8973, HandleNeedBeaconTerminalSettings);
             }
 
             m_init = true;
@@ -59,8 +56,6 @@ namespace NaniteConstructionSystem.Entities
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8963, HandleNeedAssemblerSettings);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8964, HandleTerminalSettings);
                 MyAPIGateway.Multiplayer.UnregisterMessageHandler(8965, HandleAssemblerSettings);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8972, HandleBeaconTerminalSettings);
-                MyAPIGateway.Multiplayer.UnregisterMessageHandler(8973, HandleNeedBeaconTerminalSettings);
             }
         }
 
@@ -167,10 +162,8 @@ namespace NaniteConstructionSystem.Entities
 
         private void HandleDetails(byte[] data)
         {
-            MyAPIGateway.Parallel.Start(() =>
-            {
-                try
-                {
+            MyAPIGateway.Parallel.Start(() => {
+                try {
                     if (MyAPIGateway.Session == null)
                         return;
 
@@ -190,21 +183,16 @@ namespace NaniteConstructionSystem.Entities
                             item.Value.SyncDetails(details);
                             break;
                         }
-                }
-                catch (Exception ex)
-                {
+                } catch (Exception ex) {
                     Logging.Instance.WriteLine(string.Format("HandleDetails() Error: {0}", ex.ToString()));
                 }
             });
-            
         }
 
         private void HandleFactoryGroup(byte[] data)
         {
-            MyAPIGateway.Parallel.Start(() =>
-            {
-                try
-                {
+            MyAPIGateway.Parallel.Start(() => {
+                try {
                     if (MyAPIGateway.Session == null)
                         return;
 
@@ -213,15 +201,13 @@ namespace NaniteConstructionSystem.Entities
 
                     FactoryGroupData details = MyAPIGateway.Utilities.SerializeFromXML<FactoryGroupData>(ASCIIEncoding.ASCII.GetString(data));
 
-                    foreach (var item in NaniteConstructionManager.NaniteBlocks)
-                        if (item.Key == details.EntityId && item.Value.Initialized)
-                        {
+                    foreach (var item in NaniteConstructionManager.NaniteBlocks) {
+                        if (item.Key == details.EntityId && item.Value.Initialized) {
                             item.Value.SyncFactoryGroup(details);
                             break;
                         }
-                }
-                catch (Exception ex)
-                {
+                    }
+                } catch (Exception ex) {
                     Logging.Instance.WriteLine(string.Format("HandleFactoryGroup() Error: {0}", ex.ToString()));
                 }
             });
@@ -385,83 +371,5 @@ namespace NaniteConstructionSystem.Entities
             MyAPIGateway.Multiplayer.SendMessageToServer(8963, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(blockId)));
         }
 
-        public void SendBeaconTerminalSettings(long blockId)
-        {
-            if (!NaniteConstructionManager.BeaconTerminalSettings.ContainsKey(blockId))
-                NaniteConstructionManager.BeaconTerminalSettings.Add(blockId, new NaniteBeaconTerminalSettings());
-
-            SerializableKeyValuePair<long, NaniteBeaconTerminalSettings> settings = new SerializableKeyValuePair<long, NaniteBeaconTerminalSettings>(blockId, NaniteConstructionManager.BeaconTerminalSettings[blockId]);
-
-            if (Sync.IsClient)
-            {
-                Logging.Instance.WriteLine("SendAssemblerSettings -> Server", 2);
-                Logging.Instance.WriteLine($"SendBeaconTerminalSettings -> Server: {blockId}", 1);
-                MyAPIGateway.Multiplayer.SendMessageToServer(8972, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(settings)));
-            }
-            else if (Sync.IsServer)
-            {
-                Logging.Instance.WriteLine("SendAssemblerSettings -> Others", 2);
-                Logging.Instance.WriteLine($"SendBeaconTerminalSettings -> Client: {blockId}", 1);
-                MyAPIGateway.Multiplayer.SendMessageToOthers(8971, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(settings)));
-            }
-        }
-
-        private void HandleBeaconTerminalSettings(byte[] data)
-        {
-            try
-            {
-                if (MyAPIGateway.Session == null)
-                    return;
-
-                var settings = MyAPIGateway.Utilities.SerializeFromXML<SerializableKeyValuePair<long, NaniteBeaconTerminalSettings>>(ASCIIEncoding.ASCII.GetString(data));
-                if (!NaniteConstructionManager.BeaconTerminalSettings.ContainsKey(settings.Key))
-                    NaniteConstructionManager.BeaconTerminalSettings.Add(settings.Key, settings.Value);
-
-                NaniteConstructionManager.BeaconTerminalSettings[settings.Key] = settings.Value;
-                Logging.Instance.WriteLine("Receieved Beacon Terminal Settings Update: {settings.Key}");
-
-                if (Sync.IsServer)
-                    SendBeaconTerminalSettings(settings.Key);
-            }
-            catch (Exception ex)
-            {
-                Logging.Instance.WriteLine(string.Format("HandleBeaconTerminalSettings() Error: {0}", ex.ToString()));
-            }
-        }
-
-        public void SendNeedBeaconTerminalSettings(long blockId)
-        {
-            if (MyAPIGateway.Multiplayer == null)
-                return;
-
-            Logging.Instance.WriteLine($"SendNeedBeaconTerminalSettings: {blockId}", 1);
-            MyAPIGateway.Multiplayer.SendMessageToServer(8973, ASCIIEncoding.ASCII.GetBytes(MyAPIGateway.Utilities.SerializeToXML(blockId)));
-        }
-
-        private void HandleNeedBeaconTerminalSettings(byte[] data)
-        {
-            try
-            {
-                if (MyAPIGateway.Session == null)
-                    return;
-
-                var settings = MyAPIGateway.Utilities.SerializeFromXML<long>(ASCIIEncoding.ASCII.GetString(data));
-                Logging.Instance.WriteLine($"HandleNeedBeaconTerminalSettings: {settings}", 2);
-
-                foreach (var item in NaniteConstructionManager.BeaconTerminalSettings)
-                {
-                    if (item.Key == settings)
-                    {
-                        Logging.Instance.WriteLine($"SendBeaconTerminalSettings: {settings}", 2);
-                        SendBeaconTerminalSettings(item.Key);
-                        break;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logging.Instance.WriteLine(string.Format("HandleNeedBeaconTerminalSettings() Error: {0}", ex.ToString()));
-            }
-        }
     }
 }

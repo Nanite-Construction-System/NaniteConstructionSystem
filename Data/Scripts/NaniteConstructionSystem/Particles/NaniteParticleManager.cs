@@ -8,7 +8,7 @@ using VRage.Game;
 
 using NaniteConstructionSystem.Entities;
 using NaniteConstructionSystem.Entities.Beacons;
-using NaniteConstructionSystem.Entities.Detectors;
+using NaniteConstructionSystem.Entities.Targets;
 
 namespace NaniteConstructionSystem.Particles
 {
@@ -108,10 +108,8 @@ namespace NaniteConstructionSystem.Particles
 
         public void CheckParticleLife()
         {
-            MyAPIGateway.Parallel.Start(() =>
-            {
-                try
-                {
+            MyAPIGateway.Parallel.Start(() => {
+                try {
                     List<NaniteParticle> particlesToRemove = new List<NaniteParticle>();
                     foreach (var particle in m_particles) {
                         if (particle == null)
@@ -131,22 +129,22 @@ namespace NaniteConstructionSystem.Particles
                             m_particles.Remove(particle);
                         });
                     }
+                } catch (Exception ex) {
+                    VRage.Utils.MyLog.Default.WriteLineAndConsole($"CheckParticleLife() Error: {ex.ToString()}");
                 }
-                catch (Exception ex)
-                    {VRage.Utils.MyLog.Default.WriteLineAndConsole($"CheckParticleLife() Error: {ex.ToString()}");}
             });
         }
 
         private void CallTargetRemoved(object target, bool cancelled)
         {
-            MyAPIGateway.Parallel.Start(() =>
-            {
+            MyAPIGateway.Parallel.Start(() => {
                 List<NaniteConstructionBlock> factoryGroup = new List<NaniteConstructionBlock>();
                 lock (m_constructionBlock.FactoryGroup)
                     factoryGroup = new List<NaniteConstructionBlock>(m_constructionBlock.FactoryGroup);
 
-                foreach (NaniteConstructionBlock factory in factoryGroup)
+                foreach (NaniteConstructionBlock factory in factoryGroup) {
                     factory.ParticleManager.TargetRemoved(target, cancelled);
+                }
             });
         }
 

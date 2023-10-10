@@ -60,40 +60,6 @@ namespace NaniteConstructionSystem.Settings
         }
     }
 
-    public class NaniteBeaconTerminalSettings
-    {
-        public int Height { get; set; }
-        public int Width { get; set; }
-        public int Depth { get; set; }
-        public int OffsetX { get; set; }
-        public int OffsetY { get; set; }
-        public int OffsetZ { get; set; }
-        public int RotationX { get; set; }
-        public int RotationY { get; set; }
-        public int RotationZ { get; set; }
-        public bool HighlightArea { get; set; }
-        public bool AllowRepair { get; set; }
-        public bool AllowProjection { get; set; }
-        public bool AllowDeconstruction { get; set; }
-
-        public NaniteBeaconTerminalSettings()
-        {
-            Width = 200;
-            Height = 200;
-            Depth = 200;
-            OffsetX = 0;
-            OffsetY = 0;
-            OffsetZ = 0;
-            RotationX = 0;
-            RotationY = 0;
-            RotationZ = 0;
-            HighlightArea = true;
-            AllowRepair = false;
-            AllowProjection = false;
-            AllowDeconstruction = false;
-        }
-    }
-
     public class TerminalSettings
     {
         public void Save()
@@ -113,14 +79,6 @@ namespace NaniteConstructionSystem.Settings
                 assemblerResult.Add(pair);
             }
             SaveTerminalSettings("AssemblerTerminalSettings.dat", assemblerResult);
-
-            List<SerializableKeyValuePair<long, NaniteBeaconTerminalSettings>> beaconResult = new List<SerializableKeyValuePair<long, NaniteBeaconTerminalSettings>>();
-            foreach (var item in NaniteConstructionManager.BeaconTerminalSettings)
-            {
-                SerializableKeyValuePair<long, NaniteBeaconTerminalSettings> pair = new SerializableKeyValuePair<long, NaniteBeaconTerminalSettings>(item.Key, item.Value);
-                beaconResult.Add(pair);
-            }
-            SaveTerminalSettings("BeaconTerminalSettings.dat", beaconResult);
         }
 
         public void Load()
@@ -158,24 +116,6 @@ namespace NaniteConstructionSystem.Settings
 
                     if (!NaniteConstructionManager.AssemblerSettings.ContainsKey(block.EntityId))
                         NaniteConstructionManager.AssemblerSettings.Add(block.EntityId, item.Value);
-                }
-            }
-
-            var beaconResult = LoadTerminalSettings<List<SerializableKeyValuePair<long, NaniteBeaconTerminalSettings>>>("BeaconTerminalSettings.dat");
-            if (beaconResult != null)
-            {
-                foreach (var item in beaconResult)
-                {
-                    IMyEntity entity;
-                    if (!MyAPIGateway.Entities.TryGetEntityById(item.Key, out entity))
-                        continue;
-
-                    IMyTerminalBlock block = entity as IMyTerminalBlock;
-                    if (block == null)
-                        continue;
-
-                    if (!NaniteConstructionManager.BeaconTerminalSettings.ContainsKey(block.EntityId))
-                        NaniteConstructionManager.BeaconTerminalSettings.Add(block.EntityId, item.Value);
                 }
             }
         }

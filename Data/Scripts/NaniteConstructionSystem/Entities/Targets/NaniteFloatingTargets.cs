@@ -277,6 +277,15 @@ namespace NaniteConstructionSystem.Entities.Targets
             return (float)amountFits;
         }
 
+        public override void AddToIgnoreList(object obj){
+            if (PotentialIgnoredList.Contains(obj) == false) {
+                PotentialIgnoredList.Add(obj);
+                if (PotentialTargetList.Contains(obj)) {
+                    PotentialTargetList.Remove(obj);
+                }
+            }
+        }
+
         public void CancelTarget(IMyEntity obj)
         {
             Logging.Instance.WriteLine(string.Format("[Floating] Cancelling Floating Object Target: {0} - {1} (EntityID={2},Position={3})", 
@@ -370,24 +379,20 @@ namespace NaniteConstructionSystem.Entities.Targets
                 m_targetTracker.Add(target, floatingTarget);
             }
 
-            MyAPIGateway.Parallel.Start(() =>
-            {
-                try
-                {
-                    Vector4 startColor = new Vector4(0.75f, 0.75f, 0.0f, 0.75f);
-                    Vector4 endColor = new Vector4(0.20f, 0.20f, 0.0f, 0.75f);
+            try {
+                Vector4 startColor = new Vector4(0.75f, 0.75f, 0.0f, 0.75f);
+                Vector4 endColor = new Vector4(0.20f, 0.20f, 0.0f, 0.75f);
 
-                    var nearestFactory = m_constructionBlock;
-                    if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles)
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                    {
+                var nearestFactory = m_constructionBlock;
+                if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles) {
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {
                         nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
                     });
-                    
                 }
-                catch (Exception e)
-                    {Logging.Instance.WriteLine($"{e}");}
-            }); 
+
+            } catch (Exception e) {
+                Logging.Instance.WriteLine($"{e}");
+            }
         }
 
         public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> blocks)

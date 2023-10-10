@@ -1,72 +1,72 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <!--
-  Usage:
+    <!--
+    Usage:
 
-  All entity component definitions (not components used in assemblers in game) have base class MyComponentDefinitionBase.
+    All entity component definitions (not components used in assemblers in game) have base class MyComponentDefinitionBase.
 
-  You can define default definition for all components of same type, if you ommit the SubtypeId:
+    You can define default definition for all components of same type, if you ommit the SubtypeId:
 
-  <EntityComponents>
-    <EntityComponent xsi:type="MyObjectBuilder_CraftingComponentBlockDefinition">
-      <Id>
-        <TypeId>MyObjectBuilder_CraftingComponentBlock</TypeId>
-      </Id>
-    </EntityComponent>
-  </EntityComponents>
+    <EntityComponents>
+      <EntityComponent xsi:type="MyObjectBuilder_CraftingComponentBlockDefinition">
+        <Id>
+          <TypeId>MyObjectBuilder_CraftingComponentBlock</TypeId>
+        </Id>
+      </EntityComponent>
+    </EntityComponents>
 
-  You need to define type of the definition for deserializer - xsi:type="MyObjectBuilder_CraftingComponentBlockDefinition"
+    You need to define type of the definition for deserializer - xsi:type="MyObjectBuilder_CraftingComponentBlockDefinition"
 
-  When container on init of the components will look for component definition, it will first look for the same SubtypeId,
-  when it's not found, it will look for the definition with empty SubtypeId, if it doesn't find either, it will not call
-  Init(MyComponentDefinitionBase definition) on component. If definition is found, it will pass the definition and call that method.
+    When container on init of the components will look for component definition, it will first look for the same SubtypeId,
+    when it's not found, it will look for the definition with empty SubtypeId, if it doesn't find either, it will not call
+    Init(MyComponentDefinitionBase definition) on component. If definition is found, it will pass the definition and call that method.
 
-  See EntityContainers.sbc for defining default components in containers.
+    See EntityContainers.sbc for defining default components in containers.
 
-  -->
-  <EntityComponents>
+    -->
+    <EntityComponents>
 
-    <EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition">
-      <Id>
-        <TypeId>Inventory</TypeId>
-        <SubtypeId>LargeNaniteControlFacility</SubtypeId>
-      </Id>
-      <Size x="7.5" y="7.5" z="2.5"/>
-    </EntityComponent>
+        <EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition">
+            <Id>
+                <TypeId>Inventory</TypeId>
+                <SubtypeId>LargeNaniteControlFacility</SubtypeId>
+            </Id>
+            <Size x="7.5" y="7.5" z="2.5"/>
+        </EntityComponent>
 
-    <EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition">
-      <Id>
-        <TypeId>Inventory</TypeId>
-        <SubtypeId>SmallNaniteShipWelder</SubtypeId>
-      </Id>
-      <Size x="100" y="100" z="100"/>
-    </EntityComponent>
+        <EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition">
+            <Id>
+                <TypeId>Inventory</TypeId>
+                <SubtypeId>SmallNaniteShipWelder</SubtypeId>
+            </Id>
+            <Size x="100" y="100" z="100"/>
+        </EntityComponent>
 
-    <EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition">
-      <Id>
-        <TypeId>Inventory</TypeId>
-        <SubtypeId>TinyNaniteShipWelder</SubtypeId>
-      </Id>
-      <Size x="100" y="100" z="100"/>
-    </EntityComponent>
+        <EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition">
+            <Id>
+                <TypeId>Inventory</TypeId>
+                <SubtypeId>TinyNaniteShipWelder</SubtypeId>
+            </Id>
+            <Size x="100" y="100" z="100"/>
+        </EntityComponent>
 
-    <EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition">
-      <Id>
-        <TypeId>Inventory</TypeId>
-        <SubtypeId>SmallNaniteShipGrinder</SubtypeId>
-      </Id>
-      <Size x="100" y="100" z="100"/>
-    </EntityComponent>
+        <EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition">
+            <Id>
+                <TypeId>Inventory</TypeId>
+                <SubtypeId>SmallNaniteShipGrinder</SubtypeId>
+            </Id>
+            <Size x="100" y="100" z="100"/>
+        </EntityComponent>
 
-    <EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition">
-      <Id>
-        <TypeId>Inventory</TypeId>
-        <SubtypeId>TinyNaniteShipGrinder</SubtypeId>
-      </Id>
-      <Size x="100" y="100" z="100"/>
-    </EntityComponent>
+        <EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition">
+            <Id>
+                <TypeId>Inventory</TypeId>
+                <SubtypeId>TinyNaniteShipGrinder</SubtypeId>
+            </Id>
+            <Size x="100" y="100" z="100"/>
+        </EntityComponent>
 
-    <!-- <EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition"> <Id> <TypeId>Inventory</TypeId> <SubtypeId>SmallNaniteConstructionBlock</SubtypeId> </Id> <Size x="2.5" y="2.5" z="2.5" /> </EntityComponent> -->
-  </EntityComponents>
+        <!-- <EntityComponent xsi:type="MyObjectBuilder_InventoryComponentDefinition"> <Id> <TypeId>Inventory</TypeId> <SubtypeId>SmallNaniteConstructionBlock</SubtypeId> </Id> <Size x="2.5" y="2.5" z="2.5" /> </EntityComponent> -->
+    </EntityComponents>
 
 </Definitions>

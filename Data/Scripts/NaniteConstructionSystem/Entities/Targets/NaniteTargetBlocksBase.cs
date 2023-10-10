@@ -31,6 +31,9 @@ namespace NaniteConstructionSystem.Entities.Targets
             get { return m_potentialTargetList; }
         }
 
+        public List<object> PotentialIgnoredList = new List<object>();
+        public Dictionary<object, int> IgnoredCheckedTimes = new Dictionary<object, int>();
+
         public int PotentialTargetListCount;
 
         protected Dictionary<string, int> m_componentsRequired;
@@ -69,6 +72,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         public abstract void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> gridBlocks);
         public abstract void Update();
         public abstract void CancelTarget(object obj);
+        public abstract void AddToIgnoreList(object obj);
         public abstract void CompleteTarget(object obj);
 
         private float m_maxDistance = 300f;
@@ -77,66 +81,6 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             TargetList.Remove(target);
             PotentialTargetList.Remove(target);
-        }
-
-        internal bool IsAreaBeaconValid(IMyCubeBlock cubeBlock)
-        {
-            if (cubeBlock == null || !((IMyFunctionalBlock)cubeBlock).Enabled || !((IMyFunctionalBlock)cubeBlock).IsFunctional
-              || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(cubeBlock.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId)))
-                return false;
-
-            float range = NaniteConstructionManager.Settings != null ? NaniteConstructionManager.Settings.AreaBeaconMaxDistanceFromNaniteFacility : 300f;
-
-            foreach (var factory in m_constructionBlock.FactoryGroup)
-                if (IsEnabled(factory))
-                {
-                    if (Vector3D.Distance(cubeBlock.GetPosition(), factory.ConstructionBlock.GetPosition()) < range)
-                        return true;
-
-                    foreach (var grid in factory.GridGroup.ToList())
-                        if (cubeBlock.CubeGrid == grid)
-                            return true;
-                }
-
-            return false;
-        }
-
-        internal void CheckConstructionOrProjectionAreaBeacons(bool isProjection = false)
-        {
-            foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteAreaBeacon).ToList())
-            {
-                IMyCubeBlock cubeBlock = beaconBlock.Value.BeaconBlock;
-
-                if (!IsAreaBeaconValid(cubeBlock))
-                    continue;
-
-                var item = beaconBlock.Value as NaniteAreaBeacon;
-                if ( (isProjection && !item.Settings.AllowProjection) || !item.Settings.AllowRepair)
-                    continue;
-
-                float range = NaniteConstructionManager.Settings != null ? NaniteConstructionManager.Settings.ConstructionMaxBeaconDistance : 300f;
-
-                if (isProjection)
-                    range = NaniteConstructionManager.Settings != null ? NaniteConstructionManager.Settings.ProjectionMaxBeaconDistance : 300f;
-
-                HashSet<IMyEntity> entities = new HashSet<IMyEntity>();
-                MyAPIGateway.Entities.GetEntities(entities);
-                foreach (var entity in entities)
-                {
-                    var grid = entity as IMyCubeGrid;
-
-                    if (grid == null || (grid.GetPosition() - cubeBlock.GetPosition()).LengthSquared() >= range * range)
-                        continue;
-                        
-                    foreach (IMySlimBlock block in ((MyCubeGrid)grid).GetBlocks())
-                    {
-                        BoundingBoxD blockbb;
-                        block.GetWorldBoundingBox(out blockbb, true);
-                        if (item.IsInsideBox(blockbb))
-                            m_constructionBlock.ScanBlocksCache.Add(new BlockTarget(block, true, item));
-                    }
-                }
-            }
         }
 
         internal void InvalidTargetReason(string reason)
@@ -208,11 +152,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (m_constructionBlock.IsUserDefinedLimitReached())
                     InvalidTargetReason("User defined maximum nanite limit reached");
                 else if (target != null)
-                    m_targetList.Add(target);
+                m_targetList.Add(target);
             });
         }
 
         public virtual void CheckBeacons(){}
-        public virtual void CheckAreaBeacons(){}
     }
 }
