@@ -688,7 +688,7 @@ namespace NaniteConstructionSystem.Entities
                                 invalidTargetDetailsParallel.Append("\nTarget info:\r\n");
                                 invalidTitleAppended = true;
                             }
-                            invalidTargetDetailsParallel.Append($"\n- ({item.TargetName}) " + item.LastInvalidTargetReason);
+                            invalidTargetDetailsParallel.Append($"\n- ({item.TargetName}) " + item.LastInvalidTargetReason + "\r\n");
                         }
                     }
 

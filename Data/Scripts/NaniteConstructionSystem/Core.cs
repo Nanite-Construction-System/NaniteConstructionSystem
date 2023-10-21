@@ -556,8 +556,17 @@ namespace NaniteConstructionSystem
                 if (block == null || block.CustomData == null || block.CustomData == "") {
                     return 0;
                 } else {
-                    var stringCustom = block.CustomData;
-                    return long.Parse(stringCustom);
+                    long customValue = 0;
+                    if (!long.TryParse(block.CustomData, out customValue)) {
+                        block.CustomData = "";
+                    }
+                    if ((customValue - 1) >= 0 && (customValue - 1) < OreList.Count) {
+                        return customValue;
+                    } else {
+                        customValue = 0;
+                        block.CustomData = "";
+                        return customValue;
+                    }
                 }
             };
             Control.ComboBoxContent = AddComboBoxItem;

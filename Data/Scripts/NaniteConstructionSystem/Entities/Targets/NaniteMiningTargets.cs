@@ -135,8 +135,19 @@ namespace NaniteConstructionSystem.Entities.Targets
                     foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteBeaconMine))
                     {
                         var item = beaconBlock.Value.BeaconBlock;
-                        var beaconData = item.CustomData;
-                        newBeaconDataCode += beaconData;
+                        int beaconData = 0;
+
+                        if (!int.TryParse(item.CustomData, out beaconData)) {
+                            item.CustomData = "";
+                        }
+                        if ((beaconData - 1) >= 0 && (beaconData - 1) < NaniteConstructionManager.OreList.Count) {
+                            // pass
+                        } else {
+                            beaconData = 0;
+                            item.CustomData = "";
+                        }
+
+                        newBeaconDataCode += item.CustomData.ToString();
 
                         if (item == null || !item.Enabled || !item.IsFunctional
                           || !MyRelationsBetweenPlayerAndBlockExtensions.IsFriendly(item.GetUserRelationToOwner(m_constructionBlock.ConstructionBlock.OwnerId))
@@ -227,9 +238,12 @@ namespace NaniteConstructionSystem.Entities.Targets
                                                 {
                                                     var filteredOreName = "";
 
-                                                    if (beaconData != null && beaconData != "" && beaconData != "0") {
-                                                        var parseOreIdent = int.Parse(beaconData) - 1;
-                                                        filteredOreName = NaniteConstructionManager.OreList[parseOreIdent];
+                                                    if (beaconData != null && beaconData != 0) {
+                                                        var parseOreIdent = beaconData;
+                                                        parseOreIdent -= 1;
+                                                        if (parseOreIdent >= 0 && parseOreIdent < NaniteConstructionManager.OreList.Count) {
+                                                            filteredOreName = NaniteConstructionManager.OreList[parseOreIdent];
+                                                        }
                                                     }
 
                                                     if (filteredOreName != "" && filteredOreName != materialDefinition.MinedOre) {
