@@ -30,17 +30,13 @@ namespace NaniteConstructionSystem.Entities
     {
         public List<IMyInventory> connectedInventory = new List<IMyInventory>();
 
-        private Dictionary<string, int> m_componentsRequired;
-        public Dictionary<string, int> ComponentsRequired
-        {
-            get { return m_componentsRequired; }
-        }
+        public Dictionary<string, int> ComponentsRequired;
 
         private MyEntity m_constructionBlock;
         public NaniteConstructionInventory(MyEntity constructionBlock)
         {
             m_constructionBlock = constructionBlock;
-            m_componentsRequired = new Dictionary<string, int>();
+            ComponentsRequired = new Dictionary<string, int>();
         }
 
         internal void TakeRequiredComponents()

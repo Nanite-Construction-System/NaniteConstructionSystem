@@ -61,7 +61,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             int TargetListCount = TargetList.Count;
 
-            foreach (IMyEntity item in m_potentialTargetList.ToList())
+            foreach (IMyEntity item in PotentialTargetList.ToList())
             {
                 if (item == null || TargetList.Contains(item) || item.Closed) 
                     continue;
@@ -139,7 +139,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void Update()
         {
-            foreach (var item in m_targetList.ToList())
+            foreach (var item in TargetList.ToList())
                 ProcessItem(item);
         }
 
@@ -397,6 +397,12 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> blocks)
         {
+            if (!IsEnabled(m_constructionBlock))
+            {
+                PotentialTargetList.Clear();
+                return;
+            }
+
             m_entities.Clear();
             try
             {

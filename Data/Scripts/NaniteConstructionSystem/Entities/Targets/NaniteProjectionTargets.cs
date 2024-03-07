@@ -116,9 +116,6 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             int TargetListCount = TargetList.Count;
             var orderedList = PotentialTargetList.OrderBy(x => Vector3D.Distance(sourcePosition, EntityHelper.GetBlockPosition((IMySlimBlock)x))).ToList();
-            List<object> localIteratedArr = new List<object>();
-            localIteratedArr.MoveItems(orderedList,orderedList.Count());
-            localIteratedArr.Shuffle();
             var ignoredCount = 0;
             var ignoreBlockCheck = false;
 
@@ -126,7 +123,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 ignoreBlockCheck = true;
             }
 
-            foreach (var item in localIteratedArr)
+            foreach (var item in orderedList)
             {
                 if (item == null || TargetList.Contains(item) || PotentialIgnoredList.Contains(item))
                     continue;
@@ -232,7 +229,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void Update()
         {
-            foreach (var item in m_targetList.ToList())
+            foreach (var item in TargetList.ToList())
             {
                 var block = item as IMySlimBlock;
                 if (block != null)
@@ -404,6 +401,12 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> blocks)
         {
+            if (!IsEnabled(m_constructionBlock))
+            {
+                PotentialTargetList.Clear();
+                return;
+            }
+
             foreach (var block in blocks)
                 CheckBlockProjection(block.Block);
         }

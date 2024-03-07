@@ -258,8 +258,9 @@ namespace NaniteConstructionSystem.Entities
                 else
                     NaniteConstructionManager.TerminalSettings[settings.Key] = settings.Value;
 
-                if (Sync.IsServer)
+                if (Sync.IsServer) {
                     SendTerminalSettings(settings.Key);
+                }
             }
             catch (Exception ex)
             {

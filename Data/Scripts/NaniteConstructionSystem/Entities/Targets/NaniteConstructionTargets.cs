@@ -89,7 +89,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             var maxTargets = GetMaximumTargets();
 
-            if (m_targetList.Count >= maxTargets)
+            if (TargetList.Count >= maxTargets)
             {
                 if (PotentialTargetList.Count > 0)
                     InvalidTargetReason("Maximum targets reached. Add more upgrades!");
@@ -100,8 +100,8 @@ namespace NaniteConstructionSystem.Entities.Targets
             Dictionary<string, int> missing = new Dictionary<string, int>();
             string LastInvalidTargetReason = "";
 
-            int targetListCount = m_targetList.Count;
-            List<object> localTargetList = m_potentialTargetList.ToList();
+            int targetListCount = TargetList.Count;
+            List<object> localTargetList = PotentialTargetList.ToList();
             localTargetList.Shuffle();
 
             foreach (IMySlimBlock item in localTargetList.ToList())
@@ -175,7 +175,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             try
             {
-                foreach (var item in m_targetList.ToList()) {
+                foreach (var item in TargetList.ToList()) {
                     var block = item as IMySlimBlock;
                     if (block != null) {
                         ProcessConstructionItem(block);
@@ -439,6 +439,12 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> blocks)
         {
+            if (!IsEnabled(m_constructionBlock))
+            {
+                PotentialTargetList.Clear();
+                return;
+            }
+
             foreach (var block in blocks.ToList())
             {
                 if (block == null)

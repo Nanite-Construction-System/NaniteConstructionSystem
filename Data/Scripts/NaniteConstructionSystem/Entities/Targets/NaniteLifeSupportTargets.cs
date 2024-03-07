@@ -126,7 +126,13 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> gridBlocks)
         {
-            List<IMyPlayer> players = new List<IMyPlayer>();            
+            if (!IsEnabled(m_constructionBlock))
+            {
+                PotentialTargetList.Clear();
+                return;
+            }
+
+            List<IMyPlayer> players = new List<IMyPlayer>();
             try
             {
                 MyAPIGateway.Players.GetPlayers(players);
@@ -182,9 +188,9 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             int TargetListCount = TargetList.Count;
 
-            lock (m_potentialTargetList)
+            lock (PotentialTargetList)
             {
-                foreach(IMyPlayer item in m_potentialTargetList.ToList())
+                foreach(IMyPlayer item in PotentialTargetList.ToList())
                 {                 
                     if (item == null || TargetList.Contains(item) || item.Controller == null || item.Controller.ControlledEntity == null || item.Controller.ControlledEntity.Entity == null)
                         continue;

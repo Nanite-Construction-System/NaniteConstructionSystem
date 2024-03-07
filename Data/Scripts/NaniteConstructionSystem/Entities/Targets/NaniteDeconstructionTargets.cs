@@ -139,6 +139,12 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             try
             {
+                if (!IsEnabled(m_constructionBlock))
+                {
+                    PotentialTargetList.Clear();
+                    return;
+                }
+
                 // Add
                 foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteBeaconDeconstruct))
                 {

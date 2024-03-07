@@ -14,33 +14,20 @@ namespace NaniteConstructionSystem.Entities.Targets
 {
     public abstract class NaniteTargetBlocksBase
     {
-        protected FastResourceLock m_lock; 
+        protected FastResourceLock m_lock = new FastResourceLock();
         public FastResourceLock Lock {
             get { return m_lock; }
         }
 
-        protected List<object> m_targetList;
-        public List<object> TargetList
-        {
-            get { return m_targetList; }
-        }
-
-        protected List<object> m_potentialTargetList;
-        public List<object> PotentialTargetList
-        {
-            get { return m_potentialTargetList; }
-        }
+        public List<object> TargetList = new List<object>();
+        public List<object> PotentialTargetList = new List<object>();
 
         public List<object> PotentialIgnoredList = new List<object>();
         public Dictionary<object, int> IgnoredCheckedTimes = new Dictionary<object, int>();
 
         public int PotentialTargetListCount;
 
-        protected Dictionary<string, int> m_componentsRequired;
-        public Dictionary<string, int> ComponentsRequired
-        {
-            get { return m_componentsRequired; }
-        }
+        public Dictionary<string, int> ComponentsRequired = new Dictionary<string, int>();
 
         protected string m_lastInvalidTargetReason;
         public string LastInvalidTargetReason
@@ -55,10 +42,6 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public NaniteTargetBlocksBase(NaniteConstructionBlock constructionBlock)
         {
-            m_lock = new FastResourceLock();
-            m_targetList = new List<object>();
-            m_potentialTargetList = new List<object>();
-            m_componentsRequired = new Dictionary<string, int>();
             m_constructionBlock = constructionBlock;
             m_factoryCubeBlock = ((MyCubeBlock)m_constructionBlock.ConstructionBlock);
         }
@@ -150,9 +133,13 @@ namespace NaniteConstructionSystem.Entities.Targets
             MyAPIGateway.Utilities.InvokeOnGameThread(() =>
             {
                 if (m_constructionBlock.IsUserDefinedLimitReached())
+                {
                     InvalidTargetReason("User defined maximum nanite limit reached");
+                }
                 else if (target != null)
-                m_targetList.Add(target);
+                {
+                    TargetList.Add(target);
+                }
             });
         }
 

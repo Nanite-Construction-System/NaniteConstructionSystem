@@ -1,4 +1,5 @@
-﻿using Sandbox.ModAPI;
+﻿using System;
+using Sandbox.ModAPI;
 using VRageMath;
 using Sandbox.Game.Entities;
 
@@ -9,6 +10,9 @@ namespace NaniteConstructionSystem.Entities.Beacons
 {
     public class NaniteBeaconMine : NaniteBeacon
     {
+        public int stopTick = 0;
+        public DateTime lastScanTime = DateTime.Today;
+
         public NaniteBeaconMine(IMyFunctionalBlock beaconBlock) : base(beaconBlock)
         {
             if (Sync.IsClient)

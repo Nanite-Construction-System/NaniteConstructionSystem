@@ -165,8 +165,6 @@ namespace NaniteConstructionSystem.Entities
 
         private bool m_scanningActive;
         private bool m_initInventory = true;
-        private int scanningNumber = 0;
-        private int clearInventoryTimer = 0;
         private bool m_isFunctional;
         public bool IsFunctional {get {return m_isFunctional;} }
         private bool firstPass = false;
@@ -281,7 +279,6 @@ namespace NaniteConstructionSystem.Entities
 
                 if (m_scanningActive && m_updateCount - m_lastScanStatusUpdate > 3600) {
                     m_scanningActive = false;
-                    scanningNumber++;
                 }
             }
 
@@ -337,67 +334,55 @@ namespace NaniteConstructionSystem.Entities
                         }
 
                         m_scanningActive = false;
-                        scanningNumber++;
                         m_lastScanStatusUpdate = m_updateCount;
                     }
                 } else {
                     m_scanningActive = false;
-                    scanningNumber++;
                 }
 
-                if (m_forceProcessState || !m_scanningActive || m_updateCount > m_assemblerUpdateTimer + 600)
+                if (m_forceProcessState || !m_scanningActive || m_updateCount > m_assemblerUpdateTimer + 600) {
                     ProcessState();                          // ^Prevent factorystate deadlocks
+                }
+                
+                if (m_updateCount % 7200 == 0) {
+                    try {
+                        // inventory reset
+                        // go through inventories connected with the nanite control facility
+                        foreach (IMyInventory inventory in InventoryManager.connectedInventory) {
 
-                if (scanningNumber >= 5 && m_updateCount % 300 == 0) {
-                    clearInventoryTimer++;
-                    foreach (var item in m_targets.ToList()) {
-                        if (item == null)
-                            continue;
+                            if (inventory == null || inventory.CurrentVolume == inventory.MaxVolume)
+                                continue;
 
-                        if (item.PotentialIgnoredList.Count() > 0) {
+                            var owner = inventory.Owner as IMyTerminalBlock;
+                            if (owner != null && owner is IMyCargoContainer) {
+                                if (m_constructionBlockInventory != null) {
+                                    var localNaniteInventory = m_constructionBlockInventory as IMyInventory;
 
-                            // MyVisualScriptLogicProvider.ShowNotificationToAll($"SCAN RESET {item.GetType()} : {item.PotentialIgnoredList.Count()};{item.PotentialTargetList.Count()}", 8000);
+                                    var naniteItems = localNaniteInventory.GetItems().ToList();
 
-                            item.PotentialIgnoredList.Clear();
-                            item.PotentialTargetList.Clear();
-                            item.IgnoredCheckedTimes.Clear();
-                        }
-                    }
-
-                    if (clearInventoryTimer >= 20) {
-                        try {
-                            // inventory reset
-                            // go through inventories connected with the nanite control facility
-                            InventoryManager.ComponentsRequired.Clear();
-                            foreach (IMyInventory inventory in InventoryManager.connectedInventory) {
-
-                                if (inventory == null || inventory.CurrentVolume == inventory.MaxVolume)
-                                    continue;
-
-                                var owner = inventory.Owner as IMyTerminalBlock;
-                                if (owner != null && owner is IMyCargoContainer) {
-                                    if (m_constructionBlockInventory != null) {
-                                        var localNaniteInventory = m_constructionBlockInventory as IMyInventory;
-
-                                        var naniteItems = localNaniteInventory.GetItems().ToList();
-
-                                        if (naniteItems.Count() > 0) {
-                                            var inventoryItem = naniteItems[0];
-                                            if (inventory.CanItemsBeAdded((inventoryItem.Amount * 2), inventoryItem.Content.GetId())) {
-                                                localNaniteInventory.TransferItemTo(inventory, 0, null, null, null, true);
-                                                // MyVisualScriptLogicProvider.ShowNotificationToAll($"přesouvám item zpátky", 3000);
-                                            }
+                                    if (naniteItems.Count() > 0) {
+                                        var inventoryItem = naniteItems[0];
+                                        if (inventory.CanItemsBeAdded((inventoryItem.Amount * 2), inventoryItem.Content.GetId())) {
+                                            localNaniteInventory.TransferItemTo(inventory, 0, null, null, null, true);
                                         }
                                     }
                                 }
                             }
-                        } catch(Exception exc) {
-                            MyLog.Default.WriteLineAndConsole($"##MOD: nanites ERROR {exc}");
                         }
-                        clearInventoryTimer = 0;
-                    }
+                        
+                        // ignored list reset
+                        foreach (var item in m_targets.ToList()) {
+                            if (item == null)
+                                continue;
 
-                    scanningNumber = 0;
+                            if (item.PotentialIgnoredList.Count >= (item.PotentialTargetList.Count / 2)) {
+                                item.PotentialIgnoredList.Clear();
+                                item.IgnoredCheckedTimes.Clear();
+                            }
+                        }
+                    } catch(Exception exc) {
+                        MyLog.Default.WriteLineAndConsole($"##MOD: nanites ERROR {exc}");
+                    }
                 }
             }
 
@@ -1139,11 +1124,33 @@ namespace NaniteConstructionSystem.Entities
                         if (amount < 1)
                             return;
 
-                        Logging.Instance.WriteLine(string.Format("[Assembler] Queuing {0} {1} for factory {2} ({4} - {3})",
-                          amount, def.Id, m_constructionBlock.CustomName, blueprintCount, item.Value), 1);
+                        // check that the amount of this item is not already in queue
+                        var alreadyQueued = false;
+                        foreach (var ass in assemblerList)
+                        {
+                            var alreadyQueue = ass.GetQueue();
+                            foreach (var queueItem in alreadyQueue)
+                            {
+                                var localDef = queueItem.Blueprint.Id;
+                                
+                                if (localDef == def.Id)
+                                {
+                                    alreadyQueued = true;
+                                    break;
+                                }
+                            }
 
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                            { target.InsertQueueItem(0, def, amount); });
+                            if (alreadyQueued)
+                            {
+                                break;
+                            }
+                        }
+
+                        if (!alreadyQueued)
+                        {
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                                { target.InsertQueueItem(0, def, amount); });
+                        }
                     }
 
                     stopwatch.Stop();
