@@ -44,6 +44,11 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_remoteLock = new FastResourceLock();
         }
 
+        public override void ClearInternalTargetList()
+        {
+            m_targetBlocks.Clear();
+        }
+
         public override int GetMaximumTargets()
         {
             return (int)Math.Min((NaniteConstructionManager.Settings.ConstructionNanitesNoUpgrade * m_constructionBlock.FactoryGroup.Count)
@@ -93,7 +98,6 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 if (PotentialTargetList.Count > 0)
                     InvalidTargetReason("Maximum targets reached. Add more upgrades!");
-
                 return;
             }
 
@@ -111,14 +115,16 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 missing.Clear();
                 item.GetMissingComponents(missing);
-                if (missing == null && !MyAPIGateway.Session.CreativeMode) {
+                if (missing == null && !MyAPIGateway.Session.CreativeMode)
+                {
                     AddToIgnoreList(item);
                     continue;
                 }
 
                 bool foundMissingComponents = true;
 
-                if (missing.Count > 0) {
+                if (missing.Count > 0)
+                {
                     foundMissingComponents = m_constructionBlock.InventoryManager.CheckComponentsAvailable(ref missing, ref available);
                 }
 
@@ -128,7 +134,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     foreach (var block in blockList.ToList())
                     {
                         if (block != null && block != m_constructionBlock && !m_constructionBlock.Slaves.Contains(block)
-                          && block.Targets.First(y => y is NaniteConstructionTargets).TargetList.Contains(item as IMySlimBlock))
+                            && block.Targets.FirstOrDefault(y => y is NaniteConstructionTargets)?.TargetList.Contains(item as IMySlimBlock) == true)
                         {
                             found = true;
                             LastInvalidTargetReason = "Another factory has this block as a target";
@@ -148,25 +154,29 @@ namespace NaniteConstructionSystem.Entities.Targets
                     if (++targetListCount >= maxTargets)
                         break;
                 }
-                else if (!foundMissingComponents) {
+                else if (!foundMissingComponents)
+                {
                     LastInvalidTargetReason = "Missing components";
-                    if (IgnoredCheckedTimes.ContainsKey(item)) {
+                    if (IgnoredCheckedTimes.ContainsKey(item))
+                    {
                         IgnoredCheckedTimes[item]++;
-                        if (IgnoredCheckedTimes[item] > 4) {
+                        if (IgnoredCheckedTimes[item] > 4)
+                        {
                             AddToIgnoreList(item);
                         }
-                    } else {
+                    }
+                    else
+                    {
                         IgnoredCheckedTimes.Add(item, 1);
                     }
                 }
-
                 else if (!m_constructionBlock.HasRequiredPowerForNewTarget(this))
                 {
                     LastInvalidTargetReason = "Insufficient power for another target.";
                     break;
                 }
-
             }
+
             if (LastInvalidTargetReason != "")
                 InvalidTargetReason(LastInvalidTargetReason);
         }
@@ -190,7 +200,8 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void ProcessConstructionItem(IMySlimBlock target)
         {
-            try {
+            try
+            {
                 if (Sync.IsServer)
                 {
                     if (!((m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.Active || m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.MissingParts) && (TargetList.Count > 0 || PotentialTargetList.Count > 0)))
@@ -230,7 +241,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                         Logging.Instance.WriteLine("[Construction] Cancelling Construction/Repair Target due to target being destroyed", 1);
                         MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         {
-                            if (target != null) {
+                            if (target != null)
+                            {
                                 AddToIgnoreList(target);
                                 CancelTarget(target);
                             }
@@ -250,20 +262,23 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                             m_constructionBlock.UpdateOverLimit = false;
 
-                            if (NaniteConstructionManager.ProjectorBlocks != null) {
-                                foreach(var item in NaniteConstructionManager.ProjectorBlocks)
+                            if (NaniteConstructionManager.ProjectorBlocks.Any())
+                            {
+                                foreach (var item in NaniteConstructionManager.ProjectorBlocks)
                                 {
                                     var projector = item.Value as IMyProjector;
                                     if (projector == null)
                                         continue;
-
+                                
                                     int subgridIndex;
                                     if (!ProjectorIntegration.TryGetSubgridIndex(projector, target, out subgridIndex))
                                         return;
-
-                                    if (localShipWelder != null && blockDefinition != null) {
+                                
+                                    if (localShipWelder != null && blockDefinition != null)
+                                    {
                                         var validator = localShipWelder.IsWithinWorldLimits(projector, blockDefinition.BlockPairName, blockDefinition.PCU);
-                                        if (!validator) {
+                                        if (!validator)
+                                        {
                                             m_constructionBlock.UpdateOverLimit = true;
                                             break;
                                         }
@@ -271,7 +286,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                                 }
                             }
 
-                            if (m_constructionBlock.UpdateOverLimit) {
+                            if (m_constructionBlock.UpdateOverLimit)
+                            {
                                 AddToIgnoreList(target);
                                 CancelTarget(target);
                                 return;
@@ -279,7 +295,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                             target.MoveItemsToConstructionStockpile(((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory());
 
-                            if (!target.HasDeformation && !target.CanContinueBuild( ((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory() ) && !MyAPIGateway.Session.CreativeMode)
+                            if (!target.HasDeformation && !target.CanContinueBuild(((MyEntity)m_constructionBlock.ConstructionBlock).GetInventory()) && !MyAPIGateway.Session.CreativeMode)
                             {
                                 Logging.Instance.WriteLine("[Construction] Cancelling Construction/Repair Target due to missing components", 1);
 
@@ -290,56 +306,24 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                         return;
                     }
-                    // NEW 12-1-2018 To save on performance, once a target is started, use SyncDistance only so we dont have to check each slave factory
-                    if (m_remoteTargets.Contains(target)
-                      && !IsInRange(target, m_maxDistance))
-                    {
-                        Logging.Instance.WriteLine("[Construction] Cancelling Repair Target due to being out of range", 1);
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                            {
-                                AddToIgnoreList(target);
-                                CancelTarget(target);
-                            });
-                        return;
-                    }
                 }
-
+                
                 CreateConstructionParticle(target);
-            } catch(Exception exc) {
-                MyLog.Default.WriteLineAndConsole($"##MOD: nanites, ERROR: {exc}");
+            }
+            catch (Exception e)
+            {
+                Logging.Instance.WriteLine($"{e}");
             }
         }
 
         private void CreateConstructionParticle(IMySlimBlock target)
         {
-            try {
-                if (!m_targetBlocks.ContainsKey(target))
-                    m_targetBlocks.Add(target, 0);
-
-                Vector4 startColor = new Vector4(0.55f, 0.55f, 0.95f, 0.75f);
-                Vector4 endColor = new Vector4(0.05f, 0.05f, 0.35f, 0.75f);
-
-                Vector3D targetPosition = default(Vector3D);
-
-                if (target.FatBlock != null)
-                    targetPosition = target.FatBlock.GetPosition();
-                else
-                {
-                    var size = target.CubeGrid.GridSizeEnum == MyCubeSize.Small ? 0.5f : 2.5f;
-                    var destinationPosition = new Vector3D(target.Position * size);
-                    targetPosition = Vector3D.Transform(destinationPosition, target.CubeGrid.WorldMatrix);
-                }
-
-                var nearestFactory = m_constructionBlock;
-
-                if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles)
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                    {
-                        nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
-                    });
-
-            } catch (Exception e) {
-                Logging.Instance.WriteLine($"{e}");
+            var blockDefinition = target.BlockDefinition as MyCubeBlockDefinition;
+            if (blockDefinition != null)
+            {
+                var startColor = new Vector4(0.5f, 0.5f, 1f, 0.5f);
+                var endColor = new Vector4(0.8f, 0.8f, 1f, 0.8f);
+                m_constructionBlock.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
             }
         }
 

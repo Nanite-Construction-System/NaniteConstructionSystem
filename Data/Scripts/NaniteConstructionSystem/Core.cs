@@ -86,18 +86,8 @@ namespace NaniteConstructionSystem
                 return m_naniteBlocks;
             }
         }
-
-        private static Dictionary<long, IMyCubeBlock> m_projectorBlocks;
-        public static Dictionary<long, IMyCubeBlock> ProjectorBlocks
-        {
-            get
-            {
-                if (m_projectorBlocks == null)
-                    m_projectorBlocks = new Dictionary<long, IMyCubeBlock>();
-
-                return m_projectorBlocks;
-            }
-        }
+        
+        public static Dictionary<long, IMyCubeBlock> ProjectorBlocks = new Dictionary<long, IMyCubeBlock>();
 
         private static Dictionary<long, NaniteBeacon> m_beaconList;
         public static Dictionary<long, NaniteBeacon> BeaconList

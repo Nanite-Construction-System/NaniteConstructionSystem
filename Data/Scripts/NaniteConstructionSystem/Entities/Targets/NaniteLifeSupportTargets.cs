@@ -84,6 +84,11 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_hasOxygen = false;
             m_hasHydrogen = false;
         }
+        
+        public override void ClearInternalTargetList()
+        {
+            m_targetTracker.Clear();
+        }
 
         public override int GetMaximumTargets()
         {

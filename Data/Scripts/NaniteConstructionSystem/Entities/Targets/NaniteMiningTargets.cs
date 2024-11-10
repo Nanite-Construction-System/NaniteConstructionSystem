@@ -10,7 +10,6 @@ using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.Definitions;
 using VRage.Game;
-using VRage.Game.Entity;
 using VRage.ObjectBuilders;
 using VRage.Utils;
 using NaniteConstructionSystem.Particles;
@@ -46,12 +45,12 @@ namespace NaniteConstructionSystem.Entities.Targets
             get { return "Mining"; }
         }
 
-        private List<NaniteMiningItem> m_potentialMiningTargets = new List<NaniteMiningItem>();
+        private ConcurrentQueue<NaniteMiningItem> m_potentialMiningTargets = new ConcurrentQueue<NaniteMiningItem>();
         private List<NaniteMiningItem> alreadyCreatedMiningTarget = new List<NaniteMiningItem>();
         private Dictionary<long, IMyEntity> voxelEntities = new Dictionary<long, IMyEntity>();
-        private List<NaniteMiningItem> finalAddList = new List<NaniteMiningItem>();
+        private ConcurrentBag<NaniteMiningItem> finalAddList = new ConcurrentBag<NaniteMiningItem>();
         private float m_maxDistance = 500f;
-        private Dictionary<NaniteMiningItem, NaniteMiningTarget> m_targetTracker;
+        private ConcurrentDictionary<NaniteMiningItem, NaniteMiningTarget> m_targetTracker;
         private static HashSet<Vector3D> m_globalPositionList;
         private Random rnd;
         private int m_oldMinedPositionsCount;
@@ -62,9 +61,14 @@ namespace NaniteConstructionSystem.Entities.Targets
         public NaniteMiningTargets(NaniteConstructionBlock constructionBlock) : base(constructionBlock)
         {
             m_maxDistance = NaniteConstructionManager.Settings.MiningMaxDistance;
-            m_targetTracker = new Dictionary<NaniteMiningItem, NaniteMiningTarget>();
+            m_targetTracker = new ConcurrentDictionary<NaniteMiningItem, NaniteMiningTarget>();
             m_globalPositionList = new HashSet<Vector3D>();
             rnd = new Random();
+        }
+
+        public override void ClearInternalTargetList()
+        {
+            ResetMiningTargetsAndRescan();
         }
 
         public override int GetMaximumTargets()
@@ -122,23 +126,92 @@ namespace NaniteConstructionSystem.Entities.Targets
             Vector3I.Clamp(ref voxelCoord, ref Vector3I.Zero, ref newSize, out voxelCoord);
         }
 
+        private static void ComputeSphereBounds(
+            MyVoxelBase voxelMap,
+            ref BoundingSphereD shapeSphere,
+            out Vector3I voxelMin,
+            out Vector3I voxelMax)
+        {
+            // Get the voxel map's world matrix and compute its transpose
+            MatrixD worldMatrixTranspose = MatrixD.Transpose(voxelMap.WorldMatrix);
+
+            // Calculate min and max world positions based on the bounding sphere
+            Vector3D minWorld = shapeSphere.Center - new Vector3D(shapeSphere.Radius);
+            Vector3D maxWorld = shapeSphere.Center + new Vector3D(shapeSphere.Radius);
+
+            // Get the reference world position (voxel map's minimum corner)
+            // Vector3D referenceWorldPosition = voxelMap.PositionLeftBottomCorner;
+            Vector3D referenceWorldPosition = voxelMap.PositionLeftBottomCorner;
+
+            // Convert world positions into directions relative to the voxel map's reference position
+            Vector3D minWorldDirection = minWorld - referenceWorldPosition;
+            Vector3D maxWorldDirection = maxWorld - referenceWorldPosition;
+
+            // Transform world directions into local (body) directions using the transposed world matrix
+            Vector3D localMin = Vector3D.TransformNormal(minWorldDirection, worldMatrixTranspose);
+            Vector3D localMax = Vector3D.TransformNormal(maxWorldDirection, worldMatrixTranspose);
+
+            // Convert local positions to voxel coordinates by flooring them
+            Vector3I floorMin = Vector3I.Floor(localMin);
+            Vector3I floorMax = Vector3I.Floor(localMax);
+
+            // Correct the voxel coordinates by ensuring min is less than max for all axes
+            voxelMin = new Vector3I(Math.Min(floorMin.X, floorMax.X), Math.Min(floorMin.Y, floorMax.Y), Math.Min(floorMin.Z, floorMax.Z));
+            voxelMax = new Vector3I(Math.Max(floorMin.X, floorMax.X), Math.Max(floorMin.Y, floorMax.Y), Math.Max(floorMin.Z, floorMax.Z));
+
+            voxelMin += voxelMap.StorageMin;
+            voxelMax += voxelMap.StorageMin + 2;
+            
+            // Ensure the voxel coordinates are within the valid range of the voxel storage
+            voxelMap.Storage.ClampVoxel(ref voxelMin);
+            voxelMap.Storage.ClampVoxel(ref voxelMax);
+        }
+
+        private static bool IsAlignedWithGlobal(MatrixD worldMatrix)
+        {
+            // Define the global up direction (Y-axis in global coordinate system)
+            Vector3D globalUpDirection = Vector3D.Up;
+
+            // Get the up direction of the voxel map's world matrix
+            Vector3D voxelMapUpDirection = worldMatrix.Up;
+
+            // Calculate the dot product between the global up direction and the voxel map's up direction
+            double dotProduct = Vector3D.Dot(voxelMapUpDirection, globalUpDirection);
+
+            // If the dot product is close to 1 or -1, the vectors are parallel or anti-parallel, indicating alignment
+            // Here, we use a small tolerance to account for floating-point precision errors
+            return Math.Abs(dotProduct - 1.0) < 1e-3 || Math.Abs(dotProduct + 1.0) < 1e-3;
+        }
+
+        public static void VoxelCoordToWorldPosition(
+            Vector3I voxelCoord, 
+            MyVoxelBase voxelMap, 
+            out Vector3D worldPosition)
+        {
+            // Convert voxel coordinate to local space of the voxel map
+            Vector3D localPosition = (voxelCoord * voxelMap.VoxelSize) - voxelMap.SizeInMetresHalf;
+
+            // Add the position of the voxel map to convert to world space
+            worldPosition = Vector3D.Transform(localPosition, voxelMap.WorldMatrix);
+        }
+
         public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> gridBlocks)
         {
             try
             {
+                finalAddList = new ConcurrentBag<NaniteMiningItem>();
+
                 MyAPIGateway.Parallel.Start(() =>
                 {
                     DateTime start = DateTime.Now;
 
                     if (!IsEnabled(m_constructionBlock))
                     {
-                        m_potentialMiningTargets.Clear();
+                        m_potentialMiningTargets = new ConcurrentQueue<NaniteMiningItem>();
                         return;
                     }
 
-                    finalAddList.Clear();
-
-                    if (m_potentialMiningTargets.Count() < 500 && finalAddList.Count() < 500)
+                    if (m_potentialMiningTargets.Count < 500 && finalAddList.Count < 500)
                     {
                         // DATA Z DETECTORU, teď z mining beaconu a nasypat je do finalAddList
                         var newBeaconDataCode = "";
@@ -218,19 +291,26 @@ namespace NaniteConstructionSystem.Entities.Targets
                             float randomFloat = (float)(rnd.Next(4, 12) / 10.0);
                             float randomOffset = (float)(rnd.Next(-4, 7) / 10.0);
 
-                            if (finalAddList.Count() < 500)
+                            if (finalAddList.Count < 500)
                             {
                                 beaconWasScanning = true;
                             }
 
                             foreach (MyVoxelBase voxelMap in detected)
                             {
+                                if (finalAddList.Count > 500)
+                                {
+                                    break;
+                                }
+
                                 // check voxel state
                                 if (voxelMap.Closed || voxelMap.MarkedForClose || voxelMap.Storage == null)
                                     continue;
 
                                 // Voxel base detected within the sphere
                                 // MyVisualScriptLogicProvider.ShowNotificationToAll($"PASS 1 : voxelBase {voxelMap.StorageName}", 4000);
+
+                                bool isRotated = !IsAlignedWithGlobal(voxelMap.WorldMatrix);
 
                                 // voxel entity id
                                 var targetEntityId = voxelMap.EntityId;
@@ -244,14 +324,23 @@ namespace NaniteConstructionSystem.Entities.Targets
                                 // min max
                                 Vector3I minVoxel;
                                 Vector3I maxVoxel;
-                                var min = boundingSphereD.Center - new Vector3D(boundingSphereD.Radius);
-                                var max = boundingSphereD.Center + new Vector3D(boundingSphereD.Radius);
-                                MyVoxelCoordSystems.WorldPositionToVoxelCoord(voxelMap.PositionLeftBottomCorner,
-                                    ref min, out minVoxel);
-                                MyVoxelCoordSystems.WorldPositionToVoxelCoord(voxelMap.PositionLeftBottomCorner,
-                                    ref max, out maxVoxel);
-                                ClampVoxelCoord(voxelMap.Storage, ref minVoxel);
-                                ClampVoxelCoord(voxelMap.Storage, ref maxVoxel);
+
+                                if (isRotated)
+                                {
+                                    ComputeSphereBounds(voxelMap, ref boundingSphereD, out minVoxel, out maxVoxel);
+                                }
+                                else
+                                {
+                                    var min = boundingSphereD.Center - new Vector3D(boundingSphereD.Radius);
+                                    var max = boundingSphereD.Center + new Vector3D(boundingSphereD.Radius);
+                                    MyVoxelCoordSystems.WorldPositionToVoxelCoord(voxelMap.PositionLeftBottomCorner,
+                                        ref min, out minVoxel);
+                                    MyVoxelCoordSystems.WorldPositionToVoxelCoord(voxelMap.PositionLeftBottomCorner,
+                                        ref max, out maxVoxel);
+                                    ClampVoxelCoord(voxelMap.Storage, ref minVoxel);
+                                    ClampVoxelCoord(voxelMap.Storage, ref maxVoxel);
+                                }
+
                                 float minVoxelX = (float)minVoxel.X;
                                 float maxVoxelX = (float)maxVoxel.X;
                                 float minVoxelY = (float)minVoxel.Y;
@@ -261,25 +350,32 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                                 for (var x = minVoxelX; x <= maxVoxelX; x += randomFloat)
                                 {
-                                    if (finalAddList.Count() > 500) break;
+                                    if (finalAddList.Count > 500) break;
                                     for (var y = minVoxelY; y <= maxVoxelY; y += randomFloat)
                                     {
-                                        if (finalAddList.Count() > 500) break;
+                                        if (finalAddList.Count > 500) break;
                                         for (var z = minVoxelZ; z <= maxVoxelZ; z += randomFloat)
                                         {
                                             try
                                             {
-                                                if (finalAddList.Count() > 500) break;
+                                                if (finalAddList.Count > 500) break;
 
                                                 // check that position is within the sphere
                                                 var voxelPosition = new Vector3I(x + randomOffset, y + randomOffset,
                                                     z + randomOffset);
+
                                                 var worldPosition = new Vector3D(0);
-                                                MyVoxelCoordSystems.VoxelCoordToWorldPosition(
-                                                    voxelMap.PositionLeftBottomCorner, ref voxelPosition,
-                                                    out worldPosition);
+                                                if (isRotated)
+                                                {
+                                                    VoxelCoordToWorldPosition(voxelPosition, voxelMap, out worldPosition);
+                                                }
+                                                else
+                                                {
+                                                    MyVoxelCoordSystems.VoxelCoordToWorldPosition(voxelMap.PositionLeftBottomCorner, ref voxelPosition, out worldPosition);
+                                                }
 
                                                 var distance = Vector3D.Distance(worldPosition, boundingSphereD.Center);
+
                                                 if (distance <= boundingSphereD.Radius)
                                                 {
                                                     // voxel position is within the sphere, read cache
@@ -362,12 +458,13 @@ namespace NaniteConstructionSystem.Entities.Targets
                                             }
                                             catch (Exception e)
                                             {
-                                                MyLog.Default.WriteLineAndConsole(
-                                                    $"##MOD: Nanite Facility, for cycle ERROR: {e}");
+                                                MyLog.Default.WriteLineAndConsole($"##MOD: Nanite Facility, for cycle ERROR: {e}");
                                             }
                                         }
                                     }
                                 }
+
+                                // voxelMap.WorldMatrix = originalMatrix;
                             }
 
                             if (beaconWasScanning && beaconFoundNoData)
@@ -383,8 +480,8 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                             if (beaconDataCode != "")
                             {
-                                finalAddList.Clear();
-                                m_potentialMiningTargets.Clear();
+                                finalAddList = new ConcurrentBag<NaniteMiningItem>();
+                                m_potentialMiningTargets = new ConcurrentQueue<NaniteMiningItem>();
                             }
                         }
                     }
@@ -409,11 +506,11 @@ namespace NaniteConstructionSystem.Entities.Targets
                     {
                         if (miningTarget != null)
                         {
-                            m_potentialMiningTargets.Add(miningTarget);
+                            m_potentialMiningTargets.Enqueue(miningTarget);
                         }
                     }
 
-                    // MyVisualScriptLogicProvider.ShowNotificationToAll($"PASS 1 : {m_potentialMiningTargets.Count()};{finalAddList.Count()}", 4000);
+                    // MyVisualScriptLogicProvider.ShowNotificationToAll($"PASS 1 : {m_potentialMiningTargets.Count};{finalAddList.Count}", 4000);
 
                     PotentialTargetListCount = m_potentialMiningTargets.Count;
                 });
@@ -432,10 +529,10 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             // MyVisualScriptLogicProvider.ShowNotificationToAll($"resetting targets", 4000);
 
-            finalAddList = new List<NaniteMiningItem>();
-            m_potentialMiningTargets = new List<NaniteMiningItem>();
+            finalAddList = new ConcurrentBag<NaniteMiningItem>();
+            m_potentialMiningTargets = new ConcurrentQueue<NaniteMiningItem>();
             alreadyCreatedMiningTarget = new List<NaniteMiningItem>();
-            m_targetTracker = new Dictionary<NaniteMiningItem, NaniteMiningTarget>();
+            m_targetTracker = new ConcurrentDictionary<NaniteMiningItem, NaniteMiningTarget>();
             m_globalPositionList = new HashSet<Vector3D>();
 
             MyLog.Default.WriteLineAndConsole($"##MOD: Nanite Facility, RESET TARGETS");
@@ -485,13 +582,29 @@ namespace NaniteConstructionSystem.Entities.Targets
             byte material2 = 0;
             float amount = 0;
             IMyVoxelBase voxel = entity as IMyVoxelBase;
-            Vector3D targetMin = target.Position;
-            Vector3D targetMax = target.Position;
-            Vector3I minVoxel, maxVoxel;
-            MyVoxelCoordSystems.WorldPositionToVoxelCoord(voxel.PositionLeftBottomCorner, ref targetMin, out minVoxel);
-            MyVoxelCoordSystems.WorldPositionToVoxelCoord(voxel.PositionLeftBottomCorner, ref targetMax, out maxVoxel);
 
+            bool isRotated = !IsAlignedWithGlobal(voxel.WorldMatrix);
             MyVoxelBase voxelBase = voxel as MyVoxelBase;
+            Vector3I minVoxel, maxVoxel;
+
+            if (voxelBase == null)
+                return false;
+
+            if (isRotated)
+            {
+                // Small radius to get precise bounds
+                BoundingSphereD boundingSphere = new BoundingSphereD(target.Position, 0.1);
+                ComputeSphereBounds(voxelBase, ref boundingSphere, out minVoxel, out maxVoxel);
+            }
+            else
+            {
+                Vector3D targetMin = target.Position;
+                Vector3D targetMax = target.Position;
+                MyVoxelCoordSystems.WorldPositionToVoxelCoord(voxel.PositionLeftBottomCorner, ref targetMin,
+                    out minVoxel);
+                MyVoxelCoordSystems.WorldPositionToVoxelCoord(voxel.PositionLeftBottomCorner, ref targetMax,
+                    out maxVoxel);
+            }
 
             minVoxel += voxelBase.StorageMin;
             maxVoxel += voxelBase.StorageMin;
@@ -563,35 +676,31 @@ namespace NaniteConstructionSystem.Entities.Targets
             int targetListCount = TargetList.Count;
 
             HashSet<Vector3D> usedPositions = new HashSet<Vector3D>();
-            List<NaniteMiningItem> removeList = new List<NaniteMiningItem>();
+            NaniteMiningItem item;
 
-            foreach (NaniteMiningItem item in m_potentialMiningTargets.ToList())
+            while (m_potentialMiningTargets.TryDequeue(out item))
             {
                 if (item == null)
                 {
                     LastInvalidTargetReason = "Mining position is invalid";
-                    removeList.Add(item);
                     continue;
                 }
 
                 if (TargetList.Contains(item))
                 {
                     LastInvalidTargetReason = "Mining position is already mined";
-                    removeList.Add(item);
                     continue;
                 }
 
                 if (m_globalPositionList.Contains(item.Position))
                 {
                     LastInvalidTargetReason = "Mining position was already mined";
-                    removeList.Add(item);
                     continue;
                 }
 
                 if (usedPositions.Contains(item.Position))
                 {
                     LastInvalidTargetReason = "Mining position was already targeted";
-                    removeList.Add(item);
                     continue;
                 }
 
@@ -615,7 +724,6 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 if (found)
                 {
-                    removeList.Add(item);
                     continue;
                 }
 
@@ -625,16 +733,14 @@ namespace NaniteConstructionSystem.Entities.Targets
                     /*Logging.Instance.WriteLine(string.Format("[Mining] Adding Mining Target: conid={0} pos={1} type={2}",
                     m_constructionBlock.ConstructionBlock.EntityId, item.Position, MyDefinitionManager.Static.GetVoxelMaterialDefinition(item.VoxelMaterial).MinedOre), 1);*/
 
-                    removeList.Add(item);
                     usedPositions.Add(item.Position);
 
                     if (m_constructionBlock.IsUserDefinedLimitReached())
                     {
                         InvalidTargetReason("User defined maximum nanite limit reached");
                     }
-                    else if (item != null)
+                    else
                     {
-                        removeList.Add(item);
                         TargetList.Add(item);
                     }
 
@@ -642,24 +748,23 @@ namespace NaniteConstructionSystem.Entities.Targets
                         break;
                 }
                 else
-                    removeList.Add(item);
+                {
+                    m_potentialMiningTargets.Enqueue(item);
+                }
             }
 
-            foreach (var item in removeList)
-                m_potentialMiningTargets.Remove(item);
-
             if (LastInvalidTargetReason != "")
+            {
                 InvalidTargetReason(LastInvalidTargetReason);
+            }
         }
 
         public override void Update()
         {
             try
             {
-                foreach (var item in TargetList.ToList())
-                {
-                    ProcessMiningItem(item);
-                }
+                MyAPIGateway.Parallel.ForEach(TargetList.ToList(),
+                    miningTarget => { ProcessMiningItem(miningTarget); });
             }
             catch (Exception e)
             {
@@ -704,7 +809,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
             }
 
-            CreateMiningParticles(target);
+            MyAPIGateway.Utilities.InvokeOnGameThread(() => { CreateMiningParticles(target); });
         }
 
         private void CreateMiningParticles(NaniteMiningItem target)
@@ -742,11 +847,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             miningTarget.LastUpdate = MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds;
             miningTarget.CarryTime = time - 1000;
 
-            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-            {
-                if (!m_targetTracker.ContainsKey(target))
-                    m_targetTracker.Add(target, miningTarget);
-            });
+            MyAPIGateway.Utilities.InvokeOnGameThread(() => { m_targetTracker.GetOrAdd(target, miningTarget); });
         }
 
         private void TransferFromTarget(NaniteMiningItem target)
@@ -790,6 +891,17 @@ namespace NaniteConstructionSystem.Entities.Targets
                             return;
                         }
 
+                        IMyVoxelBase voxel = entity as IMyVoxelBase;
+                        MyVoxelBase voxelBase = voxel as MyVoxelBase;
+
+                        if (voxelBase == null)
+                        {
+                            AddToIgnoreList(target);
+                            AddMinedPosition(target);
+                            CancelTarget(target);
+                            return;
+                        }
+
                         var ownerName = targetInventory.Owner as IMyTerminalBlock;
                         if (ownerName != null)
                             Logging.Instance.WriteLine(
@@ -803,11 +915,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                             return;
                         }
 
-                        IMyVoxelBase voxel = entity as IMyVoxelBase;
-                        MyVoxelBase voxelBase = voxel as MyVoxelBase;
-
-                        voxelBase.RequestVoxelOperationSphere(target.Position, 1f, target.VoxelMaterial,
-                            MyVoxelBase.OperationType.Cut);
+                        m_constructionBlock.VoxelRemovalQueue.TryAdd(target, voxelBase);
 
                         AddMinedPosition(target);
                         CompleteTarget(target);

@@ -45,6 +45,11 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_carryVolume = NaniteConstructionManager.Settings.CleanupCarryVolume;
             m_maxDistance = NaniteConstructionManager.Settings.CleanupMaxDistance;
         }
+        
+        public override void ClearInternalTargetList()
+        {
+            m_targetTracker.Clear();
+        }
 
         public override void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList)
         {

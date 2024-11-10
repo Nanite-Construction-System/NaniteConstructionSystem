@@ -28,3 +28,7 @@
 *.sln
 *.mod
 /obj/Release
+
+#textures
+*.tif
+*.tiff

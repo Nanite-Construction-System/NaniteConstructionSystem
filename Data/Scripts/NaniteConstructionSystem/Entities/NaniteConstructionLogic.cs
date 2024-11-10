@@ -35,7 +35,7 @@ namespace NaniteConstructionSystem.Entities
 
                 IMySlimBlock slimBlock = ((MyCubeBlock)m_block.ConstructionBlock).SlimBlock as IMySlimBlock;
                 Logging.Instance.WriteLine(string.Format("ADDING Nanite Factory: conid={0} physics={1} ratio={2}",
-                  Entity.EntityId, m_block.ConstructionBlock.CubeGrid.Physics == null, slimBlock.BuildLevelRatio), 1);
+                    Entity.EntityId, m_block.ConstructionBlock.CubeGrid.Physics == null, slimBlock.BuildLevelRatio), 1);
 
                 if (NaniteConstructionManager.NaniteSync != null)
                     NaniteConstructionManager.NaniteSync.SendNeedTerminalSettings(Entity.EntityId);
@@ -47,10 +47,11 @@ namespace NaniteConstructionSystem.Entities
 
         public override void UpdateBeforeSimulation()
         {
-            try
-                {m_block.Update();}
-            catch (System.Exception e)
-                { Logging.Instance.WriteLine($"LargeControlFacilityLogic.UpdateBeforeSimulation Exception: {e.ToString()}"); }
+            try {
+                m_block.Update();
+            } catch (Exception e) {
+                Logging.Instance.WriteLine($"LargeControlFacilityLogic.UpdateBeforeSimulation Exception: {e}");
+            }
         }
 
         public override void Close()
@@ -58,11 +59,10 @@ namespace NaniteConstructionSystem.Entities
             if (NaniteConstructionManager.NaniteBlocks != null && Entity != null)
             {
                 NaniteConstructionManager.NaniteBlocks.Remove(Entity.EntityId);
-                Logging.Instance.WriteLine(string.Format("REMOVING Nanite Factory: {0}", Entity.EntityId), 1);
+                Logging.Instance.WriteLine($"REMOVING Nanite Factory: {Entity.EntityId}", 1);
             }
 
-            if (m_block != null)
-                m_block.Unload();
+            m_block?.Unload();
         }
     }
 
@@ -71,15 +71,14 @@ namespace NaniteConstructionSystem.Entities
     {
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
+            base.Init(objectBuilder);
+            // NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
+            // NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_FRAME;
+            
             if (!NaniteConstructionManager.ProjectorBlocks.ContainsKey(Entity.EntityId))
                 NaniteConstructionManager.ProjectorBlocks.Add(Entity.EntityId, (IMyCubeBlock)Entity);
         }
-
-        /// <summary>
-        /// GetObjectBuilder on a block is always null
-        /// </summary>
-        /// <param name="copy"></param>
-        /// <returns></returns>
+        
         public override MyObjectBuilder_EntityBase GetObjectBuilder(bool copy = false)
         {
             return null;
@@ -87,8 +86,7 @@ namespace NaniteConstructionSystem.Entities
 
         public override void Close()
         {
-            if (NaniteConstructionManager.ProjectorBlocks == null)
-                return;
+            if (Entity == null) return;
 
             if (NaniteConstructionManager.ProjectorBlocks.ContainsKey(Entity.EntityId))
                 NaniteConstructionManager.ProjectorBlocks.Remove(Entity.EntityId);
@@ -100,6 +98,8 @@ namespace NaniteConstructionSystem.Entities
     {
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
+            if (Entity == null) return;
+            
             if (!NaniteConstructionManager.AssemblerBlocks.ContainsKey(Entity.EntityId))
             {
                 NaniteConstructionManager.AssemblerBlocks.Add(Entity.EntityId, (IMyCubeBlock)Entity);
@@ -107,12 +107,7 @@ namespace NaniteConstructionSystem.Entities
                     NaniteConstructionManager.NaniteSync.SendNeedAssemblerSettings(Entity.EntityId);
             }
         }
-
-        /// <summary>
-        /// GetObjectBuilder on a block is always null
-        /// </summary>
-        /// <param name="copy"></param>
-        /// <returns></returns>
+        
         public override MyObjectBuilder_EntityBase GetObjectBuilder(bool copy = false)
         {
             return null;
@@ -120,8 +115,7 @@ namespace NaniteConstructionSystem.Entities
 
         public override void Close()
         {
-            if (NaniteConstructionManager.AssemblerBlocks == null)
-                return;
+            if (Entity == null) return;
 
             if (NaniteConstructionManager.AssemblerBlocks.ContainsKey(Entity.EntityId))
                 NaniteConstructionManager.AssemblerBlocks.Remove(Entity.EntityId);

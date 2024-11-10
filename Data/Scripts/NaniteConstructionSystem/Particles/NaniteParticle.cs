@@ -372,7 +372,7 @@ namespace NaniteConstructionSystem.Particles
             int listIndex = 0;
             GetRelativePath(index, out path, out localIndex, out listIndex);
             if (path == null)
-                return m_paths[m_paths.Count() - 1].GetPoint(m_paths[m_paths.Count() - 1].GetPointCount());
+                return m_paths[m_paths.Count - 1].GetPoint(m_paths[m_paths.Count - 1].GetPointCount());
 
             Vector3D point = path.GetPoint(localIndex);
             return point;

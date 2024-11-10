@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -71,24 +72,24 @@ namespace NaniteConstructionSystem.Entities.Targets
 
     public class NaniteDeconstructionTargets : NaniteTargetBlocksBase
     {
-        private Dictionary<IMyCubeGrid, DateTime> m_tempPhysicless;
-        public Dictionary<IMyCubeGrid, DateTime> TempPhysicless
-        {
-            get { return m_tempPhysicless; }
-        }
-
+        private ConcurrentDictionary<IMyCubeGrid, DateTime> m_tempPhysicless;
         private HashSet<NaniteDeconstructionGrid> m_validBeaconedGrids;
-        private Dictionary<IMySlimBlock, int> m_targetBlocks;
+        private ConcurrentDictionary<IMySlimBlock, int> m_targetBlocks;
         private float m_maxDistance = 300f;
 
         public NaniteDeconstructionTargets(NaniteConstructionBlock block) : base(block)
         {
             m_validBeaconedGrids = new HashSet<NaniteDeconstructionGrid>();
-            m_targetBlocks = new Dictionary<IMySlimBlock, int>();
-            m_tempPhysicless = new Dictionary<IMyCubeGrid, DateTime>();
+            m_targetBlocks = new ConcurrentDictionary<IMySlimBlock, int>();
+            m_tempPhysicless = new ConcurrentDictionary<IMyCubeGrid, DateTime>();
             m_maxDistance = NaniteConstructionManager.Settings.DeconstructionMaxDistance;
 
             MyAPIGateway.Entities.OnEntityRemove += OnEntityRemove;
+        }
+        
+        public override void ClearInternalTargetList()
+        {
+            m_targetBlocks.Clear();
         }
 
         public override string TargetName
@@ -259,20 +260,21 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void Update()
         {
-            foreach(var item in TargetList.ToList())
+            foreach (var item in TargetList.ToList())
             {
                 var block = item as IMySlimBlock;
                 if (block != null)
                     ProcessItem(block);
             }
 
-            foreach (var item in TempPhysicless.ToList())
+            foreach (var item in m_tempPhysicless.ToList())
             {
                 if (DateTime.Now - item.Value > TimeSpan.FromSeconds(10))
                 {
+                    DateTime removedTime;
                     if (item.Key.Closed)
                     {
-                        TempPhysicless.Remove(item.Key);
+                        m_tempPhysicless.TryRemove(item.Key, out removedTime);
                         continue;
                     }
 
@@ -284,7 +286,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         item.Key.Physics.AngularDamping = 0.0f;
                     }
 
-                    TempPhysicless.Remove(item.Key);
+                    m_tempPhysicless.TryRemove(item.Key, out removedTime);
                 }
             }
         }
@@ -349,36 +351,29 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void CreateDeconstructionParticle(IMySlimBlock target)
         {
-            if (!m_targetBlocks.ContainsKey(target))
-                m_targetBlocks.Add(target, 0);
+            m_targetBlocks.AddOrUpdate(target, 0, (key, oldValue) => 0);
 
-            m_targetBlocks[target] = 0;
-
-            try {
-                Vector3D targetPosition = default(Vector3D);
-
-                if (target.FatBlock != null) {
-                    targetPosition = target.FatBlock.GetPosition();
-                } else {
-                    var size = target.CubeGrid.GridSizeEnum == MyCubeSize.Small ? 0.5f : 2.5f;
-                    var destinationPosition = new Vector3D(target.Position * size);
-                    targetPosition = Vector3D.Transform(destinationPosition, target.CubeGrid.WorldMatrix);
-                }
+            try
+            {
+                Vector3D targetPosition = target.FatBlock != null ? target.FatBlock.GetPosition() :
+                    Vector3D.Transform(new Vector3D(target.Position * (target.CubeGrid.GridSizeEnum == MyCubeSize.Small ? 0.5f : 2.5f)), target.CubeGrid.WorldMatrix);
 
                 var nearestFactory = m_constructionBlock;
-
                 Vector4 startColor = new Vector4(0.55f, 0.95f, 0.95f, 0.75f);
                 Vector4 endColor = new Vector4(0.05f, 0.35f, 0.35f, 0.75f);
 
-                if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles) {
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {
+                if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles)
+                {
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                    {
                         nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
                     });
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Logging.Instance.WriteLine($"{e}");
             }
-
         }
 
         public void CompleteTarget(IMySlimBlock obj)
@@ -407,7 +402,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         public void CancelTarget(IMySlimBlock obj)
         {
             Logging.Instance.WriteLine(string.Format("[Deconstruction] Cancelling Deconstruction Target: {0} - {1} (EntityID={2},Position={3})",
-              m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position), 1);
+                m_constructionBlock.ConstructionBlock.EntityId, obj.GetType().Name, obj.FatBlock != null ? obj.FatBlock.EntityId : 0, obj.Position), 1);
 
             if (Sync.IsServer)
                 m_constructionBlock.SendCancelTarget(obj, TargetTypes.Deconstruction);
@@ -416,8 +411,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_constructionBlock.ToolManager.Remove(obj);
             Remove(obj);
 
-            using (Lock.AcquireExclusiveUsing())
-                PotentialTargetList.Add(obj);
+            PotentialTargetList.Add(obj); // Assuming PotentialTargetList is thread-safe
         }
 
         public override void CancelTarget(object obj)
@@ -730,11 +724,9 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void AddPhysicless(IMyCubeGrid grid)
         {
-            if (!TempPhysicless.ContainsKey((IMyCubeGrid)grid))
-                TempPhysicless.Add((IMyCubeGrid)grid, DateTime.Now);
-            else
-                TempPhysicless[(IMyCubeGrid)grid] = DateTime.Now;
+            m_tempPhysicless.AddOrUpdate(grid, DateTime.Now, (key, oldValue) => DateTime.Now);
         }
+
 
         private void ComputeMax(MyCubeBlockDefinition definition, MyBlockOrientation orientation, ref Vector3I min, out Vector3I max)
         {

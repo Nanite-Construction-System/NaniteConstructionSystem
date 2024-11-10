@@ -60,7 +60,7 @@ namespace NaniteConstructionSystem.Entities.Effects.LightningBolt
             {
                 Vector3D position = linePoints.First();
                 double globalRatio = MathHelper.Clamp((float)r / totalPoints, 0.0f, 1.0f);
-                var pointCount = linePoints.Count() - 4;
+                var pointCount = linePoints.Count - 4;
                 int pathIndex = 1 + (int)(globalRatio * pointCount);
                 float localRatio = (float)(globalRatio * pointCount - Math.Truncate(globalRatio * pointCount));
                 Vector3D catmullPosition = Vector3D.CatmullRom(linePoints[pathIndex - 1], linePoints[pathIndex], linePoints[pathIndex + 1], linePoints[pathIndex + 2], localRatio);

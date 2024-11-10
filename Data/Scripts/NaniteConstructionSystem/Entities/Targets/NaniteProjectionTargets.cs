@@ -51,6 +51,11 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_targetBlocks = new Dictionary<IMySlimBlock, NaniteProjectionTarget>();
             m_maxDistance = NaniteConstructionManager.Settings.ProjectionMaxBeaconDistance;
         }
+        
+        public override void ClearInternalTargetList()
+        {
+            m_targetBlocks.Clear();
+        }
 
         public override int GetMaximumTargets()
         {
@@ -103,9 +108,8 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             if (TargetList.Count >= maxTargets)
             {
-                if(PotentialTargetList.Count > 0)
+                if (PotentialTargetList.Count > 0)
                     InvalidTargetReason("Maximum targets reached. Add more upgrades!");
-
                 return;
             }
 
@@ -114,14 +118,8 @@ namespace NaniteConstructionSystem.Entities.Targets
             Dictionary<string, int> missing = new Dictionary<string, int>();
             string LastInvalidTargetReason = "";
 
-            int TargetListCount = TargetList.Count;
+            int targetListCount = TargetList.Count;
             var orderedList = PotentialTargetList.OrderBy(x => Vector3D.Distance(sourcePosition, EntityHelper.GetBlockPosition((IMySlimBlock)x))).ToList();
-            var ignoredCount = 0;
-            var ignoreBlockCheck = false;
-
-            if (allowAllNextTime) {
-                ignoreBlockCheck = true;
-            }
 
             foreach (var item in orderedList)
             {
@@ -132,10 +130,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                 bool haveComponents = inventoryManager.CheckComponentsAvailable(ref missing, ref available);
 
                 if ((MyAPIGateway.Session.CreativeMode || haveComponents) && m_constructionBlock.HasRequiredPowerForNewTarget(this)
-                  && ((IMySlimBlock)item).CubeGrid.GetPosition() != Vector3D.Zero)
+                    && ((IMySlimBlock)item).CubeGrid.GetPosition() != Vector3D.Zero)
                 {
                     bool found = false;
-                    foreach (var block in blockList.ToList())
+                    foreach (var block in blockList)
                     {
                         if (block != null && block.GetTarget<NaniteProjectionTargets>().TargetList.Contains(item))
                         {
@@ -145,48 +143,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                         }
                     }
 
-                    if (found) {
+                    if (found)
                         continue;
-                    }
-
-                    // item position has a block on it
-                    var localSlimBlock = item as IMySlimBlock;
-                    if (!ignoreBlockCheck && localSlimBlock != null && localSlimBlock.CubeGrid.GridSizeEnum != MyCubeSize.Small) {
-                        var size = 2.5f;
-                        var blockPosition = new Vector3D(localSlimBlock.Position * size);
-                        var targetPosition = Vector3D.Transform(blockPosition, localSlimBlock.CubeGrid.WorldMatrix);
-
-                        var addToCanceled = false;
-                        var sphere = new BoundingSphereD(targetPosition, 1f);
-                        var entityList = new List<MyEntity>();
-                        MyGamePruningStructure.GetAllTopMostEntitiesInSphere(ref sphere, entityList);
-
-                        foreach (var entity in entityList) {
-                            var CubeGrid = entity as IMyCubeGrid;
-
-                            if (CubeGrid == null) {
-                                continue;
-                            }
-
-                            IMySlimBlock localBlock = CubeGrid.GetCubeBlock((Vector3I)blockPosition);
-
-                            if (localBlock == null) {
-                                continue;
-                            }
-
-                            if (localBlock.FatBlock == null || localBlock.CubeGrid.GridSizeEnum == MyCubeSize.Small) {
-                                continue;
-                            }
-
-                            addToCanceled = true;
-                            break;
-                        }
-                        if (addToCanceled) {
-                            // MyLog.Default.WriteLine($"Target RESET FindTargets");
-                            ignoredCount++;
-                            continue;
-                        }
-                    }
 
                     AddTarget(item);
 
@@ -195,36 +153,30 @@ namespace NaniteConstructionSystem.Entities.Targets
                     Logging.Instance.WriteLine(string.Format("[Projection] Adding Projection Target: conid={0} subtypeid={1} entityID={2} position={3}",
                         m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, slimBlock.FatBlock != null ? slimBlock.FatBlock.EntityId : 0, slimBlock.Position), 1);
 
-                    if (++TargetListCount >= maxTargets)
+                    if (++targetListCount >= maxTargets)
                         break;
                 }
-                else if (!haveComponents) {
-                    LastInvalidTargetReason = "Missing components to start projected block";
-                    if (IgnoredCheckedTimes.ContainsKey(item)) {
-                        IgnoredCheckedTimes[item]++;
-                        if (IgnoredCheckedTimes[item] > 4) {
-                            AddToIgnoreList(item);
+                else
+                {
+                    LastInvalidTargetReason = !haveComponents ? "Missing components" : "Insufficient power for another target";
+                    if (!haveComponents)
+                    {
+                        if (IgnoredCheckedTimes.ContainsKey(item))
+                        {
+                            IgnoredCheckedTimes[item]++;
+                            if (IgnoredCheckedTimes[item] > 4)
+                                AddToIgnoreList(item);
                         }
-                    } else {
-                        IgnoredCheckedTimes.Add(item, 1);
+                        else
+                        {
+                            IgnoredCheckedTimes.Add(item, 1);
+                        }
                     }
                 }
-
-                else if (!m_constructionBlock.HasRequiredPowerForNewTarget(this))
-                {
-                    LastInvalidTargetReason = "Insufficient power for another target.";
-                    break;
-                }
-
             }
-            if (ignoredCount > 0 && !allowAllNextTime) {
-                allowAllNextTime = true;
-            } else {
-                allowAllNextTime = false;
-            }
-            if (LastInvalidTargetReason != "") {
+
+            if (LastInvalidTargetReason != "")
                 InvalidTargetReason(LastInvalidTargetReason);
-            }
         }
 
         public override void Update()
@@ -239,60 +191,73 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void ProcessProjectedItem(IMySlimBlock target)
         {
-            if (Sync.IsServer)
+            try
             {
-                if (target.CubeGrid.GetPosition() == Vector3D.Zero)
+                if (Sync.IsServer)
                 {
-                    Logging.Instance.WriteLine("[Projection] Cancelling Projection Target due to invalid position", 1);
-                    AddToIgnoreList(target);
-                    CancelTarget(target);
-                    return;
-                }
-
-                if (!((m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.Active || m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.MissingParts) && (TargetList.Count > 0 || PotentialTargetList.Count > 0))) {
-                    return;
-                }
-
-                if (!IsInRange(target, m_maxDistance))
-                {
-                    Logging.Instance.WriteLine("[Projection] Cancelling Projection Target due to being out of range", 1);
-                    AddToIgnoreList(target);
-                    CancelTarget(target);
-                }
-
-                double distance = EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target);
-                int time = (int)Math.Max(GetMinTravelTime() * 1000f, (distance / GetSpeed()) * 1000f);
-
-                if (!m_targetBlocks.ContainsKey(target))
-                {
-                    NaniteProjectionTarget projectionTarget = new NaniteProjectionTarget();
-                    projectionTarget.ParticleCount = 0;
-                    projectionTarget.StartTime = (int)MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds;
-                    m_targetBlocks.Add(target, projectionTarget);
-                    int subgridIndex;
-                    var projectorId = GetProjectorAndSubgridByBlock(target, out subgridIndex);
-                    m_constructionBlock.SendAddTarget(target, TargetTypes.Projection, projectorId, subgridIndex);
-                }
-
-                if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - m_targetBlocks[target].StartTime >= time / 2.5 && !m_targetBlocks[target].CheckInventory)
-                {
-                    m_targetBlocks[target].CheckInventory = true;
-                    /*if (!m_constructionBlock.InventoryManager.ProcessMissingComponents(target) && !MyAPIGateway.Session.CreativeMode)
+                    if (target.CubeGrid.GetPosition() == Vector3D.Zero)
                     {
+                        Logging.Instance.WriteLine("[Projection] Cancelling Projection Target due to invalid position", 1);
                         AddToIgnoreList(target);
                         CancelTarget(target);
                         return;
-                    }*/
+                    }
+
+                    if (!((m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.Active || m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.MissingParts) 
+                          && (TargetList.Count > 0 || PotentialTargetList.Count > 0)))
+                        return;
+
+                    if (!IsInRange(target, m_maxDistance))
+                    {
+                        Logging.Instance.WriteLine("[Projection] Cancelling Projection Target due to being out of range", 1);
+                        AddToIgnoreList(target);
+                        CancelTarget(target);
+                        return;
+                    }
+
+                    double distance = EntityHelper.GetDistanceBetweenBlockAndSlimblock((IMyCubeBlock)m_constructionBlock.ConstructionBlock, target);
+                    int time = (int)Math.Max(GetMinTravelTime() * 1000f, (distance / GetSpeed()) * 1000f);
+
+                    if (!m_targetBlocks.ContainsKey(target))
+                    {
+                        var projectionTarget = new NaniteProjectionTarget
+                        {
+                            ParticleCount = 0,
+                            StartTime = (int)MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds
+                        };
+                        m_targetBlocks.Add(target, projectionTarget);
+                        int subgridIndex;
+                        var projectorId = GetProjectorAndSubgridByBlock(target, out subgridIndex);
+                        m_constructionBlock.SendAddTarget(target, TargetTypes.Projection, projectorId, subgridIndex);
+                    }
+
+                    var targetBlock = m_targetBlocks[target];
+
+                    if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - targetBlock.StartTime >= time / 2.5 && !targetBlock.CheckInventory)
+                    {
+                        targetBlock.CheckInventory = true;
+                        // if (!m_constructionBlock.InventoryManager.ProcessMissingComponents(target) && !MyAPIGateway.Session.CreativeMode)
+                        // {
+                        //     AddToIgnoreList(target);
+                        //     CancelTarget(target);
+                        //     return;
+                        // }
+                    }
+
+                    if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - targetBlock.StartTime >= time / 2)
+                    {
+                        ProcessBuildBlock(target);
+                        CompleteTarget(target);
+                        return;
+                    }
                 }
 
-                if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - m_targetBlocks[target].StartTime >= time / 2)
-                {
-                    ProcessBuildBlock(target);
-                    CompleteTarget(target);
-                    return;
-                }
+                CreateProjectionParticle(target);
             }
-            CreateProjectionParticle(target);
+            catch (Exception e)
+            {
+                Logging.Instance.WriteLine($"{e}");
+            }
         }
 
         public void AddToIgnoreList(IMySlimBlock target){
@@ -364,37 +329,42 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private void CreateProjectionParticle(IMySlimBlock target)
         {
-            if (!m_targetBlocks.ContainsKey(target))
+            try
             {
-                Logging.Instance.WriteLine($"[Projection] Adding ProjectionParticle Target: {target.Position}", 1);
-                NaniteProjectionTarget projectionTarget = new NaniteProjectionTarget();
-                projectionTarget.ParticleCount = 0;
-                projectionTarget.StartTime = (int)MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds;
-                m_targetBlocks.Add(target, projectionTarget);
-            }
+                if (!m_targetBlocks.ContainsKey(target))
+                {
+                    Logging.Instance.WriteLine($"[Projection] Adding ProjectionParticle Target: {target.Position}", 1);
+                    NaniteProjectionTarget projectionTarget = new NaniteProjectionTarget
+                    {
+                        ParticleCount = 0,
+                        StartTime = (int)MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds
+                    };
+                    m_targetBlocks.Add(target, projectionTarget);
+                }
 
-            try {
-                Vector3D targetPosition = default(Vector3D);
-
-                if (target.FatBlock != null) {
+                Vector3D targetPosition;
+                if (target.FatBlock != null)
+                {
                     targetPosition = target.FatBlock.GetPosition();
-                } else {
+                }
+                else
+                {
                     var size = target.CubeGrid.GridSizeEnum == MyCubeSize.Small ? 0.5f : 2.5f;
                     var destinationPosition = new Vector3D(target.Position * size);
                     targetPosition = Vector3D.Transform(destinationPosition, target.CubeGrid.WorldMatrix);
                 }
 
                 NaniteConstructionBlock nearestFactory = GetNearestFactory(TargetName, targetPosition);
-
                 Vector4 startColor = new Vector4(0.95f, 0.0f, 0.95f, 0.75f);
                 Vector4 endColor = new Vector4(0.035f, 0.0f, 0.35f, 0.75f);
 
-                if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles) {
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() => {
-                        nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
-                    });
+                if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles)
+                {
+                    nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
                 }
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 Logging.Instance.WriteLine($"{e}");
             }
         }

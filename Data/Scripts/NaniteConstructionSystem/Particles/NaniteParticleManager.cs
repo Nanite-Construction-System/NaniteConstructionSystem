@@ -154,6 +154,7 @@ namespace NaniteConstructionSystem.Particles
         public void CompleteTarget(object target)
             {CallTargetRemoved(target, false);}
 
+        // todo: thread safety
         public void TargetRemoved(object target, bool cancelled)
         {
             foreach (var item in m_particles)

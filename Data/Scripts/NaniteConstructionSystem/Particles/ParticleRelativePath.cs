@@ -147,7 +147,7 @@ namespace NaniteConstructionSystem.Particles
 
         public int GetPointCount()
         {
-            return m_pathPoints.Count();
+            return m_pathPoints.Count;
         }
 
         public Vector3D GetPoint(int index)

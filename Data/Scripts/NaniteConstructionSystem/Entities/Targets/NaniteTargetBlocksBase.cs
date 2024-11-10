@@ -1,23 +1,17 @@
+using System.Collections.Concurrent;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using System.Collections.Generic;
 using System.Linq;
 using VRage;
-using VRage.Game;
 using VRage.Game.ModAPI;
 using VRageMath;
-using NaniteConstructionSystem.Entities.Beacons;
 using NaniteConstructionSystem.Extensions;
-using VRage.ModAPI;
 
 namespace NaniteConstructionSystem.Entities.Targets
 {
     public abstract class NaniteTargetBlocksBase
     {
-        protected FastResourceLock m_lock = new FastResourceLock();
-        public FastResourceLock Lock {
-            get { return m_lock; }
-        }
 
         public List<object> TargetList = new List<object>();
         public List<object> PotentialTargetList = new List<object>();
@@ -27,7 +21,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public int PotentialTargetListCount;
 
-        public Dictionary<string, int> ComponentsRequired = new Dictionary<string, int>();
+        public ConcurrentDictionary<string, int> ComponentsRequired = new ConcurrentDictionary<string, int>();
 
         protected string m_lastInvalidTargetReason;
         public string LastInvalidTargetReason
@@ -46,6 +40,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_factoryCubeBlock = ((MyCubeBlock)m_constructionBlock.ConstructionBlock);
         }
 
+        public abstract void ClearInternalTargetList();
         public abstract int GetMaximumTargets();
         public abstract float GetPowerUsage();
         public abstract float GetMinTravelTime();
@@ -69,16 +64,19 @@ namespace NaniteConstructionSystem.Entities.Targets
         internal void InvalidTargetReason(string reason)
         {
             MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                { m_lastInvalidTargetReason = reason; });
+            { 
+                m_lastInvalidTargetReason = reason; 
+            });
         }
 
         internal NaniteConstructionBlock GetNearestFactory(string targetName, Vector3D distance)
         {
-            foreach ( var factory in m_constructionBlock.FactoryGroup.OrderBy(x => x.ConstructionBlock != null ? Vector3D.DistanceSquared(x.ConstructionBlock.GetPosition(), distance) : double.MaxValue ) )
-                if (factory.EnabledParticleTargets[targetName])
-                    return factory;
-
-            return m_constructionBlock;
+            return m_constructionBlock.FactoryGroup
+                .Where(factory => factory.EnabledParticleTargets[targetName])
+                .OrderBy(factory => factory.ConstructionBlock != null
+                    ? Vector3D.DistanceSquared(factory.ConstructionBlock.GetPosition(), distance)
+                    : double.MaxValue)
+                .FirstOrDefault() ?? m_constructionBlock;
         }
 
         /// <summary>
@@ -89,45 +87,28 @@ namespace NaniteConstructionSystem.Entities.Targets
         ///
         internal bool IsInRange(IMySlimBlock block, float range)
         {
-            foreach (NaniteConstructionBlock factory in m_constructionBlock.FactoryGroup)
-                if (IsInRange(factory, block, range))
-                    return true;
-
-            return false;
+            return m_constructionBlock.FactoryGroup.Any(factory => IsInRange(factory, block, range));
         }
 
         internal bool IsInRange(Vector3D position, float range)
         {
-            foreach (NaniteConstructionBlock factory in m_constructionBlock.FactoryGroup)
-                if (IsInRange(factory, position, range))
-                    return true;
-
-            return false;
+            return m_constructionBlock.FactoryGroup.Any(factory => IsInRange(factory, position, range));
         }
 
         internal bool IsInRange(NaniteConstructionBlock factory, Vector3D position, float range)
         {
             range = System.Math.Min(range, MyAPIGateway.Session.SessionSettings.SyncDistance);
-
-            if (factory.ConstructionBlock != null && IsEnabled(factory)
-                && Vector3D.DistanceSquared(factory.ConstructionBlock.GetPosition(), position) < range * range)
-                return true;
-
-            return false;
+            return factory.ConstructionBlock != null && IsEnabled(factory) &&
+                   Vector3D.DistanceSquared(factory.ConstructionBlock.GetPosition(), position) < range * range;
         }
 
         internal bool IsInRange(NaniteConstructionBlock factory, IMySlimBlock block, float range)
         {
             range = System.Math.Min(range, MyAPIGateway.Session.SessionSettings.SyncDistance);
-
-            if (factory.ConstructionBlock != null && IsEnabled(factory)
-                && Vector3D.DistanceSquared(factory.ConstructionBlock.GetPosition(), EntityHelper.GetBlockPosition(block)) < range * range)
-                return true;
-
-            return false;
+            return factory.ConstructionBlock != null && IsEnabled(factory) &&
+                   Vector3D.DistanceSquared(factory.ConstructionBlock.GetPosition(), EntityHelper.GetBlockPosition(block)) < range * range;
         }
-
-
+        
         internal void AddTarget(object target)
         {
             MyAPIGateway.Utilities.InvokeOnGameThread(() =>

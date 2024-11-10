@@ -236,6 +236,8 @@
             <EmissiveColorPreset>Default</EmissiveColorPreset>
             <SensorRadius>4</SensorRadius>
             <SensorOffset>0</SensorOffset>
+            <InventoryFillFactorMin>.25</InventoryFillFactorMin>
+            <InventoryFillFactorMax>.5</InventoryFillFactorMax>
             <PCU>7500</PCU>
         </Definition>
 
@@ -303,6 +305,8 @@
             <EmissiveColorPreset>Default</EmissiveColorPreset>
             <SensorRadius>.2</SensorRadius>
             <SensorOffset>0</SensorOffset>
+            <InventoryFillFactorMin>.25</InventoryFillFactorMin>
+            <InventoryFillFactorMax>.5</InventoryFillFactorMax>
             <PCU>3000</PCU>
         </Definition>
 
@@ -452,7 +456,7 @@
             <Icon>Textures\GUI\Icons\Cubes\ConstructionBeacon.dds</Icon>
             <CubeSize>Small</CubeSize>
             <BlockTopology>TriangleMesh</BlockTopology>
-            <Size x="1" y="1" z="1"/>
+            <Size x="1" y="2" z="1"/>
             <ModelOffset x="0" y="0" z="0"/>
             <Model>Models\Cubes\Small\ConstructionBeaconSB.mwm</Model>
             <Components>
@@ -1145,22 +1149,22 @@
         <BlockPosition>
             <Name>NaniteControlFacility</Name>
             <Position>
-                <X>1</X>
-                <Y>22</Y>
+                <X>6</X>
+                <Y>31</Y>
             </Position>
         </BlockPosition>
         <BlockPosition>
             <Name>UpgradeConstruct</Name>
             <Position>
-                <X>2</X>
-                <Y>22</Y>
+                <X>7</X>
+                <Y>31</Y>
             </Position>
         </BlockPosition>
         <BlockPosition>
             <Name>NaniteBeaconConstruct</Name>
             <Position>
-                <X>3</X>
-                <Y>22</Y>
+                <X>8</X>
+                <Y>31</Y>
             </Position>
         </BlockPosition>
     </BlockPositions>
