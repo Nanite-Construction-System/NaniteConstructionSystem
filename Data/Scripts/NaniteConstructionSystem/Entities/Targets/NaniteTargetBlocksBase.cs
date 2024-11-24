@@ -3,7 +3,6 @@ using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using System.Collections.Generic;
 using System.Linq;
-using VRage;
 using VRage.Game.ModAPI;
 using VRageMath;
 using NaniteConstructionSystem.Extensions;
@@ -13,10 +12,9 @@ namespace NaniteConstructionSystem.Entities.Targets
     public abstract class NaniteTargetBlocksBase
     {
 
-        public List<object> TargetList = new List<object>();
-        public List<object> PotentialTargetList = new List<object>();
-
-        public List<object> PotentialIgnoredList = new List<object>();
+        public HashSet<object> TargetList = new HashSet<object>();
+        public HashSet<object> PotentialTargetList = new HashSet<object>();
+        public HashSet<object> PotentialIgnoredList = new HashSet<object>();
         public Dictionary<object, int> IgnoredCheckedTimes = new Dictionary<object, int>();
 
         public int PotentialTargetListCount;
@@ -47,7 +45,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         public abstract float GetSpeed();
         public abstract bool IsEnabled(NaniteConstructionBlock factory);
         public abstract void FindTargets(ref Dictionary<string, int> available, List<NaniteConstructionBlock> blockList);
-        public abstract void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> gridBlocks);
+        public abstract void ParallelUpdate(List<IMyCubeGrid> gridList, ConcurrentBag<BlockTarget> gridBlocks);
         public abstract void Update();
         public abstract void CancelTarget(object obj);
         public abstract void AddToIgnoreList(object obj);
@@ -119,6 +117,9 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
                 else if (target != null)
                 {
+                    if (TargetList.Any(t => t == target))
+                        return;
+                    
                     TargetList.Add(target);
                 }
             });

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRageMath;
@@ -89,7 +90,7 @@ namespace NaniteConstructionSystem.Particles
                 });
             }
             catch (Exception e)
-                {VRage.Utils.MyLog.Default.WriteLineAndConsole($"AddParticle() exception: {e}");}
+                {VRage.Utils.MyLog.Default.WriteLine($"AddParticle() exception: {e}");}
         }
 
         public void Update()
@@ -130,7 +131,7 @@ namespace NaniteConstructionSystem.Particles
                         });
                     }
                 } catch (Exception ex) {
-                    VRage.Utils.MyLog.Default.WriteLineAndConsole($"CheckParticleLife() Error: {ex.ToString()}");
+                    VRage.Utils.MyLog.Default.WriteLine($"CheckParticleLife() Error: {ex.ToString()}");
                 }
             });
         }
@@ -157,7 +158,7 @@ namespace NaniteConstructionSystem.Particles
         // todo: thread safety
         public void TargetRemoved(object target, bool cancelled)
         {
-            foreach (var item in m_particles)
+            foreach (var item in m_particles.ToList())
             {
                 if (target is long && item.Destination is IMyEntity && ((IMyEntity)item.Destination).EntityId == (long)target)
                     item.Complete(cancelled);

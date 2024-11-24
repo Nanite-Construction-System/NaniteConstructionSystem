@@ -29,7 +29,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
                 Logging.Instance.WriteLine($"ADDING Repair Beacon: {Entity.EntityId}", 1);
                 m_beacon = new NaniteBeaconConstruct((IMyFunctionalBlock)Entity);
             } catch(Exception exc) {
-                MyLog.Default.WriteLineAndConsole($"##MOD: nanites UpdateOnceBeforeFrame, ERROR: {exc}");
+                MyLog.Default.WriteLine($"##MOD: nanites UpdateOnceBeforeFrame, ERROR: {exc}");
             }
         }
 
@@ -48,7 +48,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
                 base.UpdateBeforeSimulation10();
                 m_beacon.Update();
             } catch(Exception exc) {
-                MyLog.Default.WriteLineAndConsole($"##MOD: nanites UpdateBeforeSimulation10, ERROR: {exc}");
+                MyLog.Default.WriteLine($"##MOD: nanites UpdateBeforeSimulation10, ERROR: {exc}");
             }
         }
     }

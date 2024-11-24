@@ -82,6 +82,7 @@ namespace NaniteConstructionSystem.Entities
         }
 
         private int m_spoolPosition;
+        private int m_mismatchCount;
         public int SpoolPosition {get { return m_spoolPosition;} }
 
         internal MyResourceSinkInfo ResourceInfo;
@@ -154,8 +155,7 @@ namespace NaniteConstructionSystem.Entities
         public List<NaniteConstructionBlock> Slaves = new List<NaniteConstructionBlock>();
         public List<IMyCubeGrid> GridGroup = new List<IMyCubeGrid>();
 
-        private List<BlockTarget> m_scanBlocksCache = new List<BlockTarget>();
-        public List<BlockTarget> ScanBlocksCache {get { return m_scanBlocksCache;}}
+        public ConcurrentBag<BlockTarget> ScanBlocksCache = new ConcurrentBag<BlockTarget>();
 
         private int m_totalScanBlocksCount;
         public int TotalScanBlocksCount {get { return m_totalScanBlocksCount;} set { m_totalScanBlocksCount = value;}}
@@ -326,7 +326,7 @@ namespace NaniteConstructionSystem.Entities
                     } else {
                         Master = null;
                         Slaves.Clear();
-                        m_scanBlocksCache.Clear();
+                        ScanBlocksCache = new ConcurrentBag<BlockTarget>();
                     }
                 }
 
@@ -408,7 +408,7 @@ namespace NaniteConstructionSystem.Entities
                             if (item == null)
                                 continue;
 
-                            if (item.PotentialIgnoredList.Count > 0) {
+                            if (item.PotentialIgnoredList.Count > 0 && Master == null) {
                                 item.ComponentsRequired.Clear();
                                 item.TargetList.Clear();
                                 item.PotentialIgnoredList.Clear();
@@ -419,16 +419,32 @@ namespace NaniteConstructionSystem.Entities
 
                                 shouldPurge = true;
                             }
+
+                            if (ScanBlocksCache.Count != m_totalScanBlocksCount)
+                            {
+                                m_mismatchCount++;
+                                
+                                if (m_mismatchCount > 2)
+                                {
+                                    shouldPurge = true;
+                                    m_mismatchCount = 0;
+                                    MyLog.Default.WriteLine($"##MOD: nanites scaning mismatch fix");
+                                }
+                            }
                         }
 
-                        if (shouldPurge)
+                        if (shouldPurge && Master == null)
                         {
-                            Slaves.Clear();
-                            m_scanBlocksCache.Clear();
-                            m_scanningActive = false;
+                            InventoryManager.ComponentsRequired.Clear();
+                            ScanForTargets(out m_scanningActive);
+                            if (!m_scanningActive)
+                            {
+                                ScanBlocksCache = new ConcurrentBag<BlockTarget>();
+                                m_totalScanBlocksCount = 0;
+                            }
                         }
                     } catch(Exception exc) {
-                        MyLog.Default.WriteLineAndConsole($"##MOD: nanites ERROR {exc}");
+                        MyLog.Default.WriteLine($"##MOD: nanites ERROR {exc}");
                     }
                 }
             }
@@ -474,11 +490,11 @@ namespace NaniteConstructionSystem.Entities
                     long remoteEntityId = long.Parse(parts[0]);
                     float newPower = float.Parse(parts[1]);
 
-                    // MyLog.Default.WriteLineAndConsole($"##MOD: nanites, newPower client {newPower}");
+                    // MyLog.Default.WriteLine($"##MOD: nanites, newPower client {newPower}");
 
                     if (remoteEntityId == EntityId) {
 
-                        // MyLog.Default.WriteLineAndConsole($"##MOD: nanites, id check passed client");
+                        // MyLog.Default.WriteLine($"##MOD: nanites, id check passed client");
 
                         _power = newPower;
                         Sink.SetRequiredInputByType(PowerId, _power);
@@ -487,7 +503,7 @@ namespace NaniteConstructionSystem.Entities
                 }
 
             } catch(Exception exc) {
-                MyLog.Default.WriteLineAndConsole($"##MOD: nanites ERROR {exc}");
+                MyLog.Default.WriteLine($"##MOD: nanites ERROR {exc}");
             }
         }
 
@@ -761,6 +777,8 @@ namespace NaniteConstructionSystem.Entities
 
                 details.Append("-- Nanite Factory v2.0 --\n");
                 details.Append($"# {m_entityId}\n");
+                var masterText = Master == null ? "Primary NCF" : "Helper NCF";
+                details.Append($"# {masterText}\n");
 
                 if (m_overLimit) {
                     details.Append("-- PCU / blocks limit reached --\n");
@@ -775,9 +793,9 @@ namespace NaniteConstructionSystem.Entities
 
                 if (m_totalScanBlocksCount > 0)
                 {
-                    string percent = (((float)(m_totalScanBlocksCount - m_scanBlocksCache.Count)/m_totalScanBlocksCount) * 100).ToString("0.00");
+                    string percent = (((float)(m_totalScanBlocksCount - ScanBlocksCache.Count)/m_totalScanBlocksCount) * 100).ToString("0.00");
                     details.Append($"\nScanning - {percent}%\n"
-                      + $"{m_totalScanBlocksCount - m_scanBlocksCache.Count}/{m_totalScanBlocksCount} blocks\n\n");
+                      + $"{m_totalScanBlocksCount - ScanBlocksCache.Count}/{m_totalScanBlocksCount} blocks\n\n");
                 }
                 else
                     details.Append($"\nWaiting ...\n\n");
@@ -904,7 +922,7 @@ namespace NaniteConstructionSystem.Entities
 
                 return null;
             } catch(Exception exc) {
-                MyLog.Default.WriteLineAndConsole($"##MOD: nanites Resource Distributor, ERROR: {exc}");
+                MyLog.Default.WriteLine($"##MOD: nanites Resource Distributor, ERROR: {exc}");
                 return null;
             }
         }
@@ -1064,16 +1082,16 @@ namespace NaniteConstructionSystem.Entities
 
                 foreach (IMyCubeGrid grid in newGroup)
                 {
-                    if (!GridGroup.Contains(grid))
-                    {
-                        Logging.Instance.WriteLine("[Grids] Adding new grid to grid group.", 1);
+                    if (GridGroup.Any(g => g.EntityId == grid.EntityId))
+                        continue;
+                    
+                    Logging.Instance.WriteLine("[Grids] Adding new grid to grid group.", 1);
 
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                            { GridGroup.Add(grid); });
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        { GridGroup.Add(grid); });
 
-                        BuildConnectedInventory(grid);
-                        grid.OnBlockAdded += OnBlockAdded;
-                    }
+                    BuildConnectedInventory(grid);
+                    grid.OnBlockAdded += OnBlockAdded;
                 }
 
             } catch (Exception ex) {
@@ -1118,6 +1136,7 @@ namespace NaniteConstructionSystem.Entities
         {
             missingComponents.Clear();
             
+            // Check terminal settings and if assemblers are allowed for this block
             if (!NaniteConstructionManager.TerminalSettings.ContainsKey(m_constructionBlock.EntityId)
                 || !NaniteConstructionManager.TerminalSettings[m_constructionBlock.EntityId].UseAssemblers
                 || InventoryManager.ComponentsRequired.Count < 1)
@@ -1126,6 +1145,7 @@ namespace NaniteConstructionSystem.Entities
             List<IMyProductionBlock> assemblers = new List<IMyProductionBlock>();
             List<IMyProductionBlock> queueableAssemblers = new List<IMyProductionBlock>();
 
+            // Retrieve available assemblers from connected inventories
             foreach (var inv in InventoryManager.connectedInventory)
             {
                 IMyEntity entity = inv.Owner;
@@ -1134,6 +1154,7 @@ namespace NaniteConstructionSystem.Entities
 
                 IMyAssembler assembler = entity as IMyAssembler;
                 
+                // Ensure assembler is in Assembly mode and allowed for use
                 if (assembler != null && assembler.Mode != Sandbox.ModAPI.Ingame.MyAssemblerMode.Disassembly)
                 {
                     assemblers.Add(assembler);
@@ -1151,16 +1172,28 @@ namespace NaniteConstructionSystem.Entities
                 return;
             }
 
+            // Iterate through each required component and assess if queuing is necessary
             foreach (var component in InventoryManager.ComponentsRequired)
             {
                 var blueprint = MyDefinitionManager.Static.TryGetBlueprintDefinitionByResultId(new MyDefinitionId(typeof(MyObjectBuilder_Component), component.Key));
                 if (blueprint == null) continue;
 
-                int currentProduction = assemblers.Sum(x => x.GetQueue().Sum(y => y.Blueprint == blueprint ? (int)y.Amount : 0));
+                // Check total amount already in the queue across assemblers
+                int currentProduction =
+                    assemblers.Sum(x => x.GetQueue().Sum(y => y.Blueprint == blueprint ? (int)y.Amount : 0));
+                
+                // Calculate the additional amount needed (considering current queue)
                 int requiredAmount = component.Value - currentProduction;
                 
                 if (requiredAmount <= 0)
                     continue;
+                
+                // Check if items are already in connected inventories
+                Dictionary<string, int> availableComponents = new Dictionary<string, int>();
+                InventoryManager.GetAvailableComponents(ref availableComponents);
+                
+                if (availableComponents.ContainsKey(component.Key) && availableComponents[component.Key] >= requiredAmount)
+                    continue; // Skip queuing if inventory has enough
 
                 if (currentProduction > 0 && requiredAmount > 100)
                 {
@@ -1169,6 +1202,7 @@ namespace NaniteConstructionSystem.Entities
 
                 missingComponents[component.Key] = requiredAmount;
 
+                // Split the work across available assemblers
                 int amountPerAssembler = (int)Math.Ceiling((float)requiredAmount / queueableAssemblers.Count);
                 foreach (var assembler in queueableAssemblers)
                 {
@@ -1177,7 +1211,7 @@ namespace NaniteConstructionSystem.Entities
 
                     if (queueAmount > 0 && assembler.CanUseBlueprint(blueprint))
                     {
-                        var blueprintCopy = blueprint; // Avoid closure issue with foreach
+                        var blueprintCopy = blueprint; // Avoid closure issue in lambda
                         MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         {
                             assembler.InsertQueueItem(0, blueprintCopy, queueAmount);
@@ -1293,12 +1327,10 @@ namespace NaniteConstructionSystem.Entities
         {
             try
             {
-                if (m_scanBlocksCache.Count < 1)
+                if (ScanBlocksCache.Count < 1)
                 {
                     m_totalScanBlocksCount = 0;
-
-                    foreach (var factory in FactoryGroup)
-                        PotentialTargetsCount = 0;
+                    PotentialTargetsCount = 0;
 
                     List<IMySlimBlock> newGridBlocks = new List<IMySlimBlock>();
 
@@ -1315,46 +1347,47 @@ namespace NaniteConstructionSystem.Entities
                             target.CheckBeacons();
                         }
                         else if (target is NaniteDeconstructionTargets)
-                            target.ParallelUpdate(GridGroup, m_scanBlocksCache);
+                            target.ParallelUpdate(GridGroup, ScanBlocksCache);
                     }
 
                     foreach (IMyCubeGrid grid in GridGroup)
                         grid.GetBlocks(newGridBlocks);
 
-                    if (m_potentialInventoryBlocks.Count < 1)
+                    var inventoryCheck = m_potentialInventoryBlocks.Count < 1;
+                    if (inventoryCheck && m_initInventory)
                     {
-                        if (m_initInventory)
-                            m_initInventory = false;
+                        m_initInventory = false;
+                    }
 
-                        foreach (IMySlimBlock block in newGridBlocks)
+                    foreach (IMySlimBlock block in newGridBlocks)
+                    {
+                        if (inventoryCheck)
                         {
                             TryAddPotentialGasTank(block);
                             TryAddPotentialInventoryBlock(block);
                         }
+
+                        var newBlockTarget = new BlockTarget(block);
+                        ScanBlocksCache.Add(newBlockTarget);
                     }
-
-                    foreach (IMySlimBlock block in newGridBlocks)
-                        m_scanBlocksCache.Add(new BlockTarget(block));
-
-                    foreach (var factory in FactoryGroup)
-                        TotalScanBlocksCount = m_scanBlocksCache.Count;
+                    
+                    TotalScanBlocksCount = ScanBlocksCache.Count;
                 }
-
+                
+                ConcurrentBag<BlockTarget> blocksToGo = new ConcurrentBag<BlockTarget>();
                 int maxBlocksToScan = NaniteConstructionManager.Settings != null ? NaniteConstructionManager.Settings.BlocksScannedPerSecond : 500;
                 int counter = 0;
-
-                List<BlockTarget> blocksToGo = new List<BlockTarget>();
-
-                foreach (var block in m_scanBlocksCache)
+                
+                BlockTarget tempTarget;
+                while (!ScanBlocksCache.IsEmpty && counter < maxBlocksToScan)
                 {
-                    if (counter++ > maxBlocksToScan)
-                        break;
-
-                    blocksToGo.Add(block);
+                    counter++;
+                    ScanBlocksCache.TryTake(out tempTarget);  // Remove each processed block
+                    
+                    if (tempTarget == null) continue;
+                    
+                    blocksToGo.Add(tempTarget);
                 }
-
-                foreach (var block in blocksToGo)
-                    m_scanBlocksCache.Remove(block);
 
                 foreach (var item in m_targets)
                 {
@@ -1374,7 +1407,7 @@ namespace NaniteConstructionSystem.Entities
             catch (Exception e)
             {
                 Logging.Instance.WriteLine($"ProcessTargetsParallel() Error. Clearing block cache.\n{e.ToString()}");
-                m_scanBlocksCache.Clear();
+                ScanBlocksCache = new ConcurrentBag<BlockTarget>();
             }
         }
 

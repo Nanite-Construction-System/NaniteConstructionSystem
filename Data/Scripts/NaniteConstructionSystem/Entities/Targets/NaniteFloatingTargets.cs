@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Sandbox.ModAPI;
@@ -10,7 +11,6 @@ using VRage.Game.Entity;
 using Sandbox.Game.Entities;
 using Sandbox.Game;
 using Sandbox.Definitions;
-using Ingame = Sandbox.ModAPI.Ingame;
 using VRage.Game;
 
 using NaniteConstructionSystem.Particles;
@@ -193,7 +193,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
             }
             
-            CreateFloatingParticle(floating);
+            if (IsInRange(floating.GetPosition(), m_maxDistance))
+                CreateFloatingParticle(floating);
         }
 
         private void OpenBag(IMyEntity bagEntity)
@@ -318,8 +319,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                 Logging.Instance.WriteLine(string.Format("[Floating] Cancelling Floating Object Target: {0} - {1} (EntityID={2},Position={3})", 
                   m_constructionBlock.ConstructionBlock.EntityId, item.EntityId, item.GetPosition()), 1);
 
-            TargetList.RemoveAll(x => ((IMyEntity)x).EntityId == entityId);
-            PotentialTargetList.RemoveAll(x => ((IMyEntity)x).EntityId == entityId);            
+            TargetList.RemoveWhere(x => ((IMyEntity)x).EntityId == entityId);
+            PotentialTargetList.RemoveWhere(x => ((IMyEntity)x).EntityId == entityId);            
         }
 
         public override void CancelTarget(object obj)
@@ -363,8 +364,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                 Logging.Instance.WriteLine(string.Format("[Floating] Completing Floating Object Target: {0} - {1} (EntityID={2},Position={3})", 
                   m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.EntityId, item.GetPosition()), 1);
 
-            TargetList.RemoveAll(x => ((IMyEntity)x).EntityId == entityId);
-            PotentialTargetList.RemoveAll(x => ((IMyEntity)x).EntityId == entityId);
+            TargetList.RemoveWhere(x => ((IMyEntity)x).EntityId == entityId);
+            PotentialTargetList.RemoveWhere(x => ((IMyEntity)x).EntityId == entityId);
         }
 
         private void CreateFloatingParticle(IMyEntity target)
@@ -388,7 +389,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 Vector4 startColor = new Vector4(0.75f, 0.75f, 0.0f, 0.75f);
                 Vector4 endColor = new Vector4(0.20f, 0.20f, 0.0f, 0.75f);
 
-                var nearestFactory = m_constructionBlock;
+                var nearestFactory = GetNearestFactory(TargetName, target.GetPosition());
                 if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles) {
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => {
                         nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
@@ -400,7 +401,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
         }
 
-        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> blocks)
+        public override void ParallelUpdate(List<IMyCubeGrid> gridList, ConcurrentBag<BlockTarget> blocks)
         {
             if (!IsEnabled(m_constructionBlock))
             {

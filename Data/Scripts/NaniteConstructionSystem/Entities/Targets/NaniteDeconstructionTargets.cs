@@ -6,13 +6,8 @@ using System.Text;
 using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
-using VRage;
-using VRage.Collections;
 using VRage.Game;
-using VRage.Game.Components;
 using VRage.Game.ModAPI;
-using VRage.Game.ModAPI.Interfaces;
-using VRage.Game.Entity;
 using VRage.ModAPI;
 using VRageMath;
 using Ingame = Sandbox.ModAPI.Ingame;
@@ -136,7 +131,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             return true;
         }
 
-        public override void ParallelUpdate(List<IMyCubeGrid> NaniteGridGroup, List<BlockTarget> gridBlocks)
+        public override void ParallelUpdate(List<IMyCubeGrid> NaniteGridGroup, ConcurrentBag<BlockTarget> gridBlocks)
         {
             try
             {
@@ -298,6 +293,13 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (!((m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.Active || m_constructionBlock.FactoryState == NaniteConstructionBlock.FactoryStates.MissingParts) && (TargetList.Count > 0 || PotentialTargetList.Count > 0)))
                     return;
 
+                if (!IsInRange(target, m_maxDistance))
+                {
+                    Logging.Instance.WriteLine("[Deconstruction] Cancelling Deconstruction Target due to being out of range", 1);
+                    CancelTarget(target);
+                    return;
+                }
+
                 NaniteGrinder grinder = (NaniteGrinder)m_constructionBlock.ToolManager.Tools.FirstOrDefault(x => x.TargetBlock == target && x is NaniteGrinder);
 
                 if (grinder == null)
@@ -321,16 +323,10 @@ namespace NaniteConstructionSystem.Entities.Targets
                     CancelTarget(target);
                     return;
                 }
-
-                if (!IsInRange(target, m_maxDistance))
-                {
-                    Logging.Instance.WriteLine("[Deconstruction] Cancelling Deconstruction Target due to being out of range", 1);
-                    CancelTarget(target);
-                    return;
-                }
             }
 
-            CreateDeconstructionParticle(target);
+            if (IsInRange(target, m_maxDistance))
+                CreateDeconstructionParticle(target);
         }
 
         private void RemoveGridTarget(IMyCubeGrid grid)
@@ -358,7 +354,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 Vector3D targetPosition = target.FatBlock != null ? target.FatBlock.GetPosition() :
                     Vector3D.Transform(new Vector3D(target.Position * (target.CubeGrid.GridSizeEnum == MyCubeSize.Small ? 0.5f : 2.5f)), target.CubeGrid.WorldMatrix);
 
-                var nearestFactory = m_constructionBlock;
+                var nearestFactory = GetNearestFactory(TargetName, targetPosition);
                 Vector4 startColor = new Vector4(0.55f, 0.95f, 0.95f, 0.75f);
                 Vector4 endColor = new Vector4(0.05f, 0.35f, 0.35f, 0.75f);
 

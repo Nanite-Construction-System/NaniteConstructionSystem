@@ -73,7 +73,7 @@ namespace NaniteConstructionSystem
                 try {
                     m_writeCache.Add(DateTime.Now.ToString("[HH:mm:ss] ") + text + "\r\n");
                 } catch (Exception e) {
-                    MyLog.Default.WriteLineAndConsole($"Nanite.Logging.WriteLine Error: {e.ToString()}");
+                    MyLog.Default.WriteLine($"Nanite.Logging.WriteLine Error: {e.ToString()}");
                 }
             });
         }
@@ -134,7 +134,7 @@ namespace NaniteConstructionSystem
                         }
                     }
                 } catch (Exception e) {
-                    MyLog.Default.WriteLineAndConsole($"Nanite.Logging.WriteToFile Error: {e.ToString()}");
+                    MyLog.Default.WriteLine($"Nanite.Logging.WriteToFile Error: {e.ToString()}");
                 } finally {
                     m_busy = false;
                 }
@@ -157,7 +157,7 @@ namespace NaniteConstructionSystem
             }
             catch (Exception e)
             {
-                { MyLog.Default.WriteLineAndConsole($"Nanite.Logging.Close Error: {e.ToString()}"); }
+                { MyLog.Default.WriteLine($"Nanite.Logging.Close Error: {e.ToString()}"); }
             }
         }
     }

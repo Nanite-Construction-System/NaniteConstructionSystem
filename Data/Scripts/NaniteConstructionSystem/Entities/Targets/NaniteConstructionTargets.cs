@@ -1,11 +1,11 @@
 using NaniteConstructionSystem.Entities.Beacons;
 using NaniteConstructionSystem.Entities.Tools;
 using NaniteConstructionSystem.Extensions;
-using NaniteConstructionSystem.Particles;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using NaniteConstructionSystem.Integration;
@@ -13,8 +13,6 @@ using VRage;
 using VRage.Game;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
-using VRage.ModAPI;
-using VRage.Utils;
 using VRageMath;
 
 namespace NaniteConstructionSystem.Entities.Targets
@@ -107,6 +105,8 @@ namespace NaniteConstructionSystem.Entities.Targets
             int targetListCount = TargetList.Count;
             List<object> localTargetList = PotentialTargetList.ToList();
             localTargetList.Shuffle();
+
+            localTargetList.RemoveAll(l => TargetList.Any(t => t == l));
 
             foreach (IMySlimBlock item in localTargetList.ToList())
             {
@@ -210,6 +210,12 @@ namespace NaniteConstructionSystem.Entities.Targets
                     if (!m_targetBlocks.ContainsKey(target))
                         m_targetBlocks.Add(target, 0);
 
+                    if (!IsInRange(target, m_maxDistance))
+                    {
+                        AddToIgnoreList(target);
+                        CancelTarget(target);
+                    }
+
                     NaniteWelder welder = (NaniteWelder)m_constructionBlock.ToolManager.Tools.FirstOrDefault(x => x.TargetBlock == target && x is NaniteWelder);
                     if (welder == null)
                     {
@@ -308,7 +314,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                     }
                 }
                 
-                CreateConstructionParticle(target);
+                if (IsInRange(target, m_maxDistance))
+                    CreateConstructionParticle(target);
             }
             catch (Exception e)
             {
@@ -323,7 +330,19 @@ namespace NaniteConstructionSystem.Entities.Targets
             {
                 var startColor = new Vector4(0.5f, 0.5f, 1f, 0.5f);
                 var endColor = new Vector4(0.8f, 0.8f, 1f, 0.8f);
-                m_constructionBlock.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
+
+                Vector3D targetPosition = default(Vector3D);
+                if (target.FatBlock != null)
+                    targetPosition = target.FatBlock.GetPosition();
+                else
+                {
+                    var size = target.CubeGrid.GridSizeEnum == MyCubeSize.Small ? 0.5f : 2.5f;
+                    var destinationPosition = new Vector3D(target.Position * size);
+                    targetPosition = Vector3D.Transform(destinationPosition, target.CubeGrid.WorldMatrix);
+                }
+                var nearestFactory = GetNearestFactory(TargetName, targetPosition);
+                
+                nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f, GetSpeed(), target);
             }
         }
 
@@ -421,7 +440,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             CompleteTarget(target);
         }
 
-        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> blocks)
+        public override void ParallelUpdate(List<IMyCubeGrid> gridList, ConcurrentBag<BlockTarget> blocks)
         {
             if (!IsEnabled(m_constructionBlock))
             {
@@ -444,6 +463,7 @@ namespace NaniteConstructionSystem.Entities.Targets
         public override void CheckBeacons()
         {
             m_remoteTargets.Clear();
+            var checkedGridIds = new List<long>();
 
             // Find beacons in range
             foreach (var beaconBlock in (NaniteConstructionManager.BeaconList.ToList()).Where(x => (x.Value is NaniteBeaconConstruct || x.Value is NaniteBeaconProjection)))
@@ -455,20 +475,27 @@ namespace NaniteConstructionSystem.Entities.Targets
                   || !IsInRange(item.GetPosition(), m_maxDistance) )
                     continue;
 
+                if (item.CubeGrid == null || checkedGridIds.Contains(item.CubeGrid.EntityId))
+                    continue;
+                
                 GetBeaconBlocks((IMyCubeGrid)item.CubeGrid);
+                checkedGridIds.Add(item.CubeGrid.EntityId);
+                
                 GetBeaconBlocksRetryCounter = 0;
 
                 foreach (var block in beaconBlocks)
+                {
                     m_constructionBlock.ScanBlocksCache.Add(new BlockTarget(block, true));
+                }
             }
         }
 
-        private void GetBeaconBlocks(IMyCubeGrid BeaconBlockGrid)
+        private void GetBeaconBlocks(IMyCubeGrid beaconBlockGrid)
         {
             try
             {
                 beaconBlocks.Clear();
-                foreach (var grid in MyAPIGateway.GridGroups.GetGroup(BeaconBlockGrid, GridLinkTypeEnum.Physical))
+                foreach (var grid in MyAPIGateway.GridGroups.GetGroup(beaconBlockGrid, GridLinkTypeEnum.Physical))
                     grid.GetBlocks(beaconBlocks);
             }
             catch (InvalidOperationException ex)
@@ -479,7 +506,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     return;
                 }
                 Logging.Instance.WriteLine("NaniteConstructionTargets.GetBeaconBlocks: Grid group was modified. Retrying.");
-                GetBeaconBlocks(BeaconBlockGrid);
+                GetBeaconBlocks(beaconBlockGrid);
             }
             catch (Exception ex)
                 { Logging.Instance.WriteLine($"NaniteConstructionTargets.GetBeaconBlocks:\n{ex.ToString()}"); }

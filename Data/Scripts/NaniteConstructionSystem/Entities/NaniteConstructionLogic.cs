@@ -41,7 +41,7 @@ namespace NaniteConstructionSystem.Entities
                     NaniteConstructionManager.NaniteSync.SendNeedTerminalSettings(Entity.EntityId);
 
             } catch(Exception exc) {
-                MyLog.Default.WriteLineAndConsole($"##MOD: Nanites UpdateOnceBeforeFrame, ERROR: {exc}");
+                MyLog.Default.WriteLine($"##MOD: Nanites UpdateOnceBeforeFrame, ERROR: {exc}");
             }
         }
 
@@ -72,11 +72,21 @@ namespace NaniteConstructionSystem.Entities
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
             base.Init(objectBuilder);
-            // NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
-            // NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_FRAME;
-            
-            if (!NaniteConstructionManager.ProjectorBlocks.ContainsKey(Entity.EntityId))
-                NaniteConstructionManager.ProjectorBlocks.Add(Entity.EntityId, (IMyCubeBlock)Entity);
+            try
+            {
+                // NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
+                // NeedsUpdate |= VRage.ModAPI.MyEntityUpdateEnum.EACH_FRAME;
+
+                if (Entity == null) return;
+
+                if (!NaniteConstructionManager.ProjectorBlocks.ContainsKey(Entity.EntityId))
+                    NaniteConstructionManager.ProjectorBlocks.Add(Entity.EntityId, (IMyCubeBlock)Entity);
+                
+            }
+            catch (Exception e)
+            {
+                Logging.Instance.WriteLine($"NaniteProjectorLogic.Init Exception: {e}");
+            }
         }
         
         public override MyObjectBuilder_EntityBase GetObjectBuilder(bool copy = false)
@@ -98,13 +108,24 @@ namespace NaniteConstructionSystem.Entities
     {
         public override void Init(MyObjectBuilder_EntityBase objectBuilder)
         {
-            if (Entity == null) return;
-            
-            if (!NaniteConstructionManager.AssemblerBlocks.ContainsKey(Entity.EntityId))
-            {
-                NaniteConstructionManager.AssemblerBlocks.Add(Entity.EntityId, (IMyCubeBlock)Entity);
-                if (NaniteConstructionManager.NaniteSync != null)
-                    NaniteConstructionManager.NaniteSync.SendNeedAssemblerSettings(Entity.EntityId);
+            base.Init(objectBuilder);
+            try {
+                if (Entity == null) return;
+
+                var cubeBlock = (IMyCubeBlock)Entity;
+
+                if (cubeBlock == null) return;
+
+                if (NaniteConstructionManager.AssemblerBlocks == null) return;
+                
+                if (!NaniteConstructionManager.AssemblerBlocks.ContainsKey(Entity.EntityId))
+                {
+                    NaniteConstructionManager.AssemblerBlocks.Add(Entity.EntityId, cubeBlock);
+                    if (NaniteConstructionManager.NaniteSync != null)
+                        NaniteConstructionManager.NaniteSync.SendNeedAssemblerSettings(Entity.EntityId);
+                }
+            } catch (Exception e) {
+                Logging.Instance.WriteLine($"NaniteAssemblerLogic.Init Exception: {e}");
             }
         }
         

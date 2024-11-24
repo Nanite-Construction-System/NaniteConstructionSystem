@@ -29,14 +29,13 @@ namespace NaniteConstructionSystem.Entities
     public class NaniteConstructionInventory
     {
         public List<IMyInventory> connectedInventory = new List<IMyInventory>();
-        public Dictionary<string, int> ComponentsRequired;
+        public ConcurrentDictionary<string, int> ComponentsRequired = new ConcurrentDictionary<string, int>();
 
         private MyEntity m_constructionBlock;
 
         public NaniteConstructionInventory(MyEntity constructionBlock)
         {
             m_constructionBlock = constructionBlock;
-            ComponentsRequired = new Dictionary<string, int>();
         }
 
         internal void TakeRequiredComponents()
@@ -142,7 +141,7 @@ namespace NaniteConstructionSystem.Entities
                                 if (ComponentsRequired.ContainsKey(missingItem.Key))
                                     ComponentsRequired[missingItem.Key] += missingItem.Value;
                                 else
-                                    ComponentsRequired.Add(missingItem.Key, missingItem.Value);
+                                    ComponentsRequired.TryAdd(missingItem.Key, missingItem.Value);
                             });
                         }
                     }
@@ -172,7 +171,7 @@ namespace NaniteConstructionSystem.Entities
                             if (ComponentsRequired.ContainsKey(missingItem.Key))
                                 ComponentsRequired[missingItem.Key] += missingItem.Value;
                             else
-                                ComponentsRequired.Add(missingItem.Key, missingItem.Value);
+                                ComponentsRequired.TryAdd(missingItem.Key, missingItem.Value);
                         });
                     }
                 }

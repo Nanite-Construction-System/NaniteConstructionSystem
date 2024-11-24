@@ -54,7 +54,7 @@ namespace NaniteConstructionSystem.Particles
                         try {
                             particle.UpdateMatrix();
                         } catch (System.Exception e) {
-                            VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Update: {e}");
+                            VRage.Utils.MyLog.Default.WriteLine($"NaniteConstructionSystem.Particles.ParticleEffectManager.Update: {e}");
                         }
                     }); 
 
@@ -96,7 +96,7 @@ namespace NaniteConstructionSystem.Particles
                 } catch (System.Exception e) when (e.ToString().Contains("IndexOutOfRangeException")) {
                     Logging.Instance.WriteLine("IndexOutOfRangeException occurred in ParticleEffectManager.Cleanup. This is likely harmless and can be ignored.");
                 } catch (System.Exception e) {
-                    VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Cleanup (Invocation 0): \n{e}");
+                    VRage.Utils.MyLog.Default.WriteLine($"NaniteConstructionSystem.Particles.ParticleEffectManager.Cleanup (Invocation 0): \n{e}");
                 }
             });
         }
@@ -112,7 +112,7 @@ namespace NaniteConstructionSystem.Particles
                     if (m_particles != null && m_particles.Contains(item)) m_particles.Remove(item);
                 }
                 catch (System.Exception e)
-                { VRage.Utils.MyLog.Default.WriteLineAndConsole($"NaniteConstructionSystem.Particles.ParticleEffectManager.Cleanup (Invocation 1): \n{e}"); }
+                { VRage.Utils.MyLog.Default.WriteLine($"NaniteConstructionSystem.Particles.ParticleEffectManager.Cleanup (Invocation 1): \n{e}"); }
             });
         }
     }

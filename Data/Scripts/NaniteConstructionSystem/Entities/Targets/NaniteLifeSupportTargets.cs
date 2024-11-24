@@ -1,22 +1,17 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Sandbox.ModAPI;
-using VRage;
 using VRage.Game.ModAPI;
 using VRageMath;
 using VRage.Game.Entity;
 using Sandbox.Game.Entities;
 using VRage.Game;
-using Sandbox.Game.Components;
 
 using NaniteConstructionSystem.Particles;
 using NaniteConstructionSystem.Extensions;
-using Sandbox.Game.EntityComponents;
-using Sandbox.Game.Entities.Character.Components;
 using Sandbox.Game;
-using VRage.Game.Components;
-using VRage.Utils;
 
 namespace NaniteConstructionSystem.Entities.Targets
 {
@@ -129,7 +124,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             return true;
         }
 
-        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> gridBlocks)
+        public override void ParallelUpdate(List<IMyCubeGrid> gridList, ConcurrentBag<BlockTarget> gridBlocks)
         {
             if (!IsEnabled(m_constructionBlock))
             {
@@ -299,7 +294,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
             }
 
-            CreateLifeSupportParticles(player);
+            if (IsInRange(player.GetPosition(), m_maxDistance))
+                CreateLifeSupportParticles(player);
         }
 
         private bool DoesTargetNeedLifeSupport(IMyPlayer player)
@@ -426,7 +422,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             try {
                 Vector4 startColor = new Vector4(1f, 1f, 1f, 1f);
                 Vector4 endColor = new Vector4(0.4f, 0.4f, 0.4f, 0.35f);
-                var nearestFactory = m_constructionBlock;
+                var nearestFactory = GetNearestFactory(TargetName, target.GetPosition());
 
                 if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles) {
                     MyAPIGateway.Utilities.InvokeOnGameThread(() => {
@@ -482,8 +478,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                 Logging.Instance.WriteLine(string.Format("[Life Support] Cancelling Life Support target: {0} - {1} (Player={2},Position={3})",
                   m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.DisplayName, item.GetPosition()), 1);
 
-            TargetList.RemoveAll(x => ((IMyPlayer)x).IdentityId == player.IdentityId);
-            PotentialTargetList.RemoveAll(x => ((IMyPlayer)x).IdentityId == player.IdentityId);
+            TargetList.RemoveWhere(x => ((IMyPlayer)x).IdentityId == player.IdentityId);
+            PotentialTargetList.RemoveWhere(x => ((IMyPlayer)x).IdentityId == player.IdentityId);
 
             m_targetTracker.Remove(player);
         }
@@ -506,8 +502,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                 Logging.Instance.WriteLine(string.Format("[Life Support] Completing Life Support target: {0} - {1} (Player={2},Position={3})",
                   m_constructionBlock.ConstructionBlock.EntityId, item.GetType().Name, item.DisplayName, item.GetPosition()), 1);
 
-            TargetList.RemoveAll(x => ((IMyPlayer)x).IdentityId == player.IdentityId);
-            PotentialTargetList.RemoveAll(x => ((IMyPlayer)x).IdentityId == player.IdentityId);
+            TargetList.RemoveWhere(x => ((IMyPlayer)x).IdentityId == player.IdentityId);
+            PotentialTargetList.RemoveWhere(x => ((IMyPlayer)x).IdentityId == player.IdentityId);
 
             m_targetTracker.Remove(player);
         }

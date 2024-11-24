@@ -2,24 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Text;
 using Sandbox.ModAPI;
-using VRage;
 using VRage.Game.ModAPI;
-using VRage.ModAPI;
 using VRageMath;
-using Sandbox.Common.ObjectBuilders;
-using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.Definitions;
 using VRage.Game;
-using VRage.Game.Entity;
-using VRage.ObjectBuilders;
 using VRage.Utils;
 
 using NaniteConstructionSystem.Particles;
 using NaniteConstructionSystem.Extensions;
 using NaniteConstructionSystem.Entities.Beacons;
 using NaniteConstructionSystem.Integration;
+using Sandbox.Game;
 
 namespace NaniteConstructionSystem.Entities.Targets
 {
@@ -43,7 +39,9 @@ namespace NaniteConstructionSystem.Entities.Targets
         private Vector3 m_dirForward = new Vector3(0.0f, 1.0f, 0.0f);
         private int m_count;
         private float m_maxDistance = 300f;
-        private bool allowAllNextTime = false;
+        private int m_oldTargetListCount;
+        private int m_oldTargetListCounter;
+        private int m_boostTargetCountCounter;
 
         public NaniteProjectionTargets(NaniteConstructionBlock constructionBlock) : base(constructionBlock)
         {
@@ -101,36 +99,160 @@ namespace NaniteConstructionSystem.Entities.Targets
             MyAPIGateway.Utilities.InvokeOnGameThread(() =>
             {
                 m_lastInvalidTargetReason = "";
-                ComponentsRequired.Clear();
             });
 
             var maxTargets = GetMaximumTargets();
+            int targetListCount = TargetList.Count;
+            
+            // if (MyAPIGateway.Session.LocalHumanPlayer != null)
+            //     MyVisualScriptLogicProvider.SendChatMessage("Targets: " + targetListCount + " - " + maxTargets,"Nanite", MyAPIGateway.Session.LocalHumanPlayer.IdentityId, "White");
 
-            if (TargetList.Count >= maxTargets)
+            if (targetListCount == m_oldTargetListCount)
+            {
+                m_oldTargetListCounter++;
+                m_oldTargetListCount = targetListCount;
+            }
+            else
+            {
+                m_oldTargetListCounter = 0;
+            }
+
+            if (m_oldTargetListCounter >= 10)
+            {
+                // if (MyAPIGateway.Session.LocalHumanPlayer != null)
+                //     MyVisualScriptLogicProvider.SendChatMessage("Probably stuck, fixing","Nanite", MyAPIGateway.Session.LocalHumanPlayer.IdentityId, "White");
+                
+                InvalidTargetReason("Probably stuck, re-setting projection targets!");
+
+                // maxTargets = 100;
+                TargetList.Clear();
+                PotentialTargetList.Clear();
+                PotentialIgnoredList.Clear();
+                PotentialTargetListCount = 0;
+                IgnoredCheckedTimes.Clear();
+                m_oldTargetListCounter = 0;
+                return;
+            }
+
+            if (targetListCount >= maxTargets)
             {
                 if (PotentialTargetList.Count > 0)
                     InvalidTargetReason("Maximum targets reached. Add more upgrades!");
                 return;
             }
+            
+            string lastInvalidTargetReason = "";
+            StringBuilder chatMessageLogging = new StringBuilder();
+            
+            var invalidCount = 0;
+            var missingCount = 0;
+            var ignoredCount = 0;
 
-            NaniteConstructionInventory inventoryManager = m_constructionBlock.InventoryManager;
-            Vector3D sourcePosition = m_constructionBlock.ConstructionBlock.GetPosition();
-            Dictionary<string, int> missing = new Dictionary<string, int>();
-            string LastInvalidTargetReason = "";
-
-            int targetListCount = TargetList.Count;
-            var orderedList = PotentialTargetList.OrderBy(x => Vector3D.Distance(sourcePosition, EntityHelper.GetBlockPosition((IMySlimBlock)x))).ToList();
-
-            foreach (var item in orderedList)
+            foreach (var item in PotentialTargetList.ToList())
             {
-                if (item == null || TargetList.Contains(item) || PotentialIgnoredList.Contains(item))
+                if (item == null || TargetList.Contains(item))
+                {
+                    invalidCount++;
                     continue;
+                }
 
-                missing = inventoryManager.GetProjectionComponents((IMySlimBlock)item, true);
-                bool haveComponents = inventoryManager.CheckComponentsAvailable(ref missing, ref available);
+                if (PotentialIgnoredList.Contains(item))
+                {
+                    ignoredCount++;
+                    continue;
+                }
 
+                IMySlimBlock slimBlock = (IMySlimBlock)item;
+
+                if (slimBlock == null)
+                {
+                    missingCount++;
+                    continue;
+                }
+
+                // check obstructions
+                var isObstructed = false;
+                foreach (var possibleProjector in NaniteConstructionManager.ProjectorBlocks)
+                {
+                    var cubeGridProjected = slimBlock.CubeGrid as MyCubeGrid;
+                    if (cubeGridProjected == null) break;
+                    
+                    var projector = possibleProjector.Value as IMyProjector;
+                    if (projector == null)
+                        continue;
+
+                    int subgridIndex;
+                    if (!ProjectorIntegration.TryGetSubgridIndex(projector, slimBlock, out subgridIndex))
+                        continue;
+
+                    var cubeGrid = cubeGridProjected.Projector.CubeGrid;
+                    Vector3I blockPos = cubeGrid.WorldToGridInteger(cubeGridProjected.GridIntegerToWorld(slimBlock.Position));
+                    var obstBlock = cubeGrid.GetCubeBlock(blockPos) as IMySlimBlock;
+                    if (obstBlock != null)
+                    {
+
+                        if (obstBlock.BlockDefinition.Id.SubtypeName != slimBlock.BlockDefinition.Id.SubtypeName ||
+                            obstBlock.Integrity < obstBlock.MaxIntegrity)
+                        {
+                            // this should be ok, we need to finish/repair blocks
+                            break;
+                        }
+
+                        if (obstBlock.BlockDefinition.Id.SubtypeName != slimBlock.BlockDefinition.Id.SubtypeName ||
+                            obstBlock.IsFullIntegrity)
+                            isObstructed = true;
+
+                        chatMessageLogging.AppendLine("Obstruction found: " +
+                                                      slimBlock.BlockDefinition.DisplayNameText + ";" +
+                                                      obstBlock.BlockDefinition.DisplayNameText + " : " +
+                                                      obstBlock.IsFullIntegrity + ";" + obstBlock.Integrity + ";" +
+                                                      obstBlock.BuildIntegrity + ";" + obstBlock.MaxIntegrity);
+                        
+                        break;
+                    }
+                }
+
+                if (isObstructed)
+                {
+                    if (IgnoredCheckedTimes.ContainsKey(item))
+                    {
+                        IgnoredCheckedTimes[item]++;
+                        if (IgnoredCheckedTimes[item] > 4)
+                        {
+                            lastInvalidTargetReason = "Target is obstructed by another block";
+                            AddToIgnoreList(item);
+                            CancelTarget(item);
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        IgnoredCheckedTimes.Add(item, 1);
+                    }
+                }
+                
+                // check if it is fully built if from projection, if not, give warning and skip
+                // if (slimBlock.CubeGrid.Physics == null)
+                // {
+                //     if (slimBlock.Integrity < slimBlock.MaxIntegrity ||
+                //         slimBlock.BuildIntegrity < slimBlock.MaxIntegrity || !slimBlock.IsFullIntegrity)
+                //     {
+                //         chatMessageLogging.AppendLine("Unfinished block: " + slimBlock.BlockDefinition.DisplayNameText +
+                //                                       " missing " +
+                //                                       Math.Abs(slimBlock.Integrity - slimBlock.MaxIntegrity));
+                //         lastInvalidTargetReason = "Unfinished or damaged block in projection";
+                //         AddToIgnoreList(item);
+                //         CancelTarget(item);
+                //         continue;
+                //     }
+                // }
+                
+                // check components
+                var missing = m_constructionBlock.InventoryManager.GetProjectionComponents(slimBlock, true);
+                bool haveComponents = m_constructionBlock.InventoryManager.CheckComponentsAvailable(ref missing, ref available);
+                
                 if ((MyAPIGateway.Session.CreativeMode || haveComponents) && m_constructionBlock.HasRequiredPowerForNewTarget(this)
-                    && ((IMySlimBlock)item).CubeGrid.GetPosition() != Vector3D.Zero)
+                    && (slimBlock.CubeGrid.GetPosition() != Vector3D.Zero))
                 {
                     bool found = false;
                     foreach (var block in blockList)
@@ -138,7 +260,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                         if (block != null && block.GetTarget<NaniteProjectionTargets>().TargetList.Contains(item))
                         {
                             found = true;
-                            LastInvalidTargetReason = "Another factory has this block as a target";
+                            lastInvalidTargetReason = "Another factory has this block as a target";
                             break;
                         }
                     }
@@ -147,18 +269,21 @@ namespace NaniteConstructionSystem.Entities.Targets
                         continue;
 
                     AddTarget(item);
-
-                    IMySlimBlock slimBlock = (IMySlimBlock)item;
+                    
                     var def = slimBlock.BlockDefinition as MyCubeBlockDefinition;
                     Logging.Instance.WriteLine(string.Format("[Projection] Adding Projection Target: conid={0} subtypeid={1} entityID={2} position={3}",
                         m_constructionBlock.ConstructionBlock.EntityId, def.Id.SubtypeId, slimBlock.FatBlock != null ? slimBlock.FatBlock.EntityId : 0, slimBlock.Position), 1);
-
-                    if (++targetListCount >= maxTargets)
+                    
+                    if (++targetListCount >= maxTargets && m_boostTargetCountCounter < 10)
+                    {
+                        m_boostTargetCountCounter++;
+                        chatMessageLogging.AppendLine("Too many possible targets > maxTargets, checked " + m_boostTargetCountCounter + " times");
                         break;
+                    }
                 }
                 else
                 {
-                    LastInvalidTargetReason = !haveComponents ? "Missing components" : "Insufficient power for another target";
+                    lastInvalidTargetReason = !haveComponents ? "Missing components" : "Insufficient power for another target";
                     if (!haveComponents)
                     {
                         if (IgnoredCheckedTimes.ContainsKey(item))
@@ -174,9 +299,28 @@ namespace NaniteConstructionSystem.Entities.Targets
                     }
                 }
             }
+            
+            if (m_boostTargetCountCounter >= 10)
+            {
+                m_boostTargetCountCounter = 0;
+            }
+            
+            chatMessageLogging.AppendLine("Targets: " + targetListCount + " - " + maxTargets);
+            
+            if (invalidCount > 0)
+                chatMessageLogging.AppendLine("In TargetList: " + invalidCount);
+            
+            if (ignoredCount > 0)
+                chatMessageLogging.AppendLine("Ignored: " + ignoredCount);
+            
+            if (missingCount > 0)
+                chatMessageLogging.AppendLine("Missing SlimBlock: " + missingCount);
+            
+            // if (chatMessageLogging.Length > 0 && MyAPIGateway.Session.LocalHumanPlayer != null)
+            //     MyVisualScriptLogicProvider.SendChatMessage(chatMessageLogging.ToString(), "Nanite", MyAPIGateway.Session.LocalHumanPlayer.IdentityId, "White");
 
-            if (LastInvalidTargetReason != "")
-                InvalidTargetReason(LastInvalidTargetReason);
+            if (lastInvalidTargetReason != "")
+                InvalidTargetReason(lastInvalidTargetReason);
         }
 
         public override void Update()
@@ -233,15 +377,19 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                     var targetBlock = m_targetBlocks[target];
 
-                    if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - targetBlock.StartTime >= time / 2.5 && !targetBlock.CheckInventory)
+                    if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - targetBlock.StartTime >= time / 2.5)
                     {
-                        targetBlock.CheckInventory = true;
-                        // if (!m_constructionBlock.InventoryManager.ProcessMissingComponents(target) && !MyAPIGateway.Session.CreativeMode)
-                        // {
-                        //     AddToIgnoreList(target);
-                        //     CancelTarget(target);
-                        //     return;
-                        // }
+                        var availableComponents = new Dictionary<string, int>();
+                        m_constructionBlock.InventoryManager.GetAvailableComponents(ref availableComponents);
+                        var missing = m_constructionBlock.InventoryManager.GetProjectionComponents(target, true);
+                        bool haveComponents = m_constructionBlock.InventoryManager.CheckComponentsAvailable(ref missing, ref availableComponents);
+                        
+                        if (!haveComponents)
+                        {
+                            AddToIgnoreList(target);
+                            CancelTarget(target);
+                            return;
+                        }
                     }
 
                     if (MyAPIGateway.Session.ElapsedPlayTime.TotalMilliseconds - targetBlock.StartTime >= time / 2)
@@ -252,7 +400,8 @@ namespace NaniteConstructionSystem.Entities.Targets
                     }
                 }
 
-                CreateProjectionParticle(target);
+                if (IsInRange(target, m_maxDistance))
+                    CreateProjectionParticle(target);
             }
             catch (Exception e)
             {
@@ -260,24 +409,27 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
         }
 
-        public void AddToIgnoreList(IMySlimBlock target){
-
-            object obj = target as object;
-
+        public void AddToIgnoreList(IMySlimBlock obj){
             if (PotentialIgnoredList.Contains(obj) == false) {
                 PotentialIgnoredList.Add(obj);
-                if (PotentialTargetList.Contains(obj)) {
+                
+                if (PotentialTargetList.Contains(obj)) 
                     PotentialTargetList.Remove(obj);
-                }
+
+                if (TargetList.Contains(obj))
+                    TargetList.Remove(obj);
             }
         }
 
         public override void AddToIgnoreList(object obj){
             if (PotentialIgnoredList.Contains(obj) == false) {
                 PotentialIgnoredList.Add(obj);
-                if (PotentialTargetList.Contains(obj)) {
+                
+                if (PotentialTargetList.Contains(obj)) 
                     PotentialTargetList.Remove(obj);
-                }
+
+                if (TargetList.Contains(obj))
+                    TargetList.Remove(obj);
             }
         }
 
@@ -354,7 +506,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                     targetPosition = Vector3D.Transform(destinationPosition, target.CubeGrid.WorldMatrix);
                 }
 
-                NaniteConstructionBlock nearestFactory = GetNearestFactory(TargetName, targetPosition);
+                NaniteConstructionBlock nearestFactory =  GetNearestFactory(TargetName, targetPosition);
                 Vector4 startColor = new Vector4(0.95f, 0.0f, 0.95f, 0.75f);
                 Vector4 endColor = new Vector4(0.035f, 0.0f, 0.35f, 0.75f);
 
@@ -369,7 +521,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
         }
 
-        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> blocks)
+        public override void ParallelUpdate(List<IMyCubeGrid> gridList, ConcurrentBag<BlockTarget> blocks)
         {
             if (!IsEnabled(m_constructionBlock))
             {
@@ -383,6 +535,8 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         public override void CheckBeacons()
         {
+            var checkedGridIds = new List<long>();
+            
             foreach (var beaconBlock in NaniteConstructionManager.BeaconList.Where(x => x.Value is NaniteBeaconProjection))
             {
                 IMyCubeBlock item = (IMyCubeBlock)beaconBlock.Value.BeaconBlock;
@@ -393,11 +547,20 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                 List<IMySlimBlock> beaconBlocks = new List<IMySlimBlock>();
 
-                foreach (var grid in MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)item.CubeGrid, GridLinkTypeEnum.Physical))
+                foreach (var grid in MyAPIGateway.GridGroups.GetGroup((IMyCubeGrid)item.CubeGrid,
+                             GridLinkTypeEnum.Physical))
+                {
+                    if (grid == null || checkedGridIds.Contains(grid.EntityId))
+                        continue;
+                    
                     grid.GetBlocks(beaconBlocks);
+                    checkedGridIds.Add(grid.EntityId);
+                }
 
                 foreach (var block in beaconBlocks)
+                {
                     m_constructionBlock.ScanBlocksCache.Add(new BlockTarget(block));
+                }
             }
         }
 
@@ -446,6 +609,12 @@ namespace NaniteConstructionSystem.Entities.Targets
                 var blockDefinition = block.BlockDefinition as MyCubeBlockDefinition;
                 var localShipWelder = m_constructionBlock.ConstructionBlock as IMyShipWelder;
 
+                if (block.FatBlock != null && block.FatBlock.Closed)
+                {
+                    CancelTarget(block);
+                    return;
+                }
+
                 foreach(var item in NaniteConstructionManager.ProjectorBlocks)
                 {
                     var projector = item.Value as IMyProjector;
@@ -480,16 +649,19 @@ namespace NaniteConstructionSystem.Entities.Targets
                                 ownerId = localBlockBuiltBy.BuiltBy;
                             }
                         }
-
+                        
                         // do not build without owner
-                        if (ownerId > 0) {
-                            projector.Build(block, ownerId, m_constructionBlock.ConstructionBlock.EntityId, false, ownerId);
-                        }
+                        if (ownerId == 0)
+                            break;
+                        
+                        // Fully build the block if integrity checks are passed
+                        projector.Build(block, ownerId, m_constructionBlock.ConstructionBlock.EntityId, false, ownerId);
+                        
                         break;
                     }
                 }
             } catch(Exception exc) {
-                MyLog.Default.WriteLineAndConsole($"##MOD: nanites, ERROR: {exc}");
+                MyLog.Default.WriteLine($"##MOD: nanites, ERROR: {exc}");
             }
         }
     }

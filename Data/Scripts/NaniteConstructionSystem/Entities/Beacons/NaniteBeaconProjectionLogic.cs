@@ -44,7 +44,7 @@ namespace NaniteConstructionSystem.Entities.Beacons
                 base.UpdateBeforeSimulation10();
                 m_beacon.Update();
             } catch(Exception exc) {
-                MyLog.Default.WriteLineAndConsole($"##MOD: nanites UpdateBeforeSimulation10, ERROR: {exc}");
+                MyLog.Default.WriteLine($"##MOD: nanites UpdateBeforeSimulation10, ERROR: {exc}");
             }
         }
     }

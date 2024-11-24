@@ -195,7 +195,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             worldPosition = Vector3D.Transform(localPosition, voxelMap.WorldMatrix);
         }
 
-        public override void ParallelUpdate(List<IMyCubeGrid> gridList, List<BlockTarget> gridBlocks)
+        public override void ParallelUpdate(List<IMyCubeGrid> gridList, ConcurrentBag<BlockTarget> gridBlocks)
         {
             try
             {
@@ -458,7 +458,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                                             }
                                             catch (Exception e)
                                             {
-                                                MyLog.Default.WriteLineAndConsole($"##MOD: Nanite Facility, for cycle ERROR: {e}");
+                                                MyLog.Default.WriteLine($"##MOD: Nanite Facility, for cycle ERROR: {e}");
                                             }
                                         }
                                     }
@@ -517,11 +517,11 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
             catch (ArgumentException e)
             {
-                MyLog.Default.WriteLineAndConsole($"##MOD: Nanite Facility, Argument ERROR: {e}");
+                MyLog.Default.WriteLine($"##MOD: Nanite Facility, Argument ERROR: {e}");
             }
             catch (Exception e)
             {
-                MyLog.Default.WriteLineAndConsole($"##MOD: Nanite Facility, ERROR: {e}");
+                MyLog.Default.WriteLine($"##MOD: Nanite Facility, ERROR: {e}");
             }
         }
 
@@ -535,7 +535,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_targetTracker = new ConcurrentDictionary<NaniteMiningItem, NaniteMiningTarget>();
             m_globalPositionList = new HashSet<Vector3D>();
 
-            MyLog.Default.WriteLineAndConsole($"##MOD: Nanite Facility, RESET TARGETS");
+            MyLog.Default.WriteLine($"##MOD: Nanite Facility, RESET TARGETS");
         }
 
         private void TryAddNewVoxelEntity(long entityId)
@@ -784,6 +784,13 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (!m_targetTracker.ContainsKey(target))
                     m_constructionBlock.SendAddTarget(target);
 
+                if (!IsInRange(target.Position, m_maxDistance))
+                {
+                    AddToIgnoreList(target);
+                    CancelTarget(target);
+                    return;
+                }
+                
                 if (m_targetTracker.ContainsKey(target))
                 {
                     var trackedItem = m_targetTracker[target];
@@ -809,7 +816,11 @@ namespace NaniteConstructionSystem.Entities.Targets
                 }
             }
 
-            MyAPIGateway.Utilities.InvokeOnGameThread(() => { CreateMiningParticles(target); });
+            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+            {
+                if (IsInRange(target.Position, m_maxDistance))
+                    CreateMiningParticles(target);
+            });
         }
 
         private void CreateMiningParticles(NaniteMiningItem target)
@@ -822,7 +833,7 @@ namespace NaniteConstructionSystem.Entities.Targets
                 Vector4 startColor = new Vector4(1.5f, 0.2f, 0.0f, 1f);
                 Vector4 endColor = new Vector4(0.2f, 0.05f, 0.0f, 0.35f);
 
-                var nearestFactory = m_constructionBlock;
+                var nearestFactory = GetNearestFactory(TargetName, target.Position);
 
                 if (nearestFactory.ParticleManager.Particles.Count < NaniteParticleManager.MaxTotalParticles)
                     nearestFactory.ParticleManager.AddParticle(startColor, endColor, GetMinTravelTime() * 1000f,
@@ -830,7 +841,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             }
             catch (Exception e)
             {
-                VRage.Utils.MyLog.Default.WriteLineAndConsole(
+                VRage.Utils.MyLog.Default.WriteLine(
                     $"NaniteMiningTargets.CreateMiningParticles() exception: {e}");
             }
         }

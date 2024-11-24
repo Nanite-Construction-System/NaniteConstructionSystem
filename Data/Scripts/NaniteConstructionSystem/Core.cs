@@ -49,13 +49,43 @@ namespace NaniteConstructionSystem
 
     public class BlockTarget
     {
-        public IMySlimBlock Block;
-        public bool IsRemote;
+        public readonly IMySlimBlock Block;
+        public readonly bool IsRemote;
 
         public BlockTarget(IMySlimBlock block, bool isRemote = false)
         {
             Block = block;
             IsRemote = isRemote;
+        }
+        
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+            
+            // Check if obj is of type BlockTarget
+            var other = obj as BlockTarget;
+            if (other == null)
+            {
+                return false;
+            }
+            
+            // If both blocks have FatBlock, compare based on EntityId
+            if (Block.FatBlock != null && other.Block.FatBlock != null)
+            {
+                return Block.FatBlock.EntityId == other.Block.FatBlock.EntityId;
+            }
+    
+            // Otherwise, compare based on Position
+            return Block.Position == other.Block.Position;
+        }
+        
+        public override int GetHashCode()
+        {
+            // Use EntityId if available, otherwise use Position's hash code
+            return Block.FatBlock != null ? Block.FatBlock.EntityId.GetHashCode() : Block.Position.GetHashCode();
         }
     }
 
@@ -75,7 +105,7 @@ namespace NaniteConstructionSystem
 
         public NaniteVersionClass NaniteVersion = new NaniteVersionClass();
 
-        private static Dictionary<long, NaniteConstructionBlock> m_naniteBlocks;
+        private static Dictionary<long, NaniteConstructionBlock> m_naniteBlocks = new Dictionary<long, NaniteConstructionBlock>();
         public static Dictionary<long, NaniteConstructionBlock> NaniteBlocks
         {
             get
@@ -88,18 +118,8 @@ namespace NaniteConstructionSystem
         }
         
         public static Dictionary<long, IMyCubeBlock> ProjectorBlocks = new Dictionary<long, IMyCubeBlock>();
-
-        private static Dictionary<long, NaniteBeacon> m_beaconList;
-        public static Dictionary<long, NaniteBeacon> BeaconList
-        {
-            get
-            {
-                if (m_beaconList == null)
-                    m_beaconList = new Dictionary<long, NaniteBeacon>();
-
-                return m_beaconList;
-            }
-        }
+        
+        public static Dictionary<long, NaniteBeacon> BeaconList = new Dictionary<long, NaniteBeacon>();
 
         public static NaniteSettings m_settings;
         public static NaniteSettings Settings
@@ -108,7 +128,7 @@ namespace NaniteConstructionSystem
             set { m_settings = value; }
         }
 
-        public static ParticleEffectManager m_particleManager;
+        public static ParticleEffectManager m_particleManager = new ParticleEffectManager();
         public static ParticleEffectManager ParticleManager
         {
             get
@@ -120,7 +140,7 @@ namespace NaniteConstructionSystem
             }
         }
 
-        private static Dictionary<long, NaniteTerminalSettings> m_terminalSettings;
+        private static Dictionary<long, NaniteTerminalSettings> m_terminalSettings = new Dictionary<long, NaniteTerminalSettings>();
         public static Dictionary<long, NaniteTerminalSettings> TerminalSettings
         {
             get
@@ -131,30 +151,9 @@ namespace NaniteConstructionSystem
                 return m_terminalSettings;
             }
         }
-
-        private static Dictionary<long, NaniteAssemblerSettings> m_assemblerSettings;
-        public static Dictionary<long, NaniteAssemblerSettings> AssemblerSettings
-        {
-            get
-            {
-                if (m_assemblerSettings == null)
-                    m_assemblerSettings = new Dictionary<long, NaniteAssemblerSettings>();
-
-                return m_assemblerSettings;
-            }
-        }
-
-        private static Dictionary<long, IMyCubeBlock> m_assemblerBlocks;
-        public static Dictionary<long, IMyCubeBlock> AssemblerBlocks
-        {
-            get
-            {
-                if (m_assemblerBlocks == null)
-                    m_assemblerBlocks = new Dictionary<long, IMyCubeBlock>();
-
-                return m_assemblerBlocks;
-            }
-        }
+        
+        public static Dictionary<long, NaniteAssemblerSettings> AssemblerSettings = new Dictionary<long, NaniteAssemblerSettings>();
+        public static Dictionary<long, IMyCubeBlock> AssemblerBlocks = new Dictionary<long, IMyCubeBlock>();
 
         private static NaniteConstructionManagerSync m_sync;
         public static NaniteConstructionManagerSync NaniteSync
@@ -208,7 +207,7 @@ namespace NaniteConstructionSystem
                 MyAPIGateway.Session.OnSessionReady += Session_OnSessionReady;
             }
             catch (Exception ex)
-                { MyLog.Default.WriteLineAndConsole($"Exception in Nanite.Core.BeforeStart: {ex.ToString()}"); }
+                { MyLog.Default.WriteLine($"Exception in Nanite.Core.BeforeStart: {ex.ToString()}"); }
         }
 
         protected override void UnloadData()
@@ -234,7 +233,7 @@ namespace NaniteConstructionSystem
                 Logging.Instance.Close();
             }
             catch (Exception ex)
-                { MyLog.Default.WriteLineAndConsole($"Exception in Nanite.Core.UnloadData: {ex}"); }
+                { MyLog.Default.WriteLine($"Exception in Nanite.Core.UnloadData: {ex}"); }
         }
 
         private void Session_OnSessionReady()
@@ -271,7 +270,7 @@ namespace NaniteConstructionSystem
                 ParticleManager.Update();
             }
             catch (Exception e)
-                { MyLog.Default.WriteLineAndConsole($"Nanite.Core.UpdateBeforeSimulation Error:\n{e.ToString()}"); }
+                { MyLog.Default.WriteLine($"Nanite.Core.UpdateBeforeSimulation Error:\n{e.ToString()}"); }
         }
 
         private void ScanGrid()
