@@ -1,28 +1,17 @@
 using System;
 using System.Text;
-using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
-using VRageMath;
 using VRage.Game.Components;
-using VRage.Collections;
 using Sandbox.ModAPI;
-using Sandbox.Game.Localization;
 using VRage.ModAPI;
 using VRage.Utils;
 using Sandbox.Game.Entities;
 using VRage.Game.ModAPI;
 using VRage.Game;
 using Sandbox.Definitions;
-using Sandbox.ModAPI.Ingame;
-using Sandbox.ModAPI.Interfaces;
-using Sandbox.Game.EntityComponents;
 using Sandbox.Common.ObjectBuilders;
 using Ingame = Sandbox.ModAPI.Ingame;
 using Sandbox.ModAPI.Interfaces.Terminal;
-using SpaceEngineers.Game.ModAPI.Ingame;
-using VRage.Game.ObjectBuilders.Definitions;
-using IMyProjector = Sandbox.ModAPI.IMyProjector;
 using IMyTerminalBlock = Sandbox.ModAPI.IMyTerminalBlock;
 
 using NaniteConstructionSystem.Entities;
@@ -30,7 +19,6 @@ using NaniteConstructionSystem.Extensions;
 using NaniteConstructionSystem.Entities.Beacons;
 using NaniteConstructionSystem.Particles;
 using NaniteConstructionSystem.Settings;
-using NaniteConstructionSystem;
 using NaniteConstructionSystem.Integration;
 
 namespace NaniteConstructionSystem

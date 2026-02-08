@@ -160,6 +160,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                     NaniteDeconstructionGrid deconstruct = new NaniteDeconstructionGrid(item.CubeGrid);
 
+                    //todo: this perhaps needs some other way of scanning
                     CreateGridStack(NaniteGridGroup, deconstruct, (MyCubeGrid)item.CubeGrid, (MyCubeBlock)item);
                     m_validBeaconedGrids.Add(deconstruct);
 

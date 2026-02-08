@@ -189,26 +189,12 @@ namespace NaniteConstructionSystem.Entities
             m_constructionCubeBlock.UpgradeValues.Add("PowerNanites", 0f);
         }
 
-        private void Initialize()
+        private void Initialize(bool reInitialize = false)
         { // Actual init. This occurs once modapi is ready and updating.
             m_initialize = true;
 
             m_toolManager = new NaniteToolManager();
             m_particleManager = new NaniteParticleManager(this);
-
-            m_targets = new List<NaniteTargetBlocksBase>();
-            if (NaniteConstructionManager.Settings.ConstructionEnabled)
-                m_targets.Add(new NaniteConstructionTargets(this));
-            if (NaniteConstructionManager.Settings.ProjectionEnabled)
-                m_targets.Add(new NaniteProjectionTargets(this));
-            if (NaniteConstructionManager.Settings.CleanupEnabled)
-                m_targets.Add(new NaniteFloatingTargets(this));
-            if (NaniteConstructionManager.Settings.DeconstructionEnabled)
-                m_targets.Add(new NaniteDeconstructionTargets(this));
-            if (NaniteConstructionManager.Settings.MiningEnabled)
-                m_targets.Add(new NaniteMiningTargets(this));
-            if (NaniteConstructionManager.Settings.LifeSupportEnabled)
-                m_targets.Add(new NaniteLifeSupportTargets(this));
 
             m_effects = new List<NaniteBlockEffectBase>();
             m_effects.Add(new LightningBoltEffect((MyCubeBlock)m_constructionBlock));
@@ -227,23 +213,40 @@ namespace NaniteConstructionSystem.Entities
             m_soundEmitter.CustomVolume = 2f;
 
             m_inventoryManager = new NaniteConstructionInventory((MyEntity)m_constructionBlock);
+            m_targets = new List<NaniteTargetBlocksBase>();
+            if (NaniteConstructionManager.Settings.ConstructionEnabled)
+                m_targets.Add(new NaniteConstructionTargets(this));
+            if (NaniteConstructionManager.Settings.ProjectionEnabled)
+                m_targets.Add(new NaniteProjectionTargets(this));
+            if (NaniteConstructionManager.Settings.DeconstructionEnabled)
+                m_targets.Add(new NaniteDeconstructionTargets(this));
+            if (NaniteConstructionManager.Settings.CleanupEnabled)
+                m_targets.Add(new NaniteFloatingTargets(this));
+            if (NaniteConstructionManager.Settings.MiningEnabled)
+                m_targets.Add(new NaniteMiningTargets(this));
+            if (NaniteConstructionManager.Settings.LifeSupportEnabled)
+                m_targets.Add(new NaniteLifeSupportTargets(this));
 
-            ((IMyTerminalBlock)m_constructionBlock).AppendingCustomInfo += AppendingCustomInfo;
+            if (!reInitialize)
+            {
+                Sink = ((MyEntity)m_constructionBlock).Components.Get<MyResourceSinkComponent>();
+                PowerId = new MyDefinitionId(typeof(MyObjectBuilder_GasProperties), "Electricity");
+                
+                (m_constructionBlock).AppendingCustomInfo += AppendingCustomInfo;
+                
+                CheckGridGroup();
+                m_entityId = ConstructionBlock.EntityId;
 
-            Sink = ((MyEntity)m_constructionBlock).Components.Get<MyResourceSinkComponent>();
-            PowerId = new MyDefinitionId(typeof(MyObjectBuilder_GasProperties), "Electricity");
+                FactoryGroup = new List<NaniteConstructionBlock>();
+                FactoryGroup.Add(this);
 
-            CheckGridGroup();
-            m_entityId = ConstructionBlock.EntityId;
+                m_isFunctional = ConstructionBlock.IsFunctional;
 
-            FactoryGroup = new List<NaniteConstructionBlock>();
-            FactoryGroup.Add(this);
-
-            m_isFunctional = ConstructionBlock.IsFunctional;
-
-            if (!MyAPIGateway.Multiplayer.IsServer) {
-                MyAPIGateway.Multiplayer.RegisterMessageHandler(POWERUPDATEID, RecievePowerUpdate);
+                if (!MyAPIGateway.Multiplayer.IsServer) {
+                    MyAPIGateway.Multiplayer.RegisterMessageHandler(POWERUPDATEID, RecievePowerUpdate);
+                }
             }
+            
         }
 
         private bool FactoryIsRunning()
@@ -377,6 +380,9 @@ namespace NaniteConstructionSystem.Entities
                 
                 if (m_updateCount % 10800 == 0) {
                     try {
+                        
+                        var shouldPurge = false;
+                        
                         // inventory reset
                         // go through inventories connected with the nanite control facility
                         foreach (IMyInventory inventory in InventoryManager.connectedInventory) {
@@ -395,13 +401,12 @@ namespace NaniteConstructionSystem.Entities
                                         var inventoryItem = naniteItems[0];
                                         if (inventory.CanItemsBeAdded((inventoryItem.Amount * 2), inventoryItem.Content.GetId())) {
                                             localNaniteInventory.TransferItemTo(inventory, 0, null, null, null, true);
+                                            shouldPurge = true;
                                         }
                                     }
                                 }
                             }
                         }
-
-                        var shouldPurge = false;
                         
                         // ignored list reset
                         foreach (var item in m_targets.ToList()) {
@@ -409,14 +414,6 @@ namespace NaniteConstructionSystem.Entities
                                 continue;
 
                             if (item.PotentialIgnoredList.Count > 0 && Master == null) {
-                                item.ComponentsRequired.Clear();
-                                item.TargetList.Clear();
-                                item.PotentialIgnoredList.Clear();
-                                item.PotentialTargetList.Clear();
-                                item.IgnoredCheckedTimes.Clear();
-                                item.PotentialTargetListCount = 0;
-                                item.ClearInternalTargetList();
-
                                 shouldPurge = true;
                             }
 
@@ -428,21 +425,24 @@ namespace NaniteConstructionSystem.Entities
                                 {
                                     shouldPurge = true;
                                     m_mismatchCount = 0;
-                                    MyLog.Default.WriteLine($"##MOD: nanites scaning mismatch fix");
                                 }
                             }
                         }
 
                         if (shouldPurge && Master == null)
                         {
-                            InventoryManager.ComponentsRequired.Clear();
-                            ScanForTargets(out m_scanningActive);
-                            if (!m_scanningActive)
+                            var shouldEnable = m_factoryState != FactoryStates.Disabled;
+                            
+                            m_targets.Clear();
+                            Initialize(true);
+
+                            if (shouldEnable)
                             {
-                                ScanBlocksCache = new ConcurrentBag<BlockTarget>();
-                                m_totalScanBlocksCount = 0;
+                                m_factoryState = FactoryStates.Enabled;
+                                m_lastState = FactoryStates.Enabled;
                             }
                         }
+                        
                     } catch(Exception exc) {
                         MyLog.Default.WriteLine($"##MOD: nanites ERROR {exc}");
                     }

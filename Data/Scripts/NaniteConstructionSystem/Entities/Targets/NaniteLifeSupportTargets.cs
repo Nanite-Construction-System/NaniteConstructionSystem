@@ -12,6 +12,8 @@ using VRage.Game;
 using NaniteConstructionSystem.Particles;
 using NaniteConstructionSystem.Extensions;
 using Sandbox.Game;
+using Sandbox.Game.Components;
+using VRage.Utils;
 
 namespace NaniteConstructionSystem.Entities.Targets
 {
@@ -300,15 +302,18 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private bool DoesTargetNeedLifeSupport(IMyPlayer player)
         {
-            if (player == null)
+            if (player == null || player.Character == null)
                 return false;
+            
+            var statComp = player.Character.Components.Get<MyCharacterStatComponent>();
+            var oxygen = MyVisualScriptLogicProvider.GetPlayersOxygenLevel(player.IdentityId);
+            var hydrogen = MyVisualScriptLogicProvider.GetPlayersHydrogenLevel(player.IdentityId);
+            var energy = MyVisualScriptLogicProvider.GetPlayersEnergyLevel(player.IdentityId);
 
-            float health = MyVisualScriptLogicProvider.GetPlayersHealth(player.IdentityId);
-            float oxygen = MyVisualScriptLogicProvider.GetPlayersOxygenLevel(player.IdentityId);
-            float hydrogen = MyVisualScriptLogicProvider.GetPlayersHydrogenLevel(player.IdentityId);
-            float energy = MyVisualScriptLogicProvider.GetPlayersEnergyLevel(player.IdentityId);
+            MyEntityStat healthStat;
+            statComp.TryGetStat(MyStringHash.GetOrCompute("Health"), out healthStat);
 
-            if (health < 100f
+            if (healthStat.CurrentRatio < 1f
                 || (oxygen < m_o2RefillLevel && m_hasOxygen)
                 || (hydrogen < m_h2RefillLevel && m_hasHydrogen)
                 || energy < m_energyRefillLevel)
@@ -319,19 +324,22 @@ namespace NaniteConstructionSystem.Entities.Targets
 
         private bool HealTarget(IMyPlayer player)
         {
-            if (player == null)
+            if (player == null || player.Character == null)
                 return false;
 
-            float health = MyVisualScriptLogicProvider.GetPlayersHealth(player.IdentityId);
+            var statComp = player.Character.Components.Get<MyCharacterStatComponent>();
 
-            if (health <= 0)
+            MyEntityStat healthStat;
+            statComp.TryGetStat(MyStringHash.GetOrCompute("Health"), out healthStat);
+
+            if (healthStat.Value <= 0)
                 return true;
 
-            if (health + m_healthRefillPerTick <= 100f)
-                MyVisualScriptLogicProvider.SetPlayersHealth(player.IdentityId, health + m_healthRefillPerTick);
+            if (healthStat.CurrentRatio < 1f)
+                healthStat.Increase(m_healthRefillPerTick, null);
             else
             {
-                MyVisualScriptLogicProvider.SetPlayersHealth(player.IdentityId, 100f);
+                healthStat.Value = healthStat.MaxValue;
                 return true;
             }
 
