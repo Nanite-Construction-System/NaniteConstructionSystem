@@ -214,6 +214,27 @@ namespace NaniteConstructionSystem.Entities.Targets
                 {Logging.Instance.WriteLine(string.Format("OpenBag Error(): {0}", ex.ToString()));}
         }
 
+        private void Forage(IMyEntity lootEntity)
+        {
+            MyForageableEntity forage = lootEntity as MyForageableEntity;
+            if (forage == null)
+                return;
+            
+            forage.Forage(m_constructionBlock.EntityId);
+        }
+
+        private void OpenContainer(IMyEntity lootEntity)
+        {
+            MyCargoContainerInventoryBagEntity temporaryContainer = lootEntity as MyCargoContainerInventoryBagEntity;
+            if (temporaryContainer == null)
+                return;
+            
+            foreach (var item in temporaryContainer.GetInventory().GetItems().ToList())
+                MyFloatingObjects.Spawn(new MyPhysicalInventoryItem(item.Amount, item.Content), lootEntity.WorldMatrix.Translation, lootEntity.WorldMatrix.Forward, lootEntity.WorldMatrix.Up);
+            
+            temporaryContainer.Close();
+        }
+
         private void OpenCharacter(IMyEntity charEntity)
         {
             try
@@ -241,6 +262,24 @@ namespace NaniteConstructionSystem.Entities.Targets
                 if (transfer)
                     MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         {OpenBag(target);});
+
+                return true;
+            }
+
+            if (target is MyForageableEntity)
+            {
+                if (transfer)
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {Forage(target);});
+
+                return true;
+            }
+
+            if (target is MyCargoContainerInventoryBagEntity)
+            {
+                if (transfer)
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {OpenContainer(target);});
 
                 return true;
             }
@@ -412,7 +451,7 @@ namespace NaniteConstructionSystem.Entities.Targets
             m_entities.Clear();
             try
             {
-                MyAPIGateway.Entities.GetEntities(m_entities, x => x is IMyFloatingObject || x is MyInventoryBagEntity || x is IMyCharacter);
+                MyAPIGateway.Entities.GetEntities(m_entities, x => x is IMyFloatingObject || x is MyInventoryBagEntity || x is IMyCharacter || x is MyForageableEntity || x is MyCargoContainerInventoryBagEntity);
             }
             catch
             {

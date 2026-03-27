@@ -312,7 +312,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
             MyEntityStat healthStat;
             statComp.TryGetStat(MyStringHash.GetOrCompute("Health"), out healthStat);
-
+            
             if (healthStat.CurrentRatio < 1f
                 || (oxygen < m_o2RefillLevel && m_hasOxygen)
                 || (hydrogen < m_h2RefillLevel && m_hasHydrogen)
@@ -326,9 +326,9 @@ namespace NaniteConstructionSystem.Entities.Targets
         {
             if (player == null || player.Character == null)
                 return false;
-
+            
             var statComp = player.Character.Components.Get<MyCharacterStatComponent>();
-
+            
             MyEntityStat healthStat;
             statComp.TryGetStat(MyStringHash.GetOrCompute("Health"), out healthStat);
 

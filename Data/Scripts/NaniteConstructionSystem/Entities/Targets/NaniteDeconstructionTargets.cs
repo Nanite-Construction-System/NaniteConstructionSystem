@@ -330,22 +330,6 @@ namespace NaniteConstructionSystem.Entities.Targets
                 CreateDeconstructionParticle(target);
         }
 
-        private void RemoveGridTarget(IMyCubeGrid grid)
-        {
-            foreach (var item in m_validBeaconedGrids)
-                if (item.MainGrid == grid)
-                {
-                    foreach (var block in item.RemoveList)
-                    {
-                        PotentialTargetList.Remove(block);
-                        TargetList.Remove(block);
-                    }
-                    m_validBeaconedGrids.Remove(item);
-                    break;
-                }
-
-        }
-
         private void CreateDeconstructionParticle(IMySlimBlock target)
         {
             m_targetBlocks.AddOrUpdate(target, 0, (key, oldValue) => 0);
