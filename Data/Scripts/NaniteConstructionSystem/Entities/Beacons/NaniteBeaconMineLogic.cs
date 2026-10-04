@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Sandbox.Common.ObjectBuilders;
 using VRage.Game.Components;
 using VRage.ObjectBuilders;
@@ -28,6 +29,12 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
                 Logging.Instance.WriteLine($"ADDING mining Beacon: {Entity.EntityId}", 1);
                 m_beacon = new NaniteBeaconMine((IMyFunctionalBlock)Entity);
+                var terminalBlock = Entity as IMyTerminalBlock;
+                if (terminalBlock != null)
+                {
+                    terminalBlock.AppendingCustomInfo += AppendTerminalInfo;
+                    terminalBlock.RefreshCustomInfo();
+                }
             } catch(Exception exc) {
                 MyLog.Default.WriteLine($"##MOD: nanites UpdateOnceBeforeFrame, ERROR: {exc}");
             }
@@ -35,11 +42,32 @@ namespace NaniteConstructionSystem.Entities.Beacons
 
         public override void Close()
         {
-            if (m_beacon == null)
+            var terminalBlock = Entity as IMyTerminalBlock;
+            if (terminalBlock != null)
+                terminalBlock.AppendingCustomInfo -= AppendTerminalInfo;
+
+            if (m_beacon != null)
+                m_beacon.Close();
+
+            base.Close();
+        }
+
+        private void AppendTerminalInfo(IMyTerminalBlock block, StringBuilder info)
+        {
+            info.Clear();
+
+            var functionalBlock = block as IMyFunctionalBlock;
+            if (functionalBlock == null)
                 return;
 
-            m_beacon.Close();
-            base.Close();
+            var status = !functionalBlock.IsFunctional
+                ? "Incomplete"
+                : !functionalBlock.Enabled ? "Disabled" : "Enabled";
+
+            info.AppendLine("Nanite Mining Beacon");
+            info.AppendLine($"Status: {status}");
+            info.AppendLine($"Factory range: {NaniteConstructionManager.Settings.MiningMaxDistance:0.#} m");
+            info.AppendLine("Ore scan radius: 40 m");
         }
 
         public override void UpdateBeforeSimulation10()

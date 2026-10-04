@@ -123,7 +123,7 @@
     <!--Block Groups -->
     <BlockVariantGroups>
 
-        <!-- Reactors -->
+        <!-- -->
 
         <BlockVariantGroup>
             <Id Type="MyObjectBuilder_BlockVariantGroup" Subtype="NaniteFacilityGroup"/>
@@ -618,7 +618,7 @@
             <DamageEffectId>214</DamageEffectId>
             <DamagedSound>ParticleElectrical</DamagedSound>
             <EmissiveColorPreset>Default</EmissiveColorPreset>
-            <MaxPowerOutput>0.1</MaxPowerOutput>
+            <MaxPowerOutput>0.01</MaxPowerOutput>
             <ResourceSinkGroup>BatteryBlock</ResourceSinkGroup>
             <RequiredPowerInput>0.2</RequiredPowerInput>
             <AdaptibleInput>true</AdaptibleInput>
@@ -718,7 +718,7 @@
                 <SubtypeId>NaniteDeconstructUpgrade</SubtypeId>
             </Id>
             <DisplayName>Nanite Deconstructor Upgrade</DisplayName>
-            <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+            <Icon>Textures\GUI\Icons\Cubes\NaniteDeconstructorIcon.dds</Icon>
             <CubeSize>Large</CubeSize>
             <BlockTopology>TriangleMesh</BlockTopology>
             <Size x="1" y="1" z="1"/>
@@ -816,7 +816,7 @@
                 <SubtypeId>NaniteCleanupUpgrade</SubtypeId>
             </Id>
             <DisplayName>Nanite Cleanup Upgrade</DisplayName>
-            <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+            <Icon>Textures\GUI\Icons\Cubes\NaniteCleanupIcon.dds</Icon>
             <CubeSize>Large</CubeSize>
             <BlockTopology>TriangleMesh</BlockTopology>
             <Size x="1" y="1" z="1"/>
@@ -865,7 +865,7 @@
                 <SubtypeId>NaniteMiningUpgrade</SubtypeId>
             </Id>
             <DisplayName>Nanite Mining Upgrade</DisplayName>
-            <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+            <Icon>Textures\GUI\Icons\Cubes\NaniteMiningUpgradeIcon.dds</Icon>
             <CubeSize>Large</CubeSize>
             <BlockTopology>TriangleMesh</BlockTopology>
             <Size x="1" y="1" z="1"/>
@@ -915,7 +915,7 @@
                 <SubtypeId>NaniteLifeSupportUpgrade</SubtypeId>
             </Id>
             <DisplayName>Nanite Life Support Upgrade</DisplayName>
-            <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+            <Icon>Textures\GUI\Icons\Cubes\NaniteLifeSupportIcon.dds</Icon>
             <CubeSize>Large</CubeSize>
             <BlockTopology>TriangleMesh</BlockTopology>
             <Size x="1" y="1" z="1"/>
@@ -965,7 +965,7 @@
                 <SubtypeId>NaniteSpeedUpgrade</SubtypeId>
             </Id>
             <DisplayName>Nanite Speed Upgrade</DisplayName>
-            <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+            <Icon>Textures\GUI\Icons\Cubes\NaniteSpeedUpgradeIcon.dds</Icon>
             <CubeSize>Large</CubeSize>
             <BlockTopology>TriangleMesh</BlockTopology>
             <Size x="1" y="1" z="1"/>
@@ -1012,7 +1012,7 @@
                 <SubtypeId>NanitePowerUpgrade</SubtypeId>
             </Id>
             <DisplayName>Nanite Power Reduction Upgrade</DisplayName>
-            <Icon>Textures\GUI\Icons\Cubes\NaniteConstructionIcon.dds</Icon>
+            <Icon>Textures\GUI\Icons\Cubes\NanitePowerUpgradeIcon.dds</Icon>
             <CubeSize>Large</CubeSize>
             <BlockTopology>TriangleMesh</BlockTopology>
             <Size x="1" y="1" z="1"/>

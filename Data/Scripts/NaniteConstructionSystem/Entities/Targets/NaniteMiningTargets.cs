@@ -286,7 +286,7 @@ namespace NaniteConstructionSystem.Entities.Targets
 
                             List<MyVoxelBase> detected = new List<MyVoxelBase>();
                             Vector3D position = item.GetPosition();
-                            BoundingSphereD boundingSphereD = new BoundingSphereD(position, 20);
+                            BoundingSphereD boundingSphereD = new BoundingSphereD(position, 40);
                             MyGamePruningStructure.GetAllVoxelMapsInSphere(ref boundingSphereD, detected);
                             float randomFloat = (float)(rnd.Next(4, 12) / 10.0);
                             float randomOffset = (float)(rnd.Next(-4, 7) / 10.0);
